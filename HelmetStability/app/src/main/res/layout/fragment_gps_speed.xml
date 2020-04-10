@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="0dp"
+    android:id="@+id/speed_record"
+    android:background="@drawable/dialog_border"
+    android:layout_centerVertical="true">
+
+    <Button
+        android:id="@+id/stop_btn"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:background="@drawable/pause"
+        android:textColor="@android:color/black"
+        android:textSize="17sp"
+        android:layout_gravity="center"/>
+    <TextView android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:id="@+id/gps_speed"
+        android:layout_below="@+id/stop_btn"
+        android:layout_marginTop="16dp"/>
+    <TextView android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:id="@+id/gps_location_accuracy"
+        android:layout_below="@+id/stop_btn"
+        android:layout_toLeftOf="@id/gps_speed"
+        android:layout_marginTop="16dp"
+        android:layout_marginLeft="16dp"/>
+    <TextView android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:id="@+id/gps_speed_accuracy"
+        android:layout_below="@+id/stop_btn"
+        android:layout_toLeftOf="@id/gps_location_accuracy"
+        android:layout_marginTop="16dp"
+        android:layout_marginLeft="16dp"/>
+</RelativeLayout>

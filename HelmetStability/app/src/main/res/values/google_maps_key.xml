@@ -1,0 +1,7 @@
+<resources>
+<!--GTS Account-->
+<!--    <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">AIzaSyAKO30Oiqwz_YbHw4On-MbumaFBCKyUkzs</string>-->
+<!--DKT Account-->
+        <string name="google_maps_key" templateMergeStrategy="preserve" translatable="false">AIzaSyB4GFu1vEEBfNY1SkzfA_MB_fWXENgsAhI</string>
+
+</resources>

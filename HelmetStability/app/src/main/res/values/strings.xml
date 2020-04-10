@@ -1,0 +1,157 @@
+<resources>
+    <string name="app_name">Helmet Stability</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="map_fragment_navigation">Click to open map</string>
+    <string name="hello_message">Hello there!</string>
+    <string name="login">Login</string>
+    <string name="register">Register</string>
+    <string name="verify">Verify</string>
+    <string name="otp_verified">OTP Verified</string>
+    <string name="next">Next</string>
+    <string name="enter_otp_msg">Please check your sms </string>
+    <string name="incorrect_otp">X Incorrect OTP</string>
+    <string name="enter_details">Please enter the details</string>
+    <string name="welcome_msg">Welcome to Helmet Stability</string>
+    <string name="enter_name">Enter your name</string>
+    <string name="enter_phone">Enter phone no.</string>
+    <string name="enter_email">Enter email address</string>
+    <string name="enter_otp">Enter the 6 digit OTP</string>
+    <string name="invalid_n_resent_otp">Didn\'t get the OTP? RESEND OTP.</string>
+    <string name="regiser_now">Don\’t have an account yet, <font color="#C029B2">Register Now</font></string>
+    <string name="server_error">Internal Server Error</string>
+    <string name="name_prompt"><![CDATA[<Profile Name>]]></string>
+    <string name="height_prompt">Height(cm)</string>
+    <string name="gender_prompt">Gender</string>
+    <string name="age_prompt">Age</string>
+    <string name="weight_prompt">Weight(kg)</string>
+    <string name="current_height">130cm</string>
+    <string name="save_prompt">SAVE</string>
+    <string name="submit">SUBMIT</string>
+    <string name="default_height">130</string>
+    <string name="default_weight">30</string>
+    <string name="view_profile">View Profile</string>
+    <string name="edit_profile">Edit Profile</string>
+    <string name="cancel">Cancel</string>
+
+    <!--  DeviceListActivity -->
+    <string name="scanning">scanning for devices....</string>
+    <string name="select_device">Select a device to connect</string>
+    <string name="none_paired">No devices have been paired</string>
+    <string name="none_found">No devices found</string>
+    <string name="title_paired_devices">Paired Devices</string>
+    <string name="title_other_devices">Other Available Devices</string>
+    <string name="button_scan">Scan for devices</string>
+    <string name="bt_not_enabled_leaving">Bluetooth was not enabled. Leaving Bluetooth Chat.</string>
+
+    <!-- Menu items -->
+    <string name="menu_scan">Scan</string>
+    <string name="menu_stop">Stop</string>
+    <string name="ble_not_supported">BLE is not supported</string>
+    <string name="error_bluetooth_not_supported">Bluetooth not supported.</string>
+    <string name="unknown_device">Unknown device</string>
+    <string name="unknown_characteristic">Unknown characteristic</string>
+    <string name="unknown_service">Unknown service</string>
+    <string name="Device1">Device 1</string>
+    <string name="Device2">Device 2</string>
+    <string name="Device3">Device 3</string>
+    <string name="conn_status">Connection Status</string>
+
+    <!-- UI String -->
+    <string name="disconnect">Disconnect All</string>
+    <string name="connected">Connected</string>
+    <string name="disconnected">Scan</string>
+    <string name="scan_ble">Scan</string>
+    <string name="start_button">Start</string>
+    <string name="stop_button">Stop</string>
+    <string name="connect_ble">Connect</string>
+    <string name="device1_tv">Helmet</string>
+    <string name="device2_tv">Watch</string>
+    <string name="device3_tv">HR Belt</string>
+
+
+    <string name="hr1">Hr1 :</string>
+    <string name="hr2">Hr2 :</string>
+    <string name="hr3">Hr3 :</string>
+    <string name="hr4">Hr4 :</string>
+    <string name="hr5">Hr5 :</string>
+    <string name="hr6">Hr6 :</string>
+    <string name="hr7">Hr7 :</string>
+    <string name="hr8">Hr8 :</string>
+
+    <string name="Temp1">T1 :</string>
+    <string name="Temp2">T2 :</string>
+    <string name="Temp3">T3 :</string>
+    <string name="Temp4">T4 :</string>
+    <string name="Temp5">T5 :</string>
+    <string name="Temp6">T6 :</string>
+    <string name="Temp7">T7 :</string>
+    <string name="Temp8">T8 :</string>
+
+    <string name="sensation_t">Sensation_T :</string>
+    <string name="sensation_h">Sensation_H :</string>
+    <string name="belt_hr">HR :</string>
+    <string name="gps_speed">Speed :</string>
+    <string name="search_keyword">Enter text</string>
+    <string name="battery_monitor">Battery Monitor</string>
+    <string name="title_activity_map">MapActivity</string>
+    <string name="choiceMenu">Choose an option below</string>
+    <string name="device1">Device1</string>
+    <string name="device2">Device2</string>
+    <string name="GPS_speed">GPS Speed</string>
+    <string name="step_count">Step Count</string>
+    <string name="graphOne">Graph 1</string>
+    <string name="graphTwo">Graph 2</string>
+    <string name="ACCDATA">ACC</string>
+    <string name="plot_graph">PLOT_GRAPH</string>
+    <string name="GYRDATA">GYR</string>
+    <string name="MAGDATA">MAG</string>
+
+    <string name="map_fragment_title">Map Tracker</string>
+    <string name="graph_fragment_title">Session Graphs</string>
+    <string name="login_fragment_title">Login page</string>
+    <string name="device_view_title">BLE Connections</string>
+    <string name="profile_view_title">Your Profile</string>
+    <string name="activity_type_name">Activity Type</string>
+    <string name="last_activity">Session 7</string>
+    <string name="activity_duration_name">Activity Duration</string>
+    <string name="activity_recorded_data_name">Data Recorded in Activity</string>
+    <string name="activity_qty_data_name">Quantity of data recorded</string>
+    <string name="sample_bullet_point"><![CDATA[ -> ]]></string>
+    <string name="all_activities">All Activities</string>
+    <string name="all_activities_duration">All activities duration</string>
+    <string name="all_activities_raw_data_recorded">Number of raw data recorded</string>
+    <string name="all_activities_qty_data">Quantity of raw data recorded</string>
+    <string name="more_info">Firmware and algo details</string>
+    <string name="output_details">OUTPUT of algo under test</string>
+    <string name="calender_icon_text">Calendar</string>
+    <string name="calendar_fragment_title_text">Calendar</string>
+    <string name="calendar_icon_text">Calendar</string>
+    <string name="seven_sessions_summary">Session Summaries</string>
+    <string name="start_gps_indoor">Indoor</string>
+    <string name="start_gps_outdoor">Outdoor</string>
+    <string name="close_popup">Close</string>
+    <string name="other_sports">OTHER</string>
+    <string name="indoor">indoor</string>
+    <string name="outdoor">outdoor</string>
+    <string name="jumprope">jumprope</string>
+    <string name="badminton">badminton</string>
+    <string name="table_tennis">Table Tennis</string>
+    <string name="default_data_level">50%</string>
+    <string name="date_placeholder">Date</string>
+    <string name="delete">DELETE</string>
+    <string name="add_note">Add Note</string>
+    <string name="save_edit">Edit/Save</string>
+    <string name="time_placeholder">Time</string>
+    <string name="session_name">Session Name</string>
+    <string name="duration_placeholder">Duration</string>
+    <string name="type_of_data_placeholder">Type of data</string>
+    <string name="size_placeholder">Size</string>
+    <string name="text_note">Text Note</string>
+    <string name="activity_outdoor">outdoor</string>
+    <string name="left_caret"><![CDATA[<]]></string>
+    <string name="right_caret"><![CDATA[>]]></string>
+<!--    <string name="year_number_placeholder"><![CDATA[<Year>]]></string>-->
+    <string name="year_number_placeholder">2020</string>
+</resources>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:drawable="@drawable/concentric_circle" android:id="@+id/seek_circle"/>
+    <item>
+        <rotate android:drawable="@drawable/progress_ring" android:id="@+id/seek_position"
+            android:fromDegrees="0" android:toDegrees="36"
+            android:pivotX="0"
+            android:pivotY="0.5"/>
+    </item>
+</layer-list>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <dimen name="TnH_layout">100dp</dimen>
+    <dimen name="value_field">40dp</dimen>
+    <dimen name="margin_start">6dp</dimen>
+    <dimen name="key_field">40dp</dimen>
+    <dimen name="left_padding">7dp</dimen>
+    <dimen name="main_left_padding">15dp</dimen>
+    <dimen name="single_ht">25dp</dimen>
+    <dimen name="header_size">15sp</dimen>
+    <dimen name="fab_margin">16dp</dimen>
+    <dimen name="card_height">40dp</dimen>
+    <dimen name ="edit_text_padding">10dp</dimen>
+    <dimen name ="text_view_padding">10dp</dimen>
+    <dimen name="graph_height">250dp</dimen>
+    <dimen name="modal_height">240dp</dimen>
+    <dimen name="action_bar_height">160dp</dimen>
+    <dimen name="card_radius">8dp</dimen>
+    <dimen name="card_padding">24dp</dimen>
+    <!-- overrides-->
+    <dimen name="design_bottom_navigation_text_size" tools:override="true">12sp</dimen>
+    <dimen name="design_bottom_navigation_active_text_size" tools:override="true">12sp</dimen>
+    <dimen name="bottom_navigation_icon_size">32dp</dimen>
+    <dimen name="card_list_gap">12dp</dimen>
+    <dimen name="card_list_width">280dp</dimen>
+    <dimen name="sub_toolbar_height">36dp</dimen>
+</resources>

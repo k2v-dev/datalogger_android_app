@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="@dimen/header_size">
+
+    <TextView android:layout_height="match_parent"
+        android:layout_width="match_parent"
+        android:text="@string/choiceMenu"
+        android:gravity="center"
+        android:textSize="20sp">
+    </TextView>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="#c0c0c0"
+        android:layout_margin="@dimen/card_height"/>
+
+    <Button
+        android:id="@+id/plotGraphNineAxisButton"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/card_height"
+        android:text="@string/device1"
+        android:background="@drawable/button_rounded"
+        android:layout_marginBottom="5dp"
+        />
+    <Button
+        android:id="@+id/plotGraphThreeAxisButton"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/card_height"
+        android:text="@string/device2"
+        android:background="@drawable/button_rounded"
+        android:layout_marginBottom="5dp"
+        android:layout_marginTop="5dp"
+        />
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/card_height"
+        android:id="@+id/gpsSpeedButton"
+        android:text="@string/GPS_speed"
+        android:background="@drawable/button_rounded"
+        android:layout_marginBottom="5dp"
+        android:layout_marginTop="5dp"
+        />
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/card_height"
+        android:id="@+id/stepCountButton"
+        android:text="@string/step_count"
+        android:background="@drawable/button_rounded"
+        android:layout_marginBottom="5dp"
+        android:layout_marginTop="5dp"
+        />
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/card_height"
+        android:id="@+id/sampleGraphButton1"
+        android:text="@string/graphOne"
+        android:background="@drawable/button_rounded"
+        android:layout_marginBottom="5dp"
+        android:layout_marginTop="5dp"
+        />
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/card_height"
+        android:id="@+id/sampleGraphButton2"
+        android:text="@string/graphTwo"
+        android:background="@drawable/button_rounded"
+        android:layout_marginBottom="5dp"
+        android:layout_marginTop="5dp"
+        />
+
+    <Button
+        android:id="@+id/cancel_menu"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/card_height"
+        android:text="@string/cancel"
+        android:background="@drawable/button_rounded"
+        android:layout_marginBottom="5dp"
+        android:layout_marginTop="5dp"
+        />
+</LinearLayout>

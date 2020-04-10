@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="indoor_sports_array">
+        <item>Tennis</item>
+        <item>Jump Rope</item>
+        <item>Table Tennis</item>
+        <item>Other</item>
+    </string-array>
+    <string-array name="outdoor_sports_array" >
+        <item>Cycling</item>
+        <item>Walking</item>
+        <item>Running</item>
+        <item>Other</item>
+    </string-array>
+</resources>

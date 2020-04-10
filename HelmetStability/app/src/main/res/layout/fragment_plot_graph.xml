@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    android:background="@color/white"
+    android:scrollbars="none">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+        <RelativeLayout
+            android:id="@+id/accFrame"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/graph_height"
+            >
+
+            <com.github.mikephil.charting.charts.LineChart
+                android:id="@+id/accelerometerChart"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/graph_height"
+                android:layout_margin="10dp"
+                android:layout_centerInParent="true"
+                android:background="@drawable/dialog_border"
+                android:padding="5dp"/>
+
+            <TextView
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:layout_gravity="top|center"
+                android:layout_alignParentTop="true"
+                android:layout_centerInParent="true"
+                android:layout_alignTop="@id/accelerometerChart"
+                android:text="@string/ACCDATA"
+                android:layout_marginTop="10dp"
+                android:textSize="20sp"
+                android:textColor="@color/black"
+                android:layout_marginBottom="25dp"/>
+
+
+            <ImageView
+                android:id="@+id/accFS"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_alignEnd="@id/accelerometerChart"
+                android:layout_alignBottom="@id/accelerometerChart"
+                android:layout_gravity="bottom|end"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginEnd="0dp"
+                android:layout_marginBottom="10dp"
+                android:contentDescription="@string/plot_graph"
+                android:src="@drawable/full_screen_launcher_foreground" />
+
+        </RelativeLayout>
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/graph_height"
+            android:id="@+id/gyrFrame"
+            >
+
+            <com.github.mikephil.charting.charts.LineChart
+                android:id="@+id/gyroscopeChart"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/graph_height"
+                android:layout_margin="10dp"
+                android:layout_centerInParent="true"
+                android:background="@drawable/dialog_border"
+                android:padding="15dp" />
+
+            <TextView
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:layout_gravity="top|center"
+                android:layout_alignParentTop="true"
+                android:layout_centerInParent="true"
+                android:layout_alignTop="@id/gyroscopeChart"
+                android:text="@string/GYRDATA"
+                android:layout_marginTop="10dp"
+                android:textSize="20sp"
+                android:textColor="@color/black"
+                android:layout_marginBottom="25dp"/>
+
+            <ImageView
+                android:id="@+id/gyroFS"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_alignEnd="@id/gyroscopeChart"
+                android:layout_alignBottom="@id/gyroscopeChart"
+                android:layout_gravity="bottom|end"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginEnd="0dp"
+                android:layout_marginBottom="10dp"
+                android:contentDescription="@string/plot_graph"
+                android:src="@drawable/full_screen_launcher_foreground" />
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/graph_height"
+            android:id="@+id/magFrame">
+
+            <com.github.mikephil.charting.charts.LineChart
+                android:id="@+id/magnetometerChart"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/graph_height"
+                android:layout_gravity="center"
+                android:layout_margin="10dp"
+                android:layout_centerInParent="true"
+                android:background="@drawable/dialog_border"
+                android:padding="5dp" />
+
+            <TextView
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:layout_gravity="top|center"
+                android:layout_alignParentTop="true"
+                android:layout_centerInParent="true"
+                android:layout_alignTop="@id/magnetometerChart"
+                android:text="@string/MAGDATA"
+                android:layout_marginTop="10dp"
+                android:textSize="20sp"
+                android:textColor="@color/black"
+                android:layout_marginBottom="25dp"/>
+
+
+            <ImageView
+                android:id="@+id/magFS"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_alignEnd="@id/magnetometerChart"
+                android:layout_alignBottom="@id/magnetometerChart"
+                android:layout_gravity="bottom|end"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginEnd="0dp"
+                android:layout_marginBottom="10dp"
+                android:contentDescription="@string/plot_graph"
+                android:src="@drawable/full_screen_launcher_foreground" />
+
+        </RelativeLayout>
+
+    </LinearLayout>
+
+</ScrollView>

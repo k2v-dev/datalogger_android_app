@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@color/lightgray"
+    android:id="@+id/map_fragment"
+    android:orientation="vertical"
+    android:nestedScrollingEnabled="false">
+
+    <!--    <com.google.android.gms.maps.MapView-->
+    <!--        android:id="@+id/map"-->
+    <!--        android:nestedScrollingEnabled="false"-->
+    <!--        android:layout_width="match_parent"-->
+    <!--        android:layout_height="match_parent"/>-->
+
+    <LinearLayout
+        android:id="@+id/session_name_bar"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/sub_toolbar_height"
+        android:orientation="horizontal"
+        android:visibility="visible">
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.25"
+            android:textAlignment="center"
+            android:text="@string/date_placeholder"/>
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.25"
+            android:textAlignment="center"
+            android:text="@string/time_placeholder"/>
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.5"
+            android:textAlignment="center"
+            android:text="@string/session_name"/>
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/activity_duration_bar"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/sub_toolbar_height"
+        android:orientation="horizontal"
+        android:visibility="visible">
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.5"
+            android:gravity="center"
+            android:text="@string/duration_placeholder"/>
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.5"
+            android:gravity="center"
+            android:text="@string/activity_type_name"/>
+    </LinearLayout>
+
+<!--    <View-->
+<!--        android:id="@+id/indoor_timeline"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="440dp"-->
+<!--        android:layout = "@layout/fragment_indoor_tracker"-->
+<!--        android:visibility="gone"-->
+<!--        />-->
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/indoor_recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="420dp"
+        android:background="@color/white"
+        android:clipToPadding="false"
+        tools:listitem="@layout/item_timeline"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        />
+
+
+    <LinearLayout
+        android:id="@+id/data_received_bar"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/sub_toolbar_height"
+        android:orientation="horizontal"
+        android:visibility="visible"
+        android:layout_gravity="bottom">
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.5"
+            android:textAlignment="viewStart"
+            android:text="@string/type_of_data_placeholder"/>
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.5"
+            android:textAlignment="center"
+            android:text="@string/size_placeholder"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/text_note_bar"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/sub_toolbar_height"
+        android:orientation="horizontal"
+        android:visibility="visible"
+        android:layout_gravity="bottom">
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textAlignment="center"
+            android:text="@string/text_note"/>
+    </LinearLayout>
+
+</LinearLayout>

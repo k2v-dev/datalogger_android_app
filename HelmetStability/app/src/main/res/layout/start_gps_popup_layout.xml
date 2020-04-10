@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_height="wrap_content"
+    android:layout_width="match_parent">
+    <LinearLayout
+        android:orientation="vertical" android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/start_gps_popup">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:orientation="vertical">
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/close_gps_speed_popup"
+                android:src="@drawable/ic_close_black_24dp"
+                android:contentDescription="@string/close_popup" />
+        </LinearLayout>
+
+        <RadioGroup
+                android:layout_width="280dp"
+                android:layout_height="280dp"
+                android:id="@+id/sports_choice"
+                android:orientation="vertical">
+                <RadioButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/indoor_sport_choice"
+                    android:text="@string/start_gps_indoor"/>
+                <Spinner
+                    android:layout_width="160dp"
+                    android:layout_height="wrap_content"
+                    android:id = "@+id/indoor_sport_options"
+                    android:layout_gravity="end"
+                    android:layout_marginEnd="24dp"/>
+                <EditText
+                    android:layout_width="250dp"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/indoor_other_sport_et"
+                    android:visibility = "gone"/>
+
+            <View
+                android:id="@+id/view4"
+                android:layout_width="match_parent"
+                android:layout_height="5dp"
+                android:layout_marginStart="35dp"
+                android:layout_marginTop="25dp"
+                android:layout_marginEnd="35dp"
+                android:background="@drawable/divider" />
+
+
+                <RadioButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/outdoor_sport_choice"
+                    android:text="@string/start_gps_outdoor"/>
+                <Spinner
+                    android:layout_width="160dp"
+                    android:layout_height="wrap_content"
+                    android:id = "@+id/outdoor_sport_options"
+                    android:layout_gravity="end"
+                    android:layout_marginEnd="24dp"/>
+                <EditText
+                    android:layout_width="250dp"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/outdoor_other_sport_et"
+                    android:visibility="gone"/>
+
+        </RadioGroup>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:orientation="vertical">
+            <Button
+                android:layout_width="180dp"
+                android:layout_height="match_parent"
+                android:id = "@+id/gps_speed_start"
+                android:text="@string/start_button"
+                android:layout_gravity="center"/>
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    android:background="#7F000000">
+
+    <LinearLayout
+        android:id="@+id/custom_dialog"
+        android:layout_width="320dp"
+        android:layout_height="480dp"
+        android:orientation="vertical"
+        android:background="@drawable/dialog_border"
+        android:layout_gravity="center">
+
+
+    <ImageView
+        android:id="@+id/close_marker_note_popup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_close_black_24dp"
+        android:text="@string/date_placeholder"
+        android:contentDescription="@string/close_popup" />
+
+    <TextView
+        android:id="@+id/date_time_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAlignment="center"
+        android:padding="4dp"
+        android:text="@string/date_placeholder"/>
+
+    <EditText
+        android:id="@+id/text_editor_view"
+        android:layout_width="280dp"
+        android:layout_height="360dp"
+        android:maxLines="8"
+        android:maxLength="2000"
+        android:background="@drawable/text_editor_border"
+        android:layout_gravity="center"
+        android:gravity="top"
+        android:hint="@string/add_note"
+        android:inputType="textCapSentences|textMultiLine" />
+    <!--          android:maxLength="128"  -->
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/marker_data_save_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1.5"
+
+            android:text="@string/save_edit" />
+
+
+        <Button
+            android:id="@+id/deleteButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+
+            android:text="@string/delete" />
+
+        <Button
+            android:id="@+id/cancelButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:singleLine="false"
+
+            android:layout_weight="1"
+            android:text="@string/cancel" />
+
+    </LinearLayout>
+    </LinearLayout>
+</FrameLayout>

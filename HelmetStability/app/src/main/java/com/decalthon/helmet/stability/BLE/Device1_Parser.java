@@ -211,7 +211,8 @@ public class Device1_Parser extends Device_Parser{
                 int cur_pkt  = DeviceHelper.SESSION_SUMMARIES.get(session_number).getNum_read_pkt();
 
                 if( (cur_pkt-counter) > 100){
-                    System.out.println(counter + " --> check for 100 packets");
+//                    System.out.println(counter + " --> check for 100 packets");
+                    System.out.println("pkt_num="+ cur_pkt+" --> check for 100 packets");
                     new UpdateNumberofReadPacketsAsyncTask().execute(DeviceHelper.SESSION_SUMMARIES.get(session_number));
                     counter = cur_pkt;
                 }
@@ -291,6 +292,7 @@ public class Device1_Parser extends Device_Parser{
         sessionHeader.setActivity_type(received_data[13] & 0xFF);
 
         DeviceHelper.REC_SESSION_HDR = sessionHeader;
+        DeviceHelper.SESSION_SUMMARIES.get(session_num).setActivity_type(sessionHeader.getActivity_type());
 
         //DeviceHelper.SESSION_HDRS.put(session_num, sessionHeader);
     }

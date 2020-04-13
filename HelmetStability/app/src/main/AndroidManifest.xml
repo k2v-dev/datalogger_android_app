@@ -21,7 +21,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".Activities.FullScreenActivity"></activity>
+        <activity android:name=".Activities.FullScreenActivity" />
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
@@ -49,7 +49,6 @@
             android:configChanges="orientation"
             android:enabled="true"
             android:screenOrientation="portrait" />
-
         <service android:name=".location.BackgroundLocationUpdateService" />
     </application>
 

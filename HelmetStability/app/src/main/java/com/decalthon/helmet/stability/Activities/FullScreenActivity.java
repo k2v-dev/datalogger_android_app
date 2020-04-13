@@ -11,6 +11,8 @@ import androidx.annotation.RequiresApi;
 import androidx.fragment.app.FragmentActivity;
 
 import com.decalthon.helmet.stability.R;
+import com.decalthon.helmet.stability.model.NineAxisModels.AccelerometerData;
+import com.decalthon.helmet.stability.model.NineAxisModels.NineAxis;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.Entry;
@@ -20,6 +22,7 @@ import com.github.mikephil.charting.data.LineDataSet;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static com.decalthon.helmet.stability.Utilities.Constants.TEST_SAMPLE_SIZE;
@@ -35,9 +38,9 @@ public class FullScreenActivity extends FragmentActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_full_screen);
-        final String name = getIntent().getStringExtra("PlotName");
-
-
+        final String graph_type = getIntent().getStringExtra("GRAPH_TYPE");
+        final String device_id = getIntent().getStringExtra("DEVICE_ID");
+//        final long session_id = getIntent().getShortExtra()
         /**Full Screen rendering approach*/
         lineChart = findViewById(R.id.activity_multiple_line_chart_test_line_chart);
         lineChart.getViewTreeObserver().addOnGlobalLayoutListener(
@@ -73,42 +76,81 @@ public class FullScreenActivity extends FragmentActivity {
 
                         lineChart.setTranslationY(offset);
 
-                        initLineChart(name);
+                        initLineChart(graph_type,device_id);
                     }
                 });
 
     }
 
-    private void initLineChart(String graphName) {
 
-        int entrySize = TEST_SAMPLE_SIZE;
-        LineDataSet line1 = new LineDataSet(setEntries(entrySize), graphName );
-        line1.setColor(Color.RED);
-        line1.setCircleColor(Color.RED);
-        line1.setLineWidth(2f);
-        line1.setCircleRadius(2f);
-        line1.setDrawCircles(false);
-        line1.setDrawValues(false);
 
-        LineDataSet line2 = new LineDataSet(getRandomEntries(entrySize), graphName);
-        line2.setColor(Color.GREEN);
-        line2.setCircleColor(Color.GREEN);
-        line2.setLineWidth(2f);
-        line2.setCircleRadius(2f);
-        line2.setDrawCircles(false);
-        line2.setDrawValues(false);
+    private void initLineChart(String graphType, String device_id ) {
 
-        LineDataSet line3 = new LineDataSet(getRandomEntries(entrySize), graphName);
-        line3.setColor(Color.BLUE);
-        line3.setCircleColor(Color.BLUE);
-        line3.setLineWidth(2f);
-        line3.setCircleRadius(2f);
-        line3.setDrawCircles(false);
-        line3.setDrawValues(false);
+        if(device_id.equalsIgnoreCase(getString(R.string.device1_tv))) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        drawFullScreenGraph(device_id, graphType);
+                    } catch (InterruptedException ex) {
+                        ex.printStackTrace();
+                    } catch (ExecutionException ex) {
+                        ex.printStackTrace();
+                    }
+                }
+            }).start();
+        }
+//
+//            }else if(graphType.equalsIgnoreCase(getString(R.string.gyroscope))){
+//                try {
+//                    drawFullScreenGraph(graphType);
+//                    NineAxis.getInstance(getApplicationContext())
+//                            .drawGraph(getString(R.string.gyroscope), lineChart);
+//                } catch (ExecutionException e) {
+//                    e.printStackTrace();
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+//            }else if(graphType.equalsIgnoreCase(getString(R.string.magnetometer))){
+//
+//                    NineAxis.getInstance(getApplicationContext())
+//                            .drawGraph(getString(R.string.magnetometer), lineChart);
+//                } catch (ExecutionException e) {
+//                    e.printStackTrace();
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+//            }
 
-        LineData lineData = new LineData(line1, line2, line3);
-        lineChart.setData(lineData);
-        lineChart.invalidate();
+
+
+//        LineDataSet line1 = new LineDataSet(setEntries( graphType, device_id) );
+//        line1.setColor(Color.RED);
+//        line1.setCircleColor(Color.RED);
+//        line1.setLineWidth(2f);
+//        line1.setCircleRadius(2f);
+//        line1.setDrawCircles(false);
+//        line1.setDrawValues(false);
+//
+//        LineDataSet line2 = new LineDataSet(getRandomEntries(entrySize), graphType);
+//        line2.setColor(Color.GREEN);
+//        line2.setCircleColor(Color.GREEN);
+//        line2.setLineWidth(2f);
+//        line2.setCircleRadius(2f);
+//        line2.setDrawCircles(false);
+//        line2.setDrawValues(false);
+//
+//        LineDataSet line3 = new LineDataSet(getRandomEntries(entrySize), graphType);
+//        line3.setColor(Color.BLUE);
+//        line3.setCircleColor(Color.BLUE);
+//        line3.setLineWidth(2f);
+//        line3.setCircleRadius(2f);
+//        line3.setDrawCircles(false);
+//        line3.setDrawValues(false);
+
+//        LineData lineData = new LineData(line1, line2, line3);
+//        lineChart.setData(lineData);
+//        lineChart.invalidate();
 
         for(int i = 0; i < 7; i++) {
             lineChart.zoom(i,0,0,0, YAxis.AxisDependency.LEFT);
@@ -116,22 +158,29 @@ public class FullScreenActivity extends FragmentActivity {
     }
 
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-    private List<Entry> getRandomEntries(int entrySize) {
-        List<Entry> entries = new ArrayList<>();
-        Random random = new Random();
-        for (int i = 0; i < entrySize ; i++) {
-            entries.add(new Entry(i, ThreadLocalRandom.current().nextFloat()*100));
-        }
-        return entries;
-    }
 
-    private List<Entry> setEntries(int entrySize) {
-        List<Entry> entries = new ArrayList<>();
-        for (int i = 0; i < entrySize ; i++) {
-            entries.add(new Entry(i, ThreadLocalRandom.current().nextFloat()*100));
-        }
-        return entries;
+//    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+//    private List<Entry> getRandomEntries(int entrySize) {
+//        List<Entry> entries = new ArrayList<>();
+//        Random random = new Random();
+//        for (int i = 0; i < entrySize ; i++) {
+//            entries.add(new Entry(i, ThreadLocalRandom.current().nextFloat()*100));
+//        }
+//        return entries;
+//    }
+
+//    private List<Entry> setEntries(String graphType, String device_id) {
+//        List<Entry> entries = new ArrayList<>();
+//        if(graphType.equals(R.string.acceleration)){
+////            NineAxis.GetAccNineAxisSensorDataAsyncTask.execute(session_id);
+//        }
+//
+//        return entries;
+//    }
+//}
+
+    private void drawFullScreenGraph(String device_id, String graphType) throws ExecutionException, InterruptedException {
+        NineAxis.getInstance(getApplicationContext()).drawGraph(graphType,lineChart);
     }
 }
 

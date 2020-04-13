@@ -10,6 +10,7 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.location.LocationManager;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -38,25 +39,42 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.decalthon.helmet.stability.Activities.MainActivity;
+import com.decalthon.helmet.stability.DB.DatabaseHelper;
+import com.decalthon.helmet.stability.DB.Entities.GpsSpeed;
+import com.decalthon.helmet.stability.DB.Entities.MarkerData;
+import com.decalthon.helmet.stability.DB.Entities.SensorDataEntity;
+import com.decalthon.helmet.stability.DB.Entities.SessionSummary;
+import com.decalthon.helmet.stability.DB.SessionCdlDb;
 import com.decalthon.helmet.stability.R;
+import com.decalthon.helmet.stability.Utilities.Common;
 import com.decalthon.helmet.stability.Utilities.Constants;
+import com.decalthon.helmet.stability.Utilities.CsvGenerator;
 import com.decalthon.helmet.stability.Utilities.Helper;
+import com.decalthon.helmet.stability.Utilities.UniqueKeyGen;
 import com.decalthon.helmet.stability.preferences.ProfilePreferences;
 import com.decalthon.helmet.stability.preferences.UserPreferences;
 import com.decalthon.helmet.stability.webservice.requests.ProfileReq;
+import com.decalthon.helmet.stability.webservice.requests.UserInfoReq;
 import com.decalthon.helmet.stability.webservice.responses.ErrorCodes;
 import com.decalthon.helmet.stability.webservice.responses.ErrorMessages;
-import com.decalthon.helmet.stability.webservice.responses.ProfileResp;
 import com.decalthon.helmet.stability.webservice.services.AvatarService;
-import com.decalthon.helmet.stability.webservice.services.ProfileService;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.gson.GsonBuilder;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import at.grabner.circleprogress.CircleProgressView;
@@ -71,6 +89,7 @@ import okhttp3.ResponseBody;
 import static androidx.core.content.ContextCompat.checkSelfPermission;
 import static com.decalthon.helmet.stability.Utilities.ViewDimUtils.applyDim;
 import static com.decalthon.helmet.stability.Utilities.ViewDimUtils.clearDim;
+import static java.lang.StrictMath.random;
 
 
 /**
@@ -90,6 +109,7 @@ public class HomeFragment extends Fragment  {
 
     private LocationManager mLocationManager;
     private static int percentage = 0;
+    private static boolean isDone = false;
 
 
     public HomeFragment() {
@@ -308,11 +328,40 @@ public class HomeFragment extends Fragment  {
         }
 
         navigateToFragments();
+//        if(!isDone){
+//            CsvGenerator csvGenerator = new CsvGenerator(getContext());
+//            csvGenerator.generateCSV(1);
+//            isDone = true;
+//        }
+
+//        if(!isDone){
+//            new DatabaseHelper.UpdateGPS().execute();
+//            isDone = true;
+//        }
+//        if(!isDone){
+//            new DatabaseHelper.UpdateMarkerData().execute((long)1);
+//            isDone = true;
+//        }
+//        if(!isDone){
+//            new GetButtonEntities().execute();
+//            isDone = true;
+//        }
+
+//        new UpdateSessionSummary().execute();
+//        new DeleteSensorData().execute();
+//        if(!isDone){
+//            new UpdateSensorData().execute((long)1000);
+//            isDone = true;
+//        }
+//        new UpdateGpsSpeedAsyncTask().execute();
+
+//       insertGPS();
     }
 
     @Override
     public void onStart() {
         super.onStart();
+
         Log.d(TAG, "Start");
     }
 
@@ -1017,15 +1066,52 @@ public class HomeFragment extends Fragment  {
 
     }
 
+    private static class UpdateSensorData extends AsyncTask<Long,Void,Void> {
 
+        @Override
+        protected Void doInBackground(Long... longs) {
+            SessionCdlDb sessionCdlDb = SessionCdlDb.getInstance(MainActivity.shared().getApplicationContext());
+            List<SensorDataEntity> sensorDataEntityList = sessionCdlDb.getSessionDataDAO().getSessionEntityPacket((long) 1);
+            long ts_ms = 1586326298640L;//1586268823340
 
+            SensorDataEntity[] sensorDataEntities = new SensorDataEntity[sensorDataEntityList.size()];
+            for (int i= 0; i< sensorDataEntityList.size(); i++){
+                sensorDataEntities[i] = sensorDataEntityList.get(i);
+                long ts_ms_i = ts_ms + i*10;
+                sensorDataEntities[i].ax_9axis_dev2 = sensorDataEntities[i].ax_9axis_dev1;
+                sensorDataEntities[i].ay_9axis_dev2 = sensorDataEntities[i].ay_9axis_dev1;
+                sensorDataEntities[i].az_9axis_dev2 = sensorDataEntities[i].az_9axis_dev1;
 
+                sensorDataEntities[i].gx_9axis_dev2 = sensorDataEntities[i].gx_9axis_dev1;
+                sensorDataEntities[i].gy_9axis_dev2 = sensorDataEntities[i].gy_9axis_dev1;
+                sensorDataEntities[i].gz_9axis_dev2 = sensorDataEntities[i].gz_9axis_dev1;
 
+                sensorDataEntities[i].mx_9axis_dev2 = sensorDataEntities[i].mx_9axis_dev1;
+                sensorDataEntities[i].my_9axis_dev2 = sensorDataEntities[i].my_9axis_dev1;
+                sensorDataEntities[i].mz_9axis_dev2 = sensorDataEntities[i].mz_9axis_dev1;
+            }
 
+            try {
+                sessionCdlDb.getSessionDataDAO().updateSessionPacket(sensorDataEntities);
+            }catch (android.database.sqlite.SQLiteConstraintException e){
+                if(sensorDataEntities != null && sensorDataEntities.length > 0){
+                    Log.d(TAG, "packet #:"+sensorDataEntities[0].packet_number+", time="+sensorDataEntities[0].dateMillis);
+                }
+                e.printStackTrace();
+            }
+            return null;
+        }
+    }
 
-
-
-
+    private static class DeleteSensorData extends AsyncTask<Void, Void, Void> {
+        @Override
+        protected Void doInBackground(Void... voids) {
+            SessionCdlDb sessionCdlDb = SessionCdlDb.getInstance(MainActivity.shared().getApplicationContext());
+            List<SensorDataEntity> sensorDataEntityList = sessionCdlDb.getSessionDataDAO().getSessionEntityPacket((long) 1);
+            sessionCdlDb.getSessionDataDAO().deleteSessionPackets();
+            return null;
+        }
+    }
 
 
     /**
@@ -1044,5 +1130,7 @@ public class HomeFragment extends Fragment  {
 
         void onSessionStarted(String TAG,String message);
     }
+
+
 }
 

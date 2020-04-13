@@ -106,7 +106,7 @@ public class Device_Parser {
         @Override
         protected Void doInBackground(SessionSummary... sessionSummaries) {
             long timestamp1 = System.currentTimeMillis();
-            sessionCdlDb.getSessionDataDAO().updateSessionSummary(sessionSummaries);
+            sessionCdlDb.getSessionDataDAO().updateSessionSummaries(sessionSummaries);
             long timestamp2 = System.currentTimeMillis();
             System.out.println("Timestamp diff: Updating numreadpacket "+ (timestamp2-timestamp1));
             return null;

@@ -25,7 +25,7 @@ public class SessionSummary {
 //    12th byte – Millisecond in (ms)
 //    13th byte – Activity type Identifier
 //    13th bytes and 14th: Checksum in unsigned short
-    private String name;
+    private String name = "";
 
     @PrimaryKey(autoGenerate = true)
     private int session_id;
@@ -36,6 +36,8 @@ public class SessionSummary {
     @ColumnInfo(name ="timestamp")
     private long date;
     private float duration;
+    private int activity_type;
+    private String note="";
 
     // Device1
     private int num_pages;
@@ -173,5 +175,24 @@ public class SessionSummary {
 
     public void setBb_isComplete(boolean bb_isComplete) {
         this.bb_isComplete = bb_isComplete;
+    }
+
+    public int getActivity_type() {
+        return activity_type;
+    }
+
+    public void setActivity_type(int activity_type) {
+        this.activity_type = activity_type;
+    }
+
+    public String getNote() {
+        if(note == null){
+            return " ";
+        }
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
     }
 }

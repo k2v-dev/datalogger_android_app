@@ -32,11 +32,72 @@ public class GpsSpeed {
         return latitude;
     }
 
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public void setLatitude(float latitude) {
+        this.latitude = latitude;
+    }
+
+    public void setLongitude(float longitude) {
+        this.longitude = longitude;
+    }
+
+    public void setSpeed(float speed) {
+        this.speed = speed;
+    }
+
+    public void setAccuracy_location(float accuracy_location) {
+        this.accuracy_location = accuracy_location;
+    }
+
+    public float getAccuracy_speed() {
+        return accuracy_speed;
+    }
+
+    public void setAccuracy_speed(float accuracy_speed) {
+        this.accuracy_speed = accuracy_speed;
+    }
+
+    public long getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public String getDate() {
+        return date;
+    }
+
+    public void setDate(String date) {
+        this.date = date;
+    }
+
+    public Date getLocaleDate() {
+        return localeDate;
+    }
+
+    public void setLocaleDate(Date localeDate) {
+        this.localeDate = localeDate;
+    }
 
     @ColumnInfo(name="lon")
     public float longitude;
 
     public float getLongitude() {
+        return longitude;
+    }
+
+    public float altitude;
+
+    public float getAltitude() {
         return longitude;
     }
 
@@ -59,7 +120,7 @@ public class GpsSpeed {
     public float accuracy_speed;
 
     @ColumnInfo(name="gps_timestamp")
-    public float timestamp;
+    public long timestamp;
 
     @ColumnInfo(name="date")
     public String date;

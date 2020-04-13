@@ -5,7 +5,9 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 import com.decalthon.helmet.stability.Activities.MainActivity;
+import com.decalthon.helmet.stability.DB.DatabaseHelper;
 import com.decalthon.helmet.stability.DB.Entities.ButtonBoxEntity;
+import com.decalthon.helmet.stability.DB.Entities.MarkerData;
 import com.decalthon.helmet.stability.DB.Entities.SensorDataEntity;
 import com.decalthon.helmet.stability.DB.Entities.SessionSummary;
 import com.decalthon.helmet.stability.DB.SessionCdlDb;
@@ -34,6 +36,7 @@ public class ButtonBox_Parser extends Device_Parser{
 
     //    private static SessionCdlDb sessionCdlDb;
     private static SensorDataEntity currentSensorDataEntity;
+    private static short prevBtnType = -1;
 
     private List<SessionSummary> sessionSummaryList;
     private ArrayList<Long> timestamps;
@@ -145,6 +148,12 @@ public class ButtonBox_Parser extends Device_Parser{
 
         buttonBoxEntity.button_type = (short) (received_data[15] & 0xFF);
 
+        if(prevBtnType != buttonBoxEntity.button_type){// by default value is 0, it will be start marker
+            prevBtnType = buttonBoxEntity.button_type;
+            MarkerData markerData = new MarkerData(buttonBoxEntity.dateMillis,  Constants.MARKER_MAPS.get(prevBtnType), "");
+            markerData.session_id = buttonBoxEntity.session_id;
+            new InsertMarkerDataAsyncTask().execute(markerData);
+        }
 //        Integer currentSessionNumber = DeviceHelper.REC_SESSION_HDR_BB.getNumber();
 
 
@@ -159,6 +168,12 @@ public class ButtonBox_Parser extends Device_Parser{
             new UpdateNumberofReadPacketsAsyncTask().execute(DeviceHelper.SESSION_SUMMARIES_BB.get(currentSessionNumber));
             sendSessionCommand();
             DeviceHelper.SESSION_SUMMARIES_BB.remove(currentSessionNumber);
+            // Stop marker
+            MarkerData markerData = new MarkerData(buttonBoxEntity.dateMillis,  Constants.MARKER_MAPS.get(255), "");
+            markerData.session_id = buttonBoxEntity.session_id;
+            new InsertMarkerDataAsyncTask().execute(markerData);
+            prevBtnType = -1;
+            new DatabaseHelper.UpdateMarkerData().execute(buttonBoxEntity.session_id);
         }else{
             try{
                 checkForHundredPackets(currentSessionNumber);
@@ -182,7 +197,7 @@ public class ButtonBox_Parser extends Device_Parser{
         int cur_pkt  = DeviceHelper.SESSION_SUMMARIES_BB.get(session_number).getBb_num_read_pkt();
 
         if( (cur_pkt-counter) > 100){
-            System.out.println(counter +", pkt_num="+ cur_pkt+" --> check for 100 packets");
+            System.out.println("pkt_num="+ cur_pkt+" --> check for 100 packets");
             new UpdateNumberofReadPacketsAsyncTask().execute(DeviceHelper.SESSION_SUMMARIES_BB.get(session_number));
             counter = cur_pkt;
         }
@@ -256,7 +271,7 @@ public class ButtonBox_Parser extends Device_Parser{
         sessionHeader.setActivity_type(received_data[13] & 0xFF);
 
         DeviceHelper.REC_SESSION_HDR_BB = sessionHeader;
-
+        DeviceHelper.SESSION_SUMMARIES_BB.get(session_num).setActivity_type(sessionHeader.getActivity_type());
         //DeviceHelper.SESSION_HDRS.put(session_num, sessionHeader);
     }
 
@@ -315,7 +330,7 @@ public class ButtonBox_Parser extends Device_Parser{
             int total_pkts = number_pages*120 + num_packets_lst_page;
             sessionSummary.setBb_num_pages(number_pages);
             sessionSummary.setBb_total_pkts(total_pkts);
-            //sessionSummary.setBb_total_pkts(25000);
+            sessionSummary.setBb_total_pkts(31000);
             sessionSummary.setBb_total_data(total_pkts*18);// 80 bytes per packet
             Calendar calendar = Calendar.getInstance();
             calendar.set(Calendar.DAY_OF_MONTH, received_data[index+4] & 0xFF);
@@ -428,6 +443,19 @@ public class ButtonBox_Parser extends Device_Parser{
                 }
 
                e.printStackTrace();
+            }
+            return null;
+        }
+    }
+
+    private static class InsertMarkerDataAsyncTask extends AsyncTask<MarkerData,Void,Void> {
+
+        @Override
+        protected Void doInBackground(MarkerData... markerData) {
+            try {
+                sessionCdlDb.getMarkerDataDAO().insertMarkerData(markerData[0]);
+            }catch (android.database.sqlite.SQLiteConstraintException e){
+                e.printStackTrace();
             }
             return null;
         }

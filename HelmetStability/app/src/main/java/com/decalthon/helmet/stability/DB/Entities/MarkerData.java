@@ -25,20 +25,30 @@ public class MarkerData {
     public String markerType;
 
     @ColumnInfo(name = "note")
-    public String note;
+    public String note = "";
+
+    @ColumnInfo(name = "lng")
+    public float lng;
+
+    @ColumnInfo(name = "lat")
+    public float lat;
+
+    @ColumnInfo(name = "session_id")
+    public long session_id;
+
 
     public MarkerData(){
-
+        note = "";
+        markerType = "";
     }
 
     @Ignore
     public MarkerData(long marker_timestamp,
-                      int markerNumber,
                       String markerType,
                       String note) {
 
         this.marker_timestamp = marker_timestamp;
-        this.markerNumber = markerNumber;
+//        this.markerNumber = markerNumber;
         this.markerType = markerType;
         this.note = note;
     }
@@ -52,10 +62,16 @@ public class MarkerData {
     }
 
     public String getMarkerType() {
+        if(markerType == null){
+            return " ";
+        }
         return markerType;
     }
 
     public String getNote() {
+        if(note == null){
+            return " ";
+        }
         return note;
     }
 

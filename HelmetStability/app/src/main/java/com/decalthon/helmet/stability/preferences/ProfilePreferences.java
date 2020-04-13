@@ -6,6 +6,9 @@ import android.content.SharedPreferences;
 import com.decalthon.helmet.stability.Utilities.Constants;
 
 import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.Period;
+import java.util.Calendar;
 import java.util.Date;
 
 /**
@@ -116,6 +119,30 @@ public class ProfilePreferences {
         Timestamp timestamp = new Timestamp(ts*1000);
         Date date=new Date(timestamp.getTime());
         return date;
+    }
+
+    /**
+     * Get user's dob if saved
+     * @return user's dob
+     */
+    public Integer getAge() {
+        long ts = sharedpreferences.getLong(Constants.DOB, 0);
+        Timestamp timestamp = new Timestamp(ts*1000);
+        Date date=new Date(timestamp.getTime());
+
+        Calendar dob = Calendar.getInstance();
+        dob.setTime(date);
+        Calendar today = Calendar.getInstance();
+
+
+        int age = today.get(Calendar.YEAR) - dob.get(Calendar.YEAR);
+
+        if (today.get(Calendar.DAY_OF_YEAR) < dob.get(Calendar.DAY_OF_YEAR)){
+            age--;
+        }
+
+        Integer ageInt = new Integer(age);
+        return ageInt;
     }
 
 }

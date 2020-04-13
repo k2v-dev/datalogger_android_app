@@ -123,4 +123,57 @@ public class Helper {
         return ByteBuffer.wrap(temp).getShort();
     }
 
+    public static void format3(StringBuilder builder, float d) {
+        if (d < 0) {
+            builder.append('-');
+            d = -d;
+        }
+        if (d * 1e3 + 0.5 > Long.MAX_VALUE) {
+            // TODO write a fall back.
+            throw new IllegalArgumentException("number too large");
+        }
+        long scaled = (long) (d * 1e3 + 0.5);
+        long factor = 1000;
+        int scale = 4;
+        long scaled2 = scaled / 10;
+        while (factor <= scaled2) {
+            factor *= 10;
+            scale++;
+        }
+        while (scale > 0) {
+            if (scale == 3)
+                builder.append('.');
+            long c = scaled / factor % 10;
+            factor /= 10;
+            builder.append((char) ('0' + c));
+            scale--;
+        }
+    }
+    public static void format6(StringBuilder builder, float d) {
+        if (d < 0) {
+            builder.append('-');
+            d = -d;
+        }
+        if (d * 1e6 + 0.5 > Long.MAX_VALUE) {
+            // TODO write a fall back.
+            throw new IllegalArgumentException("number too large");
+        }
+        long scaled = (long) (d * 1e6 + 0.5);
+        long factor = 1000000;
+        int scale = 7;
+        long scaled2 = scaled / 10;
+        while (factor <= scaled2) {
+            factor *= 10;
+            scale++;
+        }
+        while (scale > 0) {
+            if (scale == 6)
+                builder.append('.');
+            long c = scaled / factor % 10;
+            factor /= 10;
+            builder.append((char) ('0' + c));
+            scale--;
+        }
+    }
+
 }

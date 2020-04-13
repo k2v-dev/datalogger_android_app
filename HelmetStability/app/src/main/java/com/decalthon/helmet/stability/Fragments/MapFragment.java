@@ -13,6 +13,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.BaseAdapter;
+import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -27,8 +29,12 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.decalthon.helmet.stability.Activities.MainActivity;
+import com.decalthon.helmet.stability.DB.Entities.GpsSpeed;
 import com.decalthon.helmet.stability.DB.Entities.MarkerData;
+import com.decalthon.helmet.stability.DB.SessionCDL;
+import com.decalthon.helmet.stability.DB.SessionCdlDb;
 import com.decalthon.helmet.stability.R;
+import com.decalthon.helmet.stability.Utilities.Common;
 import com.decalthon.helmet.stability.Utilities.Constants;
 import com.decalthon.helmet.stability.model.IndoorTimestamp;
 import com.github.vipulasri.timelineview.TimelineView;
@@ -59,13 +65,6 @@ import java.util.Locale;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 import static com.decalthon.helmet.stability.Fragments.GPSSpeedFragment.sessionCdlDb;
-import static com.decalthon.helmet.stability.Utilities.Constants.AFTER_MAP_STATE;
-import static com.decalthon.helmet.stability.Utilities.Constants.FRAGMENT_NAME_CHART1;
-import static com.decalthon.helmet.stability.Utilities.Constants.FRAGMENT_NAME_CHART2;
-import static com.decalthon.helmet.stability.Utilities.Constants.FRAGMENT_NAME_GPS_SPEED;
-import static com.decalthon.helmet.stability.Utilities.Constants.FRAGMENT_NAME_NINE_AXIS;
-import static com.decalthon.helmet.stability.Utilities.Constants.FRAGMENT_NAME_STEP_COUNT;
-import static com.decalthon.helmet.stability.Utilities.Constants.FRAGMENT_NAME_THREE_AXIS;
 import static com.decalthon.helmet.stability.Utilities.Constants.INTER_MARKER_COUNT;
 
 //Frequently used static constants
@@ -109,13 +108,16 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
     private OnFragmentInteractionListener mListener;
     /**ArrayList of LatLng Objects, added from project assets*/
-    private static ArrayList<LatLng> coordList = new ArrayList<>();
-
+    private List<MarkerData> markerDatas;
+    private List<GpsSpeed> gpsSpeeds;
+    private static ArrayList<LatLng> markerPosList = new ArrayList<>();
+    private static ArrayList<LatLng> gpsPosList = new ArrayList<>();
+    private int session_id = 1;
 
     /**Fragment specific local variables*/
     private Context mContext;
     private Dialog dialog;
-    private Dialog promptDialog;
+    private PopupWindow graphPromptDialog;
     private LatLng exactPos;
 
     private final String timeFormat = "hh:mm:ss a dd-MM-yyyy";
@@ -244,6 +246,34 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         actionBarView.findViewById(R.id.profile_link).setVisibility(View.GONE);
         actionBarView.findViewById(R.id.ble_device_connectivity).setVisibility(View.GONE);
         actionBarView.findViewById(R.id.logout_link).setVisibility(View.GONE);
+        sessionCdlDb = SessionCdlDb.getInstance(getContext());
+
+       new LoadMarkerGpsData().execute();
+//       Common.wait(2000);
+    }
+
+    private class LoadMarkerGpsData extends  AsyncTask<Void, Void, Void> {
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            if(mMap != null) { //prevent crashing if the map doesn't exist yet (eg. on starting activity)
+                mMap.clear();
+            }
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            markerDatas = sessionCdlDb.getMarkerDataDAO().getMarkerData(session_id);
+            gpsSpeeds = sessionCdlDb.gpsSpeedDAO().getGpsSpeed(markerDatas.get(0).marker_timestamp-1, markerDatas.get(markerDatas.size()-1).marker_timestamp+1);
+
+            for(MarkerData markerData: markerDatas){
+                markerPosList.add(new LatLng(markerData.lat, markerData.lng));
+            }
+
+            for(GpsSpeed gpsSpeed: gpsSpeeds){
+                gpsPosList.add(new LatLng(gpsSpeed.latitude, gpsSpeed.longitude));
+            }
+            return null;
+        }
     }
 
     /**
@@ -327,23 +357,26 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
          * dataset maintaining bounds within left-bottom and
          * right-upper bounds
          * */
-        if(coordList.size() == 0){
-           coordList.add(new LatLng(48.8587741,2.2069771)); // Paris's location
+        if(markerPosList.size() == 0){
+           markerPosList.add(new LatLng(48.8587741,2.2069771)); // Paris's location
 
             Toast.makeText(getContext(), "No Data is available", Toast.LENGTH_LONG);
         }
-        LatLng savedFirst = coordList.get(0);
+        LatLng savedFirst = markerPosList.get(0);
 //
-        for (LatLng markable : coordList) {
+//        for (LatLng markable : markerPosList) {
+//            builder.include(markable);
+//        }
+
+        for (LatLng markable : gpsPosList) {
             builder.include(markable);
         }
-//
-//
-        for(int marker_i = 0; marker_i < coordList.size(); marker_i=marker_i+INTER_MARKER_COUNT){
+        MarkerOptions markerOptions =  new MarkerOptions();
+        for(int marker_i = 1; marker_i < markerPosList.size()-1; marker_i=marker_i+INTER_MARKER_COUNT){
             mMap.addMarker( new MarkerOptions()
-                    .position(coordList.get(marker_i))
+                    .position(markerPosList.get(marker_i))
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW))
-            );
+            ).setTag(markerDatas.get(marker_i));
         }
 
 
@@ -353,10 +386,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
          * */
 
         mMap.addPolyline(new PolylineOptions()
-                .addAll(coordList)
+                .addAll(gpsPosList)
                 .width(6)
                 .color(Color.BLUE));
-        LatLng savedLast = coordList.get(coordList.size() - 1);
+        LatLng savedLast = markerPosList.get(markerPosList.size() - 1);
 
         /**First and last markers are made visible
          * using respective MarkerOptions objects
@@ -364,13 +397,13 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
         mMap.addMarker(new MarkerOptions()
                 .position(savedFirst)
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW))
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
                 .draggable(false)
                 .visible(true));
 
         mMap.addMarker(new MarkerOptions()
                 .position(savedLast)
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW))
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
                 .draggable(false)
                 .visible(true));
 
@@ -392,10 +425,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     }
 
     public static void addRideMarkerOnMap(Location location){
-        coordList.add(new LatLng(location.getLatitude() , location.getLongitude()));
+        markerPosList.add(new LatLng(location.getLatitude() , location.getLongitude()));
         markerData = new MarkerData();
         markerData.marker_timestamp = System.currentTimeMillis();
-        addMarkerDataEntry(markerData);
+//        addMarkerDataEntry(markerData);
     }
 
     /**
@@ -432,7 +465,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         LatLng testPoint;
 
         if(exactPos == null){
-            testPoint =  coordList.get(0);
+            testPoint =  gpsPosList.get(0);
         }
         else{
             testPoint = exactPos;
@@ -441,9 +474,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
         millis1 = System.currentTimeMillis();
         System.out.println("mil11-->"+ millis1);
-        LatLng nearestPoint = findNearestPoint(testPoint, coordList);
+        LatLng nearestPoint = findNearestPoint(testPoint, markerPosList);
         millis2 = System.currentTimeMillis();
-        System.out.println("List size"+ coordList.size());
+        System.out.println("List size"+ markerPosList.size());
         System.out.println("mill2-->"+millis2);
         System.out.println("Time taken-->"+ (millis2-millis1));
         Log.e("NEAREST POINT: ", "" + nearestPoint);
@@ -458,107 +491,117 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
      * Provides a link to the graph pager.
      */
     private void promptMenu(){
-        promptDialog = new Dialog(mContext);
-        promptDialog.setContentView(R.layout.list_options);
-
-        promptDialog.show();
-
-        promptDialog.findViewById(R.id.plotGraphNineAxisButton).
-                setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        CustomViewFragment customViewFragment = CustomViewFragment.newInstance
-                                (FRAGMENT_NAME_NINE_AXIS,"plot");
-                        FragmentTransaction ftxn = getFragmentManager()
-                                .beginTransaction();
-                        ftxn.replace(R.id.map,customViewFragment,"Graph Fragment");
-                        ftxn.addToBackStack(AFTER_MAP_STATE);
-
-                        final int commit_id = ftxn.commit();
-                        promptDialog.dismiss();
-                    }
-                });
-        promptDialog.findViewById(R.id.plotGraphThreeAxisButton).
-                setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        CustomViewFragment customViewFragment = CustomViewFragment.newInstance
-                                (FRAGMENT_NAME_THREE_AXIS,"plot");
-                        FragmentTransaction ftxn = getFragmentManager().
-                                beginTransaction();
-                        ftxn.addToBackStack(AFTER_MAP_STATE);
-                        ftxn.replace(R.id.map,customViewFragment);
-                        final int commit_id = ftxn.commit();
-                        promptDialog.dismiss();
-                    }
-                });
-        promptDialog.findViewById(R.id.gpsSpeedButton).
-                setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        CustomViewFragment customViewFragment = CustomViewFragment.newInstance
-                                (FRAGMENT_NAME_GPS_SPEED,"plot");
-                        FragmentTransaction ftxn = getFragmentManager().
-                                beginTransaction();
-                        ftxn.addToBackStack(AFTER_MAP_STATE);
-                        ftxn.replace(R.id.map,customViewFragment);
-
-                        final int commit_id = ftxn.commit();
-                        promptDialog.dismiss();
-                    }
-                });
-        promptDialog.findViewById(R.id.stepCountButton).
-                setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        CustomViewFragment customViewFragment = CustomViewFragment.newInstance
-                                (FRAGMENT_NAME_STEP_COUNT,"plot");
-                        FragmentTransaction ftxn = getFragmentManager().
-                                beginTransaction();
-                        ftxn.addToBackStack(AFTER_MAP_STATE);
-                        ftxn.replace(R.id.map,customViewFragment);
-
-                        final int commit_id = ftxn.commit();
-                        promptDialog.dismiss();
-                    }
-                });
-        promptDialog.findViewById(R.id.sampleGraphButton1).
-                setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        CustomViewFragment customViewFragment = CustomViewFragment.newInstance
-                                (FRAGMENT_NAME_CHART1,"plot");
-                        FragmentTransaction ftxn = getFragmentManager().
-                                beginTransaction();
-                        ftxn.addToBackStack(AFTER_MAP_STATE);
-                        ftxn.replace(R.id.map,customViewFragment);
-
-                        final int commit_id = ftxn.commit();
-                        promptDialog.dismiss();
-                    }
-                });
-        promptDialog.findViewById(R.id.sampleGraphButton2).
-                setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        CustomViewFragment customViewFragment = CustomViewFragment.newInstance
-                                (FRAGMENT_NAME_CHART2,"plot");
-                        FragmentTransaction ftxn = getFragmentManager().
-                                beginTransaction();
-                        ftxn.addToBackStack(AFTER_MAP_STATE);
-                        ftxn.replace(R.id.map,customViewFragment);
-
-                        final int commit_id = ftxn.commit();
-                        promptDialog.dismiss();
-                    }
-                });
-        promptDialog.findViewById(R.id.cancel_menu).
-                setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        promptDialog.dismiss();
-                    }
-                });
+//        Intent intent = new  Intent(getActivity(),PopupActivity.class);
+//        intent.putExtra("PopupLayout",R.layout.graph_list_popup);
+//        startActivity(intent);
+//        graphPromptDialog = new PopupWindow();
+//        graphPromptDialog.
+//        graphPromptDialog.setContentView(getLayoutInflater().inflate(R.layout.graph_list_options,));
+//        ListView graphListView = graphPromptDialog.getContentView().findViewById(R.id.graph_list_view);
+//        ListAdapter graphListAdapter = new GraphListAdapter();
+//        graphListView.setAdapter(graphListAdapter);
+//
+//        graphPromptDialog.showAtLocation(getView(), Gravity.CENTER, 10, 10);
+//        promptDialog = new Dialog(mContext);
+//        promptDialog.setContentView(R.layout.list_options);
+//
+//        promptDialog.show();
+//        promptDialog.findViewById(R.id.device1_9_axis_access_button).
+//                setOnClickListener(new View.OnClickListener() {
+//                    @Override
+//                    public void onClick(View v) {
+//                        CustomViewFragment customViewFragment = CustomViewFragment.newInstance
+//                                (FRAGMENT_NAME_DEVICE1_9_AXIS,"plot");
+//                        FragmentTransaction ftxn = getFragmentManager()
+//                                .beginTransaction();
+//                        ftxn.replace(MapFragment.this.getId(), customViewFragment,"Graph Fragment");
+//                        ftxn.addToBackStack(null);
+//
+//                        final int commit_id = ftxn.commit();
+//                        promptDialog.dismiss();
+//                    }
+//                });
+//        promptDialog.findViewById(R.id.plotGraphThreeAxisButton).
+//                setOnClickListener(new View.OnClickListener() {
+//                    @Override
+//                    public void onClick(View v) {
+//                        CustomViewFragment customViewFragment = CustomViewFragment.newInstance
+//                                (FRAGMENT_NAME_DEVICE1_3_AXIS,"plot");
+//                        FragmentTransaction ftxn = getFragmentManager().
+//                                beginTransaction();
+//                        ftxn.addToBackStack(null);
+//                        ftxn.replace(R.id.map,customViewFragment);
+//                        final int commit_id = ftxn.commit();
+//                        promptDialog.dismiss();
+//                    }
+//                });
+//        promptDialog.findViewById(R.id.gpsSpeedButton).
+//                setOnClickListener(new View.OnClickListener() {
+//                    @Override
+//                    public void onClick(View v) {
+//                        CustomViewFragment customViewFragment = CustomViewFragment.newInstance
+//                                (FRAGMENT_NAME_GPS_SPEED,"plot");
+//                        FragmentTransaction ftxn = getFragmentManager().
+//                                beginTransaction();
+//                        ftxn.addToBackStack(AFTER_MAP_STATE);
+//                        ftxn.replace(R.id.map,customViewFragment);
+//
+//                        final int commit_id = ftxn.commit();
+//                        promptDialog.dismiss();
+//                    }
+//                });
+//        promptDialog.findViewById(R.id.stepCountButton).
+//                setOnClickListener(new View.OnClickListener() {
+//                    @Override
+//                    public void onClick(View v) {
+//                        CustomViewFragment customViewFragment = CustomViewFragment.newInstance
+//                                (F,"plot");
+//                        FragmentTransaction ftxn = getFragmentManager().
+//                                beginTransaction();
+//                        ftxn.addToBackStack(AFTER_MAP_STATE);
+//                        ftxn.replace(R.id.map,customViewFragment);
+//
+//                        final int commit_id = ftxn.commit();
+//                        promptDialog.dismiss();
+//                    }
+//                });
+//        promptDialog.findViewById(R.id.sampleGraphButton1).
+//                setOnClickListener(new View.OnClickListener() {
+//                    @Override
+//                    public void onClick(View v) {
+//                        CustomViewFragment customViewFragment = CustomViewFragment.newInstance
+//                                (FRAGMENT_NAME_CHART1,"plot");
+//                        FragmentTransaction ftxn = getFragmentManager().
+//                                beginTransaction();
+//                        ftxn.addToBackStack(AFTER_MAP_STATE);
+//                        ftxn.replace(R.id.map,customViewFragment);
+//
+//                        final int commit_id = ftxn.commit();
+//                        promptDialog.dismiss();
+//                    }
+//                });
+//        promptDialog.findViewById(R.id.sampleGraphButton2).
+//                setOnClickListener(new View.OnClickListener() {
+//                    @Override
+//                    public void onClick(View v) {
+//                        CustomViewFragment customViewFragment = CustomViewFragment.newInstance
+//                                (FRAGMENT_NAME_CHART2,"plot");
+//                        FragmentTransaction ftxn = getFragmentManager().
+//                                beginTransaction();
+//                        ftxn.addToBackStack(AFTER_MAP_STATE);
+//                        ftxn.replace(R.id.map,customViewFragment);
+//
+//                        final int commit_id = ftxn.commit();
+//                        promptDialog.dismiss();
+//                    }
+//                });
+//        promptDialog.findViewById(R.id.cancel_menu).
+//                setOnClickListener(new View.OnClickListener() {
+//                    @Override
+//                    public void onClick(View v) {
+//                        promptDialog.dismiss();
+//                    }
+//                });
     }
 
     /**
@@ -1107,6 +1150,35 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         }
     }
 
+    private static class GraphListAdapter extends BaseAdapter {
+
+        public GraphListAdapter() {
+
+        }
+
+        @Override
+        public int getCount() {
+            return Constants.TAB_ID_MAPS.size();
+        }
+
+        @Override
+        public Object getItem(int i) {
+            return i;
+        }
+
+        @Override
+        public long getItemId(int i) {
+            return i;
+        }
+
+        @Override
+        public View getView(int i, View view, ViewGroup viewGroup) {
+            View graphListEntryView = view.findViewById(R.id.graph_list_entry_template);
+            TextView graph_title = graphListEntryView.findViewById(R.id.graph_list_entry_title);
+            graph_title.setText(Constants.TAB_ID_MAPS.get(i));
+            return graphListEntryView;
+        }
+    }
 }
 
 

@@ -181,31 +181,34 @@ public class Constants {
 
     public static final float UPDATER_STATIC = 0.06f/POINTS_PER_SCALE;
 
-    public static final int INTER_MARKER_COUNT = 4;
+    public static final int INTER_MARKER_COUNT = 1;
     public static final float CM_PER_INCH = 2.54f;
 
-    public static final String FRAGMENT_NAME_MAP_DEFAULT = "FRAGMENT_MAP_DEFAULT";
-    public static final String FRAGMENT_NAME_NINE_AXIS = "FRAGMENT_NINE_AXIS";
-    public static final String FRAGMENT_NAME_THREE_AXIS = "FRAGMENT_THREE_AXIS";
-    public static final String FRAGMENT_NAME_GPS_SPEED = "FRAGMENT_GPS";
-    public static final String FRAGMENT_NAME_STEP_COUNT = "FRAGMENT_STEP_COUNT";
-    public static final String FRAGMENT_NAME_CHART1 = "FRAGMENT_SAMPLE_CHART1";
-    public static final String FRAGMENT_NAME_CHART2 = "FRAGMENT_SAMPLE_CHART2";
-    public static final String AFTER_MAP_STATE = "AFTER MAP";
+    public static final String FRAGMENT_NAME_DEVICE1_9_AXIS = "FRAGMENT_DEVICE_1_9_AXIS";
+    public static final String FRAGMENT_NAME_DEVICE1_3_AXIS = "FRAGMENT_DEVICE_1_3_AXIS";
+    public static final String FRAGMENT_NAME_DEVICE2_9_AXIS = "FRAGMENT DEVICE_2_9_AXIS";
+    public static final String FRAGMENT_NAME_DEVICE2_3_AXIS = "FRAGMENT DEVICE_2_3_AXIS";
+    public static final String FRAGMENT_NAME_GPS_SPEED = "FRAGMENT_GPS_SPEED";
+//    public static final String FRAGMENT_NAME_STEP_COUNT = "FRAGMENT_STEP_COUNT";
+//    public static final String FRAGMENT_NAME_CHART1 = "FRAGMENT_SAMPLE_CHART1";
+//    public static final String FRAGMENT_NAME_CHART2 = "FRAGMENT_SAMPLE_CHART2";
+//    public static final String AFTER_MAP_STATE = "AFTER MAP";
 
-    public static Map<String, Integer> TAB_ID_MAPS = new HashMap<>();
-    //Prepare another set of constants
-    /**
-     * 1 data item per second, scroll every 5 seconds
-     */
-    static{
-        TAB_ID_MAPS.put(FRAGMENT_NAME_NINE_AXIS,0);
-        TAB_ID_MAPS.put(FRAGMENT_NAME_THREE_AXIS,1);
-        TAB_ID_MAPS.put(FRAGMENT_NAME_GPS_SPEED,2);
-        TAB_ID_MAPS.put(FRAGMENT_NAME_STEP_COUNT,3);
-        TAB_ID_MAPS.put(FRAGMENT_NAME_CHART1,4);
-        TAB_ID_MAPS.put(FRAGMENT_NAME_CHART2,5);
+    public static Map<Integer,String> TAB_ID_MAPS = new HashMap<>();
+    {
+        TAB_ID_MAPS.put(0,FRAGMENT_NAME_DEVICE1_9_AXIS);
+        TAB_ID_MAPS.put(1,FRAGMENT_NAME_DEVICE1_3_AXIS);
+        TAB_ID_MAPS.put(2,FRAGMENT_NAME_DEVICE2_9_AXIS);
+        TAB_ID_MAPS.put(3,FRAGMENT_NAME_DEVICE2_3_AXIS);
+        TAB_ID_MAPS.put(4,FRAGMENT_NAME_GPS_SPEED);
     }
+
+//    public enum TAB_ID_MAPS {
+//        FRAGMENT_NAME_DEVICE1_9_AXIS,
+//        FRAGMENT_NAME_DEVICE1_3_AXIS,
+
+//        FRAGMENT_NAME_GPS_SPEED
+//    }
 
     // SCALE FACTOR
     public static final float ACC_9axis_SF = 0.00718092f;
@@ -215,7 +218,7 @@ public class Constants {
     public static final float ACC_3axis_SF = 7.6518f;
 
     // Consumer Thread
-    public static final int WAIT_FOR_DATA = 60;
+    public static final int WAIT_FOR_DATA = 200;
 
     // Firestore
     public static final String PHOTO_DIR = "photos";
@@ -237,4 +240,23 @@ public class Constants {
         public static final String DOB = "dob";
         public static final String GENDER = "gender";
     }
+
+    //DB
+    public static Map<Integer, String> MARKER_MAPS = new HashMap<>();
+    static {
+        MARKER_MAPS.put(0, "Start");
+        MARKER_MAPS.put(1, "Poor");
+        MARKER_MAPS.put(2, "Very Poor");
+        MARKER_MAPS.put(4, "No Opinion");
+        MARKER_MAPS.put(8, "Good");
+        MARKER_MAPS.put(16, "Very Good");
+        MARKER_MAPS.put(255, "Stop");
+    }
+
+
+//    if BSP_BOARD_BUTTON_1 f_Poor 1
+//            if BSP_BOARD_BUTTON_1 f_Very_Poor 2
+//            if BSP_BOARD_BUTTON_2 f_No_Opnion 4
+//            if BSP_BOARD_BUTTON_3 f_Good 8
+//            if BSP_BOARD_BUTTON_3 f_Very_Good 16
 }

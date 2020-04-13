@@ -152,6 +152,9 @@
     <string name="activity_outdoor">outdoor</string>
     <string name="left_caret"><![CDATA[<]]></string>
     <string name="right_caret"><![CDATA[>]]></string>
-<!--    <string name="year_number_placeholder"><![CDATA[<Year>]]></string>-->
+    <!--    <string name="year_number_placeholder"><![CDATA[<Year>]]></string>-->
     <string name="year_number_placeholder">2020</string>
+    <string name="acceleration">acceleration</string>
+    <string name="gyroscope">gyroscope</string>
+    <string name="magnetometer">magnetometer</string>
 </resources>

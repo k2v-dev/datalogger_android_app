@@ -2,7 +2,9 @@ package com.decalthon.helmet.stability.Fragments;
 
 import android.content.Context;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,10 +22,13 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.decalthon.helmet.stability.Activities.MainActivity;
+import com.decalthon.helmet.stability.DB.Entities.SessionSummary;
+import com.decalthon.helmet.stability.DB.SessionCdlDb;
 import com.decalthon.helmet.stability.R;
-import com.decalthon.helmet.stability.model.SessionModels.SessionSummary;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -51,7 +56,8 @@ public class SevenSessionsSummaryFragment extends Fragment {
     private String mParam2;
 
     private OnFragmentInteractionListener mListener;
-    private Context mContext;
+    private static Context mContext;
+    private static String TAG = SevenSessionsSummaryFragment.class.getSimpleName();
 
     public SevenSessionsSummaryFragment() {
         // Required empty public constructor
@@ -91,6 +97,7 @@ public class SevenSessionsSummaryFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
+        Log.d(TAG, "onCreateView: called ");
         return inflater.inflate(R.layout.fragment_seven_sessions_summary, container, false);
     }
 
@@ -103,7 +110,13 @@ public class SevenSessionsSummaryFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         ListView sessionListView = view.findViewById(R.id.session_summary);
-        ArrayList<SessionSummary> sessionSummaries = new ArrayList<>();
+        List<SessionSummary> sessionSummaries = new ArrayList<>();
+        try {
+            Log.d(TAG, "onViewCreated: Proceeding to async task");
+            sessionSummaries = new GetLastSevenSessionSummariesAsyncTask().get();
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace();
+        }
         ActionBar mActionBar = ( (MainActivity) getActivity() ).getSupportActionBar();
         View actionBarView = (LinearLayout) mActionBar.getCustomView();
 
@@ -124,21 +137,6 @@ public class SevenSessionsSummaryFragment extends Fragment {
                 MainActivity.shared().onBackPressed();
             }
         });
-
-        sessionSummaries.add(new SessionSummary
-                ("ACTIVITY1","Type1","Rec Data 1",1000));
-        sessionSummaries.add(new SessionSummary
-                ("ACTIVITY2","Type2","Rec Data 2",1000));
-        sessionSummaries.add(new SessionSummary
-                ("ACTIVITY3","Type3","Rec Data 3",1000));
-        sessionSummaries.add(new SessionSummary
-                ("ACTIVITY4","Type4","Rec Data 4",1000));
-        sessionSummaries.add(new SessionSummary
-                ("ACTIVITY5","Type5","Rec Data 5",1000));
-        sessionSummaries.add(new SessionSummary
-                ("ACTIVITY6","Type6","Rec Data 6",1000));
-        sessionSummaries.add(new SessionSummary
-                ("ACTIVITY7","Type7","Rec Data 7",1000));
 
 
         SessionListAdapter sessionListAdapter = new SessionListAdapter(sessionSummaries);
@@ -206,9 +204,9 @@ public class SevenSessionsSummaryFragment extends Fragment {
      */
     class SessionListAdapter extends BaseAdapter{
 
-        ArrayList<SessionSummary> sessionSummaries;
+        List<SessionSummary> sessionSummaries;
 
-        SessionListAdapter(ArrayList<SessionSummary> sessionSummaries){
+        SessionListAdapter(List<SessionSummary> sessionSummaries)   {
             this.sessionSummaries = sessionSummaries;
         }
         /**
@@ -220,7 +218,6 @@ public class SevenSessionsSummaryFragment extends Fragment {
 
         @Override
         public int getCount() {
-            System.out.println("sessionsummary "+sessionSummaries.size());
             return sessionSummaries.size();
         }
 
@@ -233,7 +230,6 @@ public class SevenSessionsSummaryFragment extends Fragment {
          */
         @Override
         public Object getItem(int position) {
-            System.out.println("get item called "+position);
             return  sessionSummaries.get(position);
         }
 
@@ -278,6 +274,15 @@ public class SevenSessionsSummaryFragment extends Fragment {
             System.out.println("session summary"+sessionSummary.toString()+ " postion"+position);
 
             return convertView;
+        }
+    }
+
+    private static class GetLastSevenSessionSummariesAsyncTask extends AsyncTask<Void,Void, List<SessionSummary>> {
+
+        @Override
+        protected List<SessionSummary> doInBackground(Void... voids) {
+            Log.d(TAG, "doInBackground: Entering checking the query");
+            return SessionCdlDb.getInstance(mContext).getSessionDataDAO().getLastSevenSessionSummaries();
         }
     }
 }

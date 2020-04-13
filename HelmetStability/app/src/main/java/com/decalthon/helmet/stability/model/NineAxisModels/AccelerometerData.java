@@ -3,33 +3,44 @@ package com.decalthon.helmet.stability.model.NineAxisModels;
 import android.os.Build;
 
 import androidx.annotation.RequiresApi;
+import androidx.room.ColumnInfo;
 
 import java.util.concurrent.ThreadLocalRandom;
 
 public class AccelerometerData {
-    float accX;
-    float accY;
-    float accZ;
 
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    @ColumnInfo(name = "ax_9axis_dev1")
+    public Float accX;
+    @ColumnInfo(name = "ay_9axis_dev1")
+    public  Float accY;
+    @ColumnInfo(name = "az_9axis_dev1")
+    public Float accZ;
+
     public AccelerometerData() {
-        accX = (float) (ThreadLocalRandom.current().nextFloat() * 200) - 100;
-        accY = (float) (ThreadLocalRandom.current().nextFloat() * 200) - 100;
-        accZ = (float) (ThreadLocalRandom.current().nextFloat() * 200) - 100;
+
     }
 
-    public float getAccX() {
-
-        return this.accX;
+    public Float getAccX() {
+        return accX;
     }
 
-    public float getAccY() {
-
-        return this.accY;
+    public void setAccX(Float accX) {
+        this.accX = accX;
     }
 
-    public float getAccZ() {
+    public Float getAccY() {
+        return accY;
+    }
 
-        return this.accZ;
+    public void setAccY(Float accY) {
+        this.accY = accY;
+    }
+
+    public Float getAccZ() {
+        return accZ;
+    }
+
+    public void setAccZ(Float accZ) {
+        this.accZ = accZ;
     }
 }

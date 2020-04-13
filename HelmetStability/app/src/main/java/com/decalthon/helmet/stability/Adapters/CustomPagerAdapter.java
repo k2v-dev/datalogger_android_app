@@ -7,12 +7,11 @@ import androidx.viewpager2.adapter.FragmentStateAdapter;
 
 import com.decalthon.helmet.stability.Fragments.CustomGraphFragment;
 
-import static com.decalthon.helmet.stability.Utilities.Constants.FRAGMENT_NAME_CHART1;
-import static com.decalthon.helmet.stability.Utilities.Constants.FRAGMENT_NAME_CHART2;
+import static com.decalthon.helmet.stability.Utilities.Constants.FRAGMENT_NAME_DEVICE1_9_AXIS;
+import static com.decalthon.helmet.stability.Utilities.Constants.FRAGMENT_NAME_DEVICE1_3_AXIS;
+import static com.decalthon.helmet.stability.Utilities.Constants.FRAGMENT_NAME_DEVICE2_3_AXIS;
+import static com.decalthon.helmet.stability.Utilities.Constants.FRAGMENT_NAME_DEVICE2_9_AXIS;
 import static com.decalthon.helmet.stability.Utilities.Constants.FRAGMENT_NAME_GPS_SPEED;
-import static com.decalthon.helmet.stability.Utilities.Constants.FRAGMENT_NAME_NINE_AXIS;
-import static com.decalthon.helmet.stability.Utilities.Constants.FRAGMENT_NAME_STEP_COUNT;
-import static com.decalthon.helmet.stability.Utilities.Constants.FRAGMENT_NAME_THREE_AXIS;
 
 
 public class CustomPagerAdapter extends FragmentStateAdapter {
@@ -26,20 +25,15 @@ public class CustomPagerAdapter extends FragmentStateAdapter {
     public Fragment createFragment(int position) {
         switch(position){
             case 0:
-                System.out.println("Able to fetch an empty item @ position" + position);
-                return new CustomGraphFragment(FRAGMENT_NAME_NINE_AXIS);
+                return new CustomGraphFragment(FRAGMENT_NAME_DEVICE1_9_AXIS);
             case 1:
-                System.out.println("Able to fetch an empty item @ position" + position);
-                return new CustomGraphFragment(FRAGMENT_NAME_THREE_AXIS);
+                return new CustomGraphFragment(FRAGMENT_NAME_DEVICE1_3_AXIS);
             case 2:
-                System.out.println("Able to fetch an empty item @ position" + position);
-                return new CustomGraphFragment(FRAGMENT_NAME_GPS_SPEED);
+                return new CustomGraphFragment(FRAGMENT_NAME_DEVICE2_9_AXIS);
             case 3:
-                return new CustomGraphFragment(FRAGMENT_NAME_STEP_COUNT);
+                return new CustomGraphFragment(FRAGMENT_NAME_DEVICE2_3_AXIS);
             case 4:
-                return new CustomGraphFragment(FRAGMENT_NAME_CHART1);
-            case 5:
-                return new CustomGraphFragment(FRAGMENT_NAME_CHART2);
+                return new CustomGraphFragment(FRAGMENT_NAME_GPS_SPEED);
         }
         return new CustomGraphFragment();
     }

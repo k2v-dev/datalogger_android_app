@@ -103,6 +103,14 @@ public class SensorDataEntity {
         this.date = date;
     }
 
+    public long getSession_id() {
+        return session_id;
+    }
+
+    public void setSession_id(long session_id) {
+        this.session_id = session_id;
+    }
+
     public long getDateMillis() {
         return dateMillis;
     }
@@ -111,6 +119,16 @@ public class SensorDataEntity {
         dateMillis = this.date.getTime();
         this.dateMillis = dateMillis;
     }
+
+    //
+//    public long getDateMillis() {
+//        return dateMillis;
+//    }
+//
+//    public void setDateMillis(long dateMillis) {
+//        dateMillis = this.date.getTime();
+//        this.dateMillis = dateMillis;
+//    }
 
     public float getAx_9axis_dev1() {
          return ax_9axis_dev1;

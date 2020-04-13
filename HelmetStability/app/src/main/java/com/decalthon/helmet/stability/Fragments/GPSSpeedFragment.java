@@ -360,16 +360,17 @@ public class GPSSpeedFragment extends Fragment implements LocationListener  {
 //        gpsSpeed.date = new Date().toString();
         gpsSpeed.latitude = (float)location.getLatitude();
         gpsSpeed.longitude = (float)location.getLongitude();
+        gpsSpeed.altitude = (float)location.getAltitude();
 
 
-        MapFragment.addRideMarkerOnMap(location);
+        //MapFragment.addRideMarkerOnMap(location);
 
 
         if (location != null){
 
             //Add location to table here
             addGpsSpeedEntry(gpsSpeed);
-            MapFragment.addRideMarkerOnMap(location);
+            //MapFragment.addRideMarkerOnMap(location);
 
             // gps support speed feature, then show the gps's speed
             if (location.hasSpeed()){

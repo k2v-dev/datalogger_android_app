@@ -12,9 +12,11 @@ import com.decalthon.helmet.stability.DB.Entities.SensorDataEntity;
 import com.decalthon.helmet.stability.DB.Entities.SessionSummary;
 import com.decalthon.helmet.stability.Fragments.HomeFragment;
 import com.decalthon.helmet.stability.Utilities.Constants;
+import com.decalthon.helmet.stability.model.DeviceModels.DeviceHelper;
 
 import java.io.BufferedReader;
 import java.util.List;
+import java.util.Map;
 
 public class DatabaseHelper {
     private static final String TAG = DatabaseHelper.class.getSimpleName();
@@ -25,19 +27,45 @@ public class DatabaseHelper {
     public static class UpdateMarkerData extends  AsyncTask<Long, Void, Void> {
         @Override
         protected Void doInBackground(Long... longs) {
-            List<MarkerData> markerDatas = sessionCdlDb.getMarkerDataDAO().getMarkerData(longs[0]);
-            MarkerData[] markerDataArr = new MarkerData[markerDatas.size()];
-            long t1 = System.currentTimeMillis();
-            for(int i=0; i< markerDatas.size();i++){
-                markerDataArr[i] = markerDatas.get(i);
-                List<GpsSpeed> gpsSpeeds = sessionCdlDb.gpsSpeedDAO().getGpsSpeed(markerDataArr[i].marker_timestamp);
-                markerDataArr[i].lat = gpsSpeeds.get(0).latitude;
-                markerDataArr[i].lng = gpsSpeeds.get(0).longitude;
+            try{
+                List<MarkerData> markerDatas = sessionCdlDb.getMarkerDataDAO().getMarkerData(longs[0]);
+                MarkerData[] markerDataArr = new MarkerData[markerDatas.size()];
+                long t1 = System.currentTimeMillis();
+                for(int i=0; i< markerDatas.size();i++){
+                    markerDataArr[i] = markerDatas.get(i);
+                    List<GpsSpeed> gpsSpeeds = sessionCdlDb.gpsSpeedDAO().getGpsSpeed(markerDataArr[i].marker_timestamp);
+                    markerDataArr[i].lat = gpsSpeeds.get(0).latitude;
+                    markerDataArr[i].lng = gpsSpeeds.get(0).longitude;
+                }
+                sessionCdlDb.getMarkerDataDAO().updateMarkerData(markerDataArr);
+                long t2 = System.currentTimeMillis();
+                System.out.println("UpdateMarkerData:: Total time = "+ (t2-t1));
+            }catch (Exception ex){
+                ex.printStackTrace();
             }
-            sessionCdlDb.getMarkerDataDAO().updateMarkerData(markerDataArr);
-            long t2 = System.currentTimeMillis();
-            System.out.println("UpdateMarkerData:: Total time = "+ (t2-t1));
 
+
+            return null;
+        }
+    }
+
+
+//    public static class GetLastPktNum extends AsyncTask<Void, Void, Void> {
+//
+//        @Override
+//        protected Void doInBackground(Void... voids) {
+//            long prev_pkt_num = sessionCdlDb.getSessionDataDAO().getLastPktNumSD(8);
+//            Log.d(TAG, "Prev Packet num = "+prev_pkt_num);
+//            return null;
+//        }
+//    }
+
+    public static class DeleteAll extends  AsyncTask<Long, Void, Void>{
+
+        @Override
+        protected Void doInBackground(Long... longs) {
+            sessionCdlDb.getSessionDataDAO().deleteSessionSummary(longs[0]);
+            sessionCdlDb.getSessionDataDAO().deleteSensorData(longs[0]);
             return null;
         }
     }

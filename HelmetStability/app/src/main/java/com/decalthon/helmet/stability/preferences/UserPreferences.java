@@ -159,4 +159,12 @@ public class UserPreferences {
 //    public String getAddr(String device_id){
 //        return sharedpreferences.getString(device_id+".addr", "");
 //    }
+    /**
+     * Clear the value of all devices
+     */
+    public void clear(){
+        SharedPreferences.Editor editor = sharedpreferences.edit();
+        editor.clear();
+        editor.apply();
+    }
 }

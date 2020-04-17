@@ -81,30 +81,30 @@ public class CsvGenerator {
 
        try{
 
-           String fileName = prefix + "sensor_data.csv";
+           String fileName = prefix + "_sensor_data.csv";
 
            File logFile = new File(roo_dir, fileName);
            FileWriter writer = new FileWriter(logFile,true);
 
-           writer.append(addSeparator("User_Profile"));
-           writer.append("User Id,"+userId+"\n");
-           writer.append("Gender,"+genderMap.get(profilePreferences.getGender()+"")+"\n");
-           writer.append("Height_cm,"+profilePreferences.getHeight()+"\n");
-           writer.append("Weight_kg,"+profilePreferences.getWeight()+"\n");
-           writer.append("Age_yrs,"+profilePreferences.getAge()+"\n");
+           writer.append(addSeparator("User_Profile, "));writer.append(addComma());
+           writer.append("User Id,"+userId);writer.append(addComma());
+           writer.append("Gender,"+genderMap.get(profilePreferences.getGender()+""));writer.append(addComma());
+           writer.append("Height_cm,"+(int)profilePreferences.getHeight());writer.append(addComma());
+           writer.append("Weight_kg,"+(int)profilePreferences.getWeight());writer.append(addComma());
+           writer.append("Age_yrs,"+profilePreferences.getAge());writer.append(addComma());
 
-           writer.append(addSeparator("Session_Summary"));
+           writer.append(addSeparator("Session_Summary, "));writer.append(addComma());
            Date date = new Date(sessionSummary.getDate());
            String date_str = dateFileFormat.format(date);
            float total_MB = ((float)sessionSummary.getTotal_data())/(1024.0f*1024.0f);
-           writer.append("Session_Name,"+sessionSummary.getName()).append("\n");
-           writer.append("Session_Start_Time,"+date_str).append("\n");
-           writer.append("Duration,"+getDurationInString((long)sessionSummary.getDuration())).append("\n");
-           writer.append("Activity_type,"+sessionSummary.getActivity_type()).append("\n");
-           writer.append("Sampling_rate_Hz,100").append("\n");
-           writer.append("Raw_data_size_MB,"+String.format(Locale.getDefault(),"%3.2f", total_MB)).append("\n");
-           writer.append("Number_of_Columns,38").append("\n");
-           writer.append("Additional_Note,"+sessionSummary.getNote()).append("\n");
+           writer.append("Session_Name,"+sessionSummary.getName());writer.append(addComma());
+           writer.append("Session_Start_Time,"+date_str);writer.append(addComma());
+           writer.append("Duration,"+getDurationInString((long)sessionSummary.getDuration()));writer.append(addComma());
+           writer.append("Activity_type,"+sessionSummary.getActivity_type());writer.append(addComma());
+           writer.append("Sampling_rate_Hz,100");writer.append(addComma());
+           writer.append("Raw_data_size_MB,"+String.format(Locale.getDefault(),"%3.2f", total_MB));writer.append(addComma());
+           writer.append("Number_of_Columns,38");writer.append(addComma());
+           writer.append("Additional_Note,\""+sessionSummary.getNote()+"\"");writer.append(addComma());
 //           writer.append("\n\n\n");
 
            writer.append(addSeparator("Sensors_Data"));
@@ -172,7 +172,7 @@ public class CsvGenerator {
 
     public void generateSessionSummaryFile(SessionSummary sessionSummary){
         try{
-            String fileName = prefix + "session_summary.csv";
+            String fileName = prefix + "_session_summary.csv";
 
             File logFile = new File(roo_dir, fileName);
             String header = "UserID__,Session_Name__,Session_Start_Time__YYYYMMDD_HHMMSS,Duration__HHMMSSMIL,Sampling_rate__Hz,Raw_data_size__MB,Number_of_Columns__Count,Additional_Note__Text\n";
@@ -182,7 +182,7 @@ public class CsvGenerator {
             String date_str = dateFileFormat.format(date);
             float total_MB = ((float)sessionSummary.getTotal_data())/(1024.0f*1024.0f);
 
-            String data = userId+","+sessionSummary.getName()+","+date_str+","+sessionSummary.getDuration()+","+"100,"+String.format(Locale.getDefault(),"%3.2f",total_MB)+",38,"+sessionSummary.getNote();
+            String data = userId+","+sessionSummary.getName()+","+date_str+","+getDurationHHMMSSMil((long)sessionSummary.getDuration())+","+"100,"+String.format(Locale.getDefault(),"%3.2f",total_MB)+",38,"+sessionSummary.getNote();
             writer.append(header);
             writer.append(data);
             writer.flush();
@@ -194,13 +194,13 @@ public class CsvGenerator {
 
     public void generateUserFile(){
         try {
-            String fileName = prefix + "user_data.csv";
+            String fileName = prefix + "_user_data.csv";
 
             File logFile = new File(roo_dir, fileName);
 
             String header = "UserID__,Gender__,Height__cm,Weight__kg,Age__yrs\n";
 
-            String data = userId+","+genderMap.get(profilePreferences.getGender()+"")+","+profilePreferences.getHeight()+","+profilePreferences.getWeight()+","+profilePreferences.getAge();
+            String data = userId+","+genderMap.get(profilePreferences.getGender()+"")+","+(int)profilePreferences.getHeight()+","+(int)profilePreferences.getWeight()+","+profilePreferences.getAge();
 
             FileWriter writer = new FileWriter(logFile,true);
 
@@ -261,6 +261,14 @@ public class CsvGenerator {
 //        }
 //    }
 
+    private String addComma(){
+        StringBuilder stringBuilder = new StringBuilder();
+        for (int i = 0; i < 38; i++) {
+            stringBuilder.append(", ");
+        }
+        return stringBuilder.toString()+"\n";
+    }
+
     private String addSeparator(String title){
         StringBuilder stringBuilder = new StringBuilder();
         for (int i = 0; i < 15; i++) {
@@ -289,8 +297,8 @@ public class CsvGenerator {
     }
 
     private void appendMarkerData(StringBuilder sb, MarkerData markerData){
-        Helper.format6(sb, markerData.markerNumber);sb.append(",");sb.append(markerData.getMarkerType());sb.append(",");
-        sb.append(markerData.getNote());sb.append(",");
+        Helper.format6(sb, markerData.markerNumber);sb.append(",");sb.append(markerData.getMarkerType());sb.append(",\"");
+        sb.append(markerData.getNote());sb.append("\",");
     }
 
     private void appendButtonBoxEntity(StringBuilder sb, ButtonBoxEntity buttonBoxEntity){
@@ -314,6 +322,14 @@ public class CsvGenerator {
         long second = TimeUnit.MILLISECONDS.toSeconds(duration) - (TimeUnit.MILLISECONDS.toMinutes(duration) *60);
         long ms = TimeUnit.MILLISECONDS.toMillis(duration) - (TimeUnit.MILLISECONDS.toSeconds(duration) *1000);;
         return hours+"hr_"+minute+"min_"+second+"sec_"+ms+"millisec";
+    }
+
+    private String getDurationHHMMSSMil(long duration){
+        long hours = TimeUnit.MILLISECONDS.toHours(duration) ;
+        long minute = TimeUnit.MILLISECONDS.toMinutes(duration) - (TimeUnit.MILLISECONDS.toHours(duration)* 60);
+        long second = TimeUnit.MILLISECONDS.toSeconds(duration) - (TimeUnit.MILLISECONDS.toMinutes(duration) *60);
+        long ms = TimeUnit.MILLISECONDS.toMillis(duration) - (TimeUnit.MILLISECONDS.toSeconds(duration) *1000);
+        return String.format(Locale.getDefault(), "%02d%02d%02d%03d", hours, minute, second, ms);
     }
 
 }

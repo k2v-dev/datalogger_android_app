@@ -6,6 +6,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
@@ -54,12 +55,17 @@ import com.decalthon.helmet.stability.Fragments.SevenSessionsSummaryFragment;
 import com.decalthon.helmet.stability.Fragments.YearPagerFragment;
 import com.decalthon.helmet.stability.Fragments.YearlyCalendarFragment;
 import com.decalthon.helmet.stability.R;
+import com.decalthon.helmet.stability.Utilities.Common;
 import com.decalthon.helmet.stability.Utilities.Constants;
 import com.decalthon.helmet.stability.firestore.FirebaseStorageManager;
 import com.decalthon.helmet.stability.firestore.FirestoreUserModel;
 import com.decalthon.helmet.stability.firestore.entities.impl.UserImpl;
 import com.decalthon.helmet.stability.model.DeviceModels.DeviceDetails;
+import com.decalthon.helmet.stability.model.InternetCheck;
 import com.decalthon.helmet.stability.preferences.DevicePreferences;
+import com.decalthon.helmet.stability.preferences.ProfilePreferences;
+import com.decalthon.helmet.stability.preferences.UserPreferences;
+import com.google.common.collect.BiMap;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.Map;
@@ -151,7 +157,15 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
                         .setTitle("Alert")
                         .setMessage("  Do you want to logout?")
                         .setNegativeButton("No", null)
-                        .setPositiveButton("Yes",null)
+                        .setPositiveButton("Yes",new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                UserPreferences.getInstance(getApplicationContext()).clear();
+                                ProfilePreferences.getInstance(getApplicationContext()).clear();
+                                DevicePreferences.getInstance(getApplicationContext()).clear();
+                                navigateToFragments();
+                            }
+                        })
                         .create();
                 dialog.show();
                 dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.parseColor("#FF1B5AAC")); // Set text color to blue color
@@ -160,6 +174,7 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
         });
 //        sessionCdlDb = Room.databaseBuilder(getApplicationContext(),SessionCdlDb.class,"Gps_Speed_DB")
 //                .addCallback(callback).build();
+
     }
 
 
@@ -277,6 +292,21 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
         DEVICE_MAPS.put(getResources().getString(R.string.device1_tv), new DeviceDetails());
         DEVICE_MAPS.put(getResources().getString(R.string.device2_tv), new DeviceDetails());
         DEVICE_MAPS.put(getResources().getString(R.string.device3_tv), new DeviceDetails());
+
+        String[] indoor = getResources().getStringArray(R.array.indoor_sports_array);
+        int[] indoor_code = getResources().getIntArray(R.array.indoor_sports_array_code);
+        String[] outdoor = getResources().getStringArray(R.array.outdoor_sports_array);
+        int[] outdoor_code = getResources().getIntArray(R.array.outdoor_sports_array_code);
+
+        for (int i = 0; i < indoor.length; i++) {
+            String key = indoor[i]+"_"+Constants.INDOOR;
+            Constants.ActivityCodeMap.put(key, indoor_code[i]);
+        }
+
+        for (int i = 0; i < outdoor.length; i++) {
+            String key = outdoor[i]+"_"+Constants.INDOOR;
+            Constants.ActivityCodeMap.put(key, outdoor_code[i]);
+        }
 
 //        SENSORS_MAPS.put(getResources().getString(R.string.device1_tv), HEL_SENSORS);
 //        SENSORS_MAPS.put(getResources().getString(R.string.device2_tv), WAT_SENSORS);

@@ -38,12 +38,15 @@ public class SessionSummary {
     private float duration;
     private int activity_type;
     private String note="";
+    private short firmware_type;
+    private short sampling_freq;
+
 
     // Device1
     private int num_pages;
     private int total_data;
     private int total_pkts;
-    private int num_read_pkt;
+//    private int num_read_pkt;
     @ColumnInfo(defaultValue = "false")
     private boolean isComplete;
 
@@ -51,7 +54,7 @@ public class SessionSummary {
     private int bb_num_pages;
     private int bb_total_data;
     private int bb_total_pkts;
-    private int bb_num_read_pkt;
+//    private int bb_num_read_pkt;
     @ColumnInfo(defaultValue = "false")
     private boolean bb_isComplete;
 
@@ -113,13 +116,13 @@ public class SessionSummary {
         this.total_pkts = total_pkts;
     }
 
-    public int getNum_read_pkt() {
-        return num_read_pkt;
-    }
-
-    public void setNum_read_pkt(int num_read_pkt) {
-        this.num_read_pkt = num_read_pkt;
-    }
+//    public int getNum_read_pkt() {
+//        return num_read_pkt;
+//    }
+//
+//    public void setNum_read_pkt(int num_read_pkt) {
+//        this.num_read_pkt = num_read_pkt;
+//    }
 
     public int getNum_pages() {
         return num_pages;
@@ -161,13 +164,13 @@ public class SessionSummary {
         this.bb_total_pkts = bb_total_pkts;
     }
 
-    public int getBb_num_read_pkt() {
-        return bb_num_read_pkt;
-    }
-
-    public void setBb_num_read_pkt(int bb_num_read_pkt) {
-        this.bb_num_read_pkt = bb_num_read_pkt;
-    }
+//    public int getBb_num_read_pkt() {
+//        return bb_num_read_pkt;
+//    }
+//
+//    public void setBb_num_read_pkt(int bb_num_read_pkt) {
+//        this.bb_num_read_pkt = bb_num_read_pkt;
+//    }
 
     public boolean isBb_isComplete() {
         return bb_isComplete;
@@ -194,5 +197,21 @@ public class SessionSummary {
 
     public void setNote(String note) {
         this.note = note;
+    }
+
+    public short getFirmware_type() {
+        return firmware_type;
+    }
+
+    public void setFirmware_type(short firmware_type) {
+        this.firmware_type = firmware_type;
+    }
+
+    public short getSampling_freq() {
+        return sampling_freq;
+    }
+
+    public void setSampling_freq(short sampling_freq) {
+        this.sampling_freq = sampling_freq;
     }
 }

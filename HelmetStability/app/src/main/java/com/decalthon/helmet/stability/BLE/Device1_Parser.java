@@ -5,6 +5,8 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 import com.decalthon.helmet.stability.Activities.MainActivity;
+import com.decalthon.helmet.stability.DB.DatabaseHelper;
+import com.decalthon.helmet.stability.DB.Entities.MarkerData;
 import com.decalthon.helmet.stability.DB.Entities.SensorDataEntity;
 import com.decalthon.helmet.stability.DB.SessionCdlDb;
 import com.decalthon.helmet.stability.R;
@@ -27,9 +29,12 @@ import java.util.concurrent.ExecutionException;
 public class Device1_Parser extends Device_Parser{
     private static final String TAG = Device1_Parser.class.getSimpleName();
     Context context;
-    String device_id;
-    String address;
+//    String device_id;
+//    String address;
     private static byte[] last_data;
+    private static short prevBtnType = -1;
+    private static long prev_pkt_num = -1;
+    private static long num_pkt_read = 0;
 
 //    private static SessionCdlDb sessionCdlDb;
     private static SensorDataEntity currentSensorDataEntity;
@@ -37,10 +42,10 @@ public class Device1_Parser extends Device_Parser{
     private List<SessionSummary> sessionSummaryList;
     private ArrayList<Long> timestamps;
 
-    public Device1_Parser(Context context, String device_id, String address) {
+    public Device1_Parser(Context context) {
         this.context = context;
-        this.device_id = device_id;
-        this.address = address;
+//        this.device_id = device_id;
+//        this.address = address;
         sessionCdlDb = SessionCdlDb.getInstance(context);
         timestamps = new ArrayList<>();
     }
@@ -116,12 +121,22 @@ public class Device1_Parser extends Device_Parser{
 
         sensorDataEntity.packet_number = (int)ByteUtils.bytesToLongNew(long_num);
         //TODO In every 1000 packets, update session summary using %, using separate thread in method;
-
+        if(sensorDataEntity.packet_number - prev_pkt_num > 1){
+            new UpdateNumberofReadPacketsAsyncTask().execute(DeviceHelper.SESSION_SUMMARIES.get(currentSessionNumber));
+            Common.wait(50);
+            //sendSessionCommand();
+            sendStopCmd(context);
+            sendNextSessionCmd(context);
+            return;
+        }else if(prev_pkt_num >= sensorDataEntity.packet_number){
+            return;
+        }
+        prev_pkt_num = sensorDataEntity.packet_number;
 
         //TODO set SensorDataEntity.sessionsummary = current session summary
         Calendar calendar = Calendar.getInstance();
 
-        Date date = new     Date();
+        Date date = new Date();
         // If session header for this packet is available, then set date
         if(DeviceHelper.REC_SESSION_HDR != null){
             date = DeviceHelper.REC_SESSION_HDR.getDate();
@@ -156,6 +171,25 @@ public class Device1_Parser extends Device_Parser{
         //received_data[34]  - Longitude  in unsigned byte format
         // received_data[45]  -GPS Tag Type.
         // received_data[46]  - GPS Tagger.
+        //short gps_tag_type = (short)(received_data[45] & 0xFF);
+        sensorDataEntity.gps_tagger = (short)(received_data[46] & 0xFF);
+
+        if(prevBtnType == -1){
+            MarkerData markerData = new MarkerData(sensorDataEntity.dateMillis,  "0", "");
+            markerData.session_id = sensorDataEntity.session_id;
+            new InsertMarkerDataAsyncTask().execute(markerData);
+            prevBtnType = (short) sensorDataEntity.packet_number;
+            //prevBtnType = gps_tag_type;
+        }
+
+        if(sensorDataEntity.gps_tagger > 0){
+            MarkerData markerData = new MarkerData(sensorDataEntity.dateMillis,  prevBtnType+"", "");
+            markerData.session_id = sensorDataEntity.session_id;
+            new InsertMarkerDataAsyncTask().execute(markerData);
+            prevBtnType++;
+            //prevBtnType = gps_tag_type;
+        }
+
 
         sensorDataEntity.ax_9axis_dev2 = Helper.getShortValue(received_data[47], received_data[48])*Constants.ACC_9axis_SF;
         sensorDataEntity.ay_9axis_dev2 = Helper.getShortValue(received_data[49], received_data[50])*Constants.ACC_9axis_SF;
@@ -177,46 +211,64 @@ public class Device1_Parser extends Device_Parser{
         sensorDataEntity.sagital_slippage = Helper.getShortValue(received_data[73], received_data[74])*0.1f;
 
 //        sensorDataEntity.setSessionSummary();
-
 //        System.out.println(currentSessionNumber+"currentSessionNumber");
 //        sensorDataEntity.sessionSummary = DeviceHelper.SESSION_SUMMARIES.get(currentSessionNumber);
 //                currentSensorDataEntity = sensorDataEntity;
 
-
         sensorDataEntity.session_id = sessionSummary.getSession_id();
-        DeviceHelper.SESSION_SUMMARIES.get(currentSessionNumber).setNum_read_pkt((int)sensorDataEntity.packet_number);
-        addSensorDataEntity(sensorDataEntity);
+        //DeviceHelper.SESSION_SUMMARIES.get(currentSessionNumber).setNum_read_pkt((int)sensorDataEntity.packet_number);
+//        addSensorDataEntity(sensorDataEntity);
 //        addSensorDataEntity();
         //TODO write completion code, if complete then save session summary, then send session command
 
-        if(DeviceHelper.SESSION_SUMMARIES.get(currentSessionNumber).getNum_read_pkt()
-            >= sessionSummary.getTotal_pkts()){
-            System.out.println("Number of packets-->"+DeviceHelper.SESSION_SUMMARIES.get(currentSessionNumber).getNum_read_pkt());
+        if(sensorDataEntity.packet_number
+            > sessionSummary.getTotal_pkts()){
+            System.out.println("Number of packets-->"+sensorDataEntity.packet_number);
+            // Update the session summary table like number of read packet and completee read
             DeviceHelper.SESSION_SUMMARIES.get(currentSessionNumber).setComplete(true);
             new UpdateNumberofReadPacketsAsyncTask().execute(DeviceHelper.SESSION_SUMMARIES.get(currentSessionNumber));
             Common.wait(50);
             DeviceHelper.SESSION_SUMMARIES.remove(currentSessionNumber);
-            sendSessionCommand();
+            // Add stop marker in MarkerData table
+            MarkerData markerData = new MarkerData(sensorDataEntity.dateMillis,  "0", "");
+            markerData.session_id = sensorDataEntity.session_id;
+            new InsertMarkerDataAsyncTask().execute(markerData);
+            prevBtnType = -1;
+            new DatabaseHelper.UpdateMarkerData().execute(sensorDataEntity.session_id);
+            // Send command to device for getting next session's data
+            //sendSessionCommand();
+            sendStopCmd(context);
+            // There is bug with below command, After sending the command , device stop sending any data and After that there is no change in session summary
+            // When this bug get fixed, then uncomment sendReadSessionCmd  method and comment sendNextSessionCmd method
+            //sendReadSessionCmd(currentSessionNumber);
+            sendNextSessionCmd(context);
         }else{
-            try{
-                checkForHundredPackets(currentSessionNumber);
-//            sensorDataEntity.setSessionSummary(currentSessionSummary);
-            }catch (NullPointerException e){
-                System.out.println("Unable to set packet number");
+            update_num_pkt_rcvd();
+            addSensorDataEntity(sensorDataEntity);
+            if(sensorDataEntity.packet_number % 100 == 0){
+                Log.d(TAG, "Packet number="+sensorDataEntity.packet_number);
             }
+//            try{
+//                // Update the session on every 100th packet
+//                checkForHundredPackets(currentSessionNumber);
+////            sensorDataEntity.setSessionSummary(currentSessionSummary);
+//            }catch (NullPointerException e){
+//                System.out.println("Unable to set packet number");
+//            }
         }
     }
-    private static int counter = 0;
-    private void checkForHundredPackets(int session_number){
-                int cur_pkt  = DeviceHelper.SESSION_SUMMARIES.get(session_number).getNum_read_pkt();
 
-                if( (cur_pkt-counter) > 100){
-//                    System.out.println(counter + " --> check for 100 packets");
-                    System.out.println("pkt_num="+ cur_pkt+" --> check for 100 packets");
-                    new UpdateNumberofReadPacketsAsyncTask().execute(DeviceHelper.SESSION_SUMMARIES.get(session_number));
-                    counter = cur_pkt;
-                }
-    }
+//    private static int counter = 0;
+//    private void checkForHundredPackets(int session_number){
+//                int cur_pkt  = DeviceHelper.SESSION_SUMMARIES.get(session_number).getNum_read_pkt();
+//
+//                if( (cur_pkt-counter) > 100){
+////                    System.out.println(counter + " --> check for 100 packets");
+//                    System.out.println("pkt_num="+ cur_pkt+" --> check for 100 packets");
+//                    new UpdateNumberofReadPacketsAsyncTask().execute(DeviceHelper.SESSION_SUMMARIES.get(session_number));
+//                    counter = cur_pkt;
+//                }
+//    }
 
     private void addSensorDataEntity(SensorDataEntity sensorDataEntity) {
         try {
@@ -230,11 +282,9 @@ public class Device1_Parser extends Device_Parser{
 //        System.out.println("Entering async task wit db instance " + sessionCdlDb.toString());
 //        new InsertSensorDataEntityAsyncTask().execute();
 //    }
-
-
     // Parsing session header which recevied just before packets
     private void parseSessionHeader(byte[] received_data) {
-        int packet_size = 16; // change to 16 when new firmwarer availabe
+        int packet_size = 18; // change to 16 when new firmwarer availabe
         int session_num =  received_data[1] & 0xFF ;
 
         if(received_data.length < packet_size) {
@@ -256,7 +306,9 @@ public class Device1_Parser extends Device_Parser{
 
         // if checksum and calculated checksume are not equal, then data is corrupted and so reject the packet
         if(checksum != total){
-            System.out.println("Device1: Session Header: Unmatching checksum = "+checksum+", total ="+total);
+            System.out.println("Device1: Session Header: Unmatching checksum = "+checksum+", total ="+total+", packet="+Common.convertByteArrToStr(received_data, true));
+            sendStopCmd(context);
+            sendNextSessionCmd(context);
             return;
         }
 
@@ -289,11 +341,18 @@ public class Device1_Parser extends Device_Parser{
         float total_size = ByteUtils.bytesToFloat(float_num);
         sessionHeader.setData_size(total_size);
 
-        sessionHeader.setActivity_type(received_data[13] & 0xFF);
+        sessionHeader.setFirmwareType((short) (received_data[13] & 0xFF));
+
+        sessionHeader.setActivity_type(received_data[14] & 0xFF);
+
+        sessionHeader.setSamp_freq((short) (received_data[15] & 0xFF));
+
+        update_num_pkt_rcvd();
 
         DeviceHelper.REC_SESSION_HDR = sessionHeader;
         DeviceHelper.SESSION_SUMMARIES.get(session_num).setActivity_type(sessionHeader.getActivity_type());
-
+        DeviceHelper.SESSION_SUMMARIES.get(session_num).setFirmware_type(sessionHeader.getFirmwareType());
+        DeviceHelper.SESSION_SUMMARIES.get(session_num).setSampling_freq(sessionHeader.getSamp_freq());
         //DeviceHelper.SESSION_HDRS.put(session_num, sessionHeader);
     }
 
@@ -341,7 +400,7 @@ public class Device1_Parser extends Device_Parser{
 
         DeviceHelper.SESSION_SUMMARIES.clear();
         int index = 2;
-
+        int total_pkts_available = 0;
         for (int i=0 ; i< num_sessions ; i++){
 
             SessionSummary sessionSummary = new SessionSummary();
@@ -351,6 +410,7 @@ public class Device1_Parser extends Device_Parser{
             int num_packets_lst_page = received_data[index+3] & 0xFF; // number of pkts in last page
             int total_pkts = number_pages*25 + num_packets_lst_page;
             //int total_pkts = 25000;
+            total_pkts_available += total_pkts;
             sessionSummary.setNum_pages(number_pages);
             sessionSummary.setTotal_pkts(total_pkts);
             sessionSummary.setTotal_data(total_pkts*80);// 80 bytes per packet
@@ -376,7 +436,7 @@ public class Device1_Parser extends Device_Parser{
             insertSessionSummary(sessionSummary);
         }
 //TODO Get the query ip: list of timestamp op: list  of summaries [DONE]
-          Long [] storedTimestamps = (Long[])timestamps.toArray(new Long[0]);
+        Long [] storedTimestamps = (Long[])timestamps.toArray(new Long[0]);
         try {
             List<SessionSummary> sessionSummariesStored  =
                     (new GetSessionSummaryListAsyncTask().execute(storedTimestamps)).get();
@@ -401,8 +461,8 @@ public class Device1_Parser extends Device_Parser{
         for (int i = 0; i < packet_size; i++) {
             last_data[i] = received_data[i];
         }
-
-        sendSessionCommand();
+        update_total_pkt(total_pkts_available);
+//        sendSessionCommand();
 //        new Thread(new Runnable() {
 //            @Override
 //            public void run() {
@@ -428,62 +488,106 @@ public class Device1_Parser extends Device_Parser{
 //            //Common.wait(500);
 //           // deviceDetails.sendData(Common.convertingTobyteArray(Constants.STOP_CMD));
 //        }
+        sendStopCmd(context);
+        sendNextSessionCmd(context);
     }
 
-    private void sendSessionCommand(){
-//        new Thread(new Runnable() {
+//    private void sendSessionCommand(){
+////        new Thread(new Runnable() {
+////            @Override
+////            public void run() {
+////                Log.d(TAG, "run: sendSessionCommand");
+////                DeviceDetails deviceDetails = Constants.DEVICE_MAPS.get(context.getResources().getString(R.string.device1_tv));
+////                if(deviceDetails != null && deviceDetails.mac_address != null && deviceDetails.mac_address.equalsIgnoreCase(address)){
+////                    deviceDetails.sendData(Common.convertingTobyteArray(Constants.STOP_CMD));
+////                    Common.wait(100);
+////                    //TODO If Device Helper session summary has size > 0, 374 - 379 [DONE]
+////                    if(DeviceHelper.SESSION_SUMMARIES.size() > 0) {
+////                        Map.Entry<Integer, SessionSummary> entry = DeviceHelper.SESSION_SUMMARIES.entrySet().iterator().next();
+////                        int key = entry.getKey();
+////                        byte[] session_cmd = request_session_data(key, entry.getValue().getNum_read_pkt());
+////                        Log.d(TAG, "SessionCommand: " + Common.convertByteArrToStr(session_cmd, true));
+////                        deviceDetails.sendData(session_cmd);
+////                    }
+////                    //deviceDetails.sendData(Common.convertingTobyteArray(Constants.SESSION_CMD));
+////                }
+////            }
+////        }).start();
+//        Runnable runnable = new Runnable() {
 //            @Override
 //            public void run() {
-//                Log.d(TAG, "run: sendSessionCommand");
 //                DeviceDetails deviceDetails = Constants.DEVICE_MAPS.get(context.getResources().getString(R.string.device1_tv));
 //                if(deviceDetails != null && deviceDetails.mac_address != null && deviceDetails.mac_address.equalsIgnoreCase(address)){
+//                    ConsumerThread.stopProducing = true;
+//                    Common.wait(1000);
 //                    deviceDetails.sendData(Common.convertingTobyteArray(Constants.STOP_CMD));
-//                    Common.wait(100);
+//                    Common.wait(2000);
+//                    ConsumerThread.DATA_QUEUE.clear();
+//                    ConsumerThread.stopProducing = false;
+//                    Log.d(TAG, "START NEW SESSION DATA");
+//                    counter = 0;
 //                    //TODO If Device Helper session summary has size > 0, 374 - 379 [DONE]
 //                    if(DeviceHelper.SESSION_SUMMARIES.size() > 0) {
 //                        Map.Entry<Integer, SessionSummary> entry = DeviceHelper.SESSION_SUMMARIES.entrySet().iterator().next();
 //                        int key = entry.getKey();
+////                        int key = 51;
 //                        byte[] session_cmd = request_session_data(key, entry.getValue().getNum_read_pkt());
+//                        prev_pkt_num = entry.getValue().getNum_read_pkt();
 //                        Log.d(TAG, "SessionCommand: " + Common.convertByteArrToStr(session_cmd, true));
 //                        deviceDetails.sendData(session_cmd);
 //                    }
 //                    //deviceDetails.sendData(Common.convertingTobyteArray(Constants.SESSION_CMD));
 //                }
 //            }
-//        }).start();
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                DeviceDetails deviceDetails = Constants.DEVICE_MAPS.get(context.getResources().getString(R.string.device1_tv));
-                if(deviceDetails != null && deviceDetails.mac_address != null && deviceDetails.mac_address.equalsIgnoreCase(address)){
-                    ConsumerThread.stopProducing = true;
-                    Common.wait(1000);
-                    deviceDetails.sendData(Common.convertingTobyteArray(Constants.STOP_CMD));
-                    Common.wait(2000);
-                    ConsumerThread.DATA_QUEUE.clear();
-                    ConsumerThread.stopProducing = false;
-                    Log.d(TAG, "START NEW SESSION DATA");
-                    counter = 0;
-                    //TODO If Device Helper session summary has size > 0, 374 - 379 [DONE]
-                    if(DeviceHelper.SESSION_SUMMARIES.size() > 0) {
+//        };
+//
+//        MainActivity.shared().runOnUiThread(runnable);
+//        //new Thread(runnable).start();
+//    }
+
+    public static void sendStopCmd(Context context){
+        DeviceDetails deviceDetails = Constants.DEVICE_MAPS.get(context.getResources().getString(R.string.device1_tv));
+        if(deviceDetails != null && deviceDetails.mac_address != null) {
+            ConsumerThread.stopProducing = true;
+            Common.wait(1000);
+            deviceDetails.sendData(Common.convertingTobyteArray(Constants.STOP_CMD));
+            Common.wait(2000);
+            ConsumerThread.DATA_QUEUE.clear();
+            ConsumerThread.stopProducing = false;
+        }
+    }
+
+    public static void sendNextSessionCmd(Context context){
+        DeviceDetails deviceDetails = Constants.DEVICE_MAPS.get(context.getResources().getString(R.string.device1_tv));
+        if(deviceDetails != null && deviceDetails.mac_address != null) {
+            Log.d(TAG, "START NEW SESSION DATA");
+//            counter = 0;
+            //TODO If Device Helper session summary has size > 0, 374 - 379 [DONE]
+            if(DeviceHelper.SESSION_SUMMARIES.size() > 0) {
+
+                new GetLastPktNum(pkt_num -> {
+                    if (pkt_num >= 0L) {
                         Map.Entry<Integer, SessionSummary> entry = DeviceHelper.SESSION_SUMMARIES.entrySet().iterator().next();
                         int key = entry.getKey();
-//                        int key = 51;
-                        byte[] session_cmd = request_session_data(key, entry.getValue().getNum_read_pkt());
-                        Log.d(TAG, "SessionCommand: " + Common.convertByteArrToStr(session_cmd, true));
+                        byte[] session_cmd = request_session_data(key, pkt_num);
+//                prev_pkt_num = entry.getValue().getNum_read_pkt();
                         deviceDetails.sendData(session_cmd);
                     }
-                    //deviceDetails.sendData(Common.convertingTobyteArray(Constants.SESSION_CMD));
-                }
+                });
+//                Common.wait(50);
+//                Map.Entry<Integer, SessionSummary> entry = DeviceHelper.SESSION_SUMMARIES.entrySet().iterator().next();
+//                int key = entry.getKey();
+//                Common.wait(50);
+//                byte[] session_cmd = request_session_data(key, prev_pkt_num);
+////                prev_pkt_num = entry.getValue().getNum_read_pkt();
+//                Log.d(TAG, "SessionCommand: " + Common.convertByteArrToStr(session_cmd, true));
+//                deviceDetails.sendData(session_cmd);
             }
-        };
-
-        MainActivity.shared().runOnUiThread(runnable);
-        //new Thread(runnable).start();
+        }
     }
 
     public static void sendStartActivityCmd(Context context, int activity_type){
-        byte[] cmd = new byte[9];
+        byte[] cmd = new byte[4];
 
         cmd[0] = 0x06;
         cmd[1] = (byte)(activity_type);
@@ -506,6 +610,66 @@ public class Device1_Parser extends Device_Parser{
         }
     }
 
+
+    public static void sendStopActivityCmd(Context context){
+        byte[] cmd = new byte[4];
+
+        cmd[0] = 0x07;
+        cmd[1] = 0x00;
+        cmd[2] = 0x00;
+        cmd[3] = 0x07;
+
+        DeviceDetails deviceDetails = Constants.DEVICE_MAPS.get(context.getResources().getString(R.string.device1_tv));
+
+        if(deviceDetails != null && deviceDetails.mac_address != null){
+            deviceDetails.sendData(cmd);
+        }
+    }
+
+    public void sendReadSessionCmd(int session_num){
+        byte[] cmd = new byte[4];
+
+        cmd[0] = 0x65;
+        cmd[1] = (byte)(session_num);
+
+        int total = 0;
+        for(int i = 0 ; i <= 1 ; i++ ){
+            int val = cmd[i] & 0xFF;
+            total += val;
+        }
+
+        byte[] checksum = ByteUtils.intToBytes(total); //Convert total to 4 byte array
+
+        cmd[2] = checksum[1];
+        cmd[3] = checksum[0];
+
+        DeviceDetails deviceDetails = Constants.DEVICE_MAPS.get(context.getResources().getString(R.string.device1_tv));
+
+        if(deviceDetails != null && deviceDetails.mac_address != null){
+            deviceDetails.sendData(cmd);
+        }
+    }
+
+    /**
+     * Update the number packets for device 2
+     */
+    public void update_num_pkt_rcvd(){
+        DeviceDetails deviceDetails = Constants.DEVICE_MAPS.get(context.getResources().getString(R.string.device1_tv));
+        if(deviceDetails != null && deviceDetails.mac_address != null) {
+            deviceDetails.num_pkts_rcvd = num_pkt_read+prev_pkt_num;
+        }
+    }
+
+    /**
+     * Update the total number of packets for device2
+     * @param total_pkt_read
+     */
+    public void update_total_pkt(long total_pkt_read){
+        DeviceDetails deviceDetails = Constants.DEVICE_MAPS.get(context.getResources().getString(R.string.device1_tv));
+        if(deviceDetails != null && deviceDetails.mac_address != null) {
+            deviceDetails.total_pkts = total_pkt_read;
+        }
+    }
 //    private void insertSessionSummary(SessionSummary sessionSummary) {
 //        SessionSummary currentSessionSummary = null;
 //        try {
@@ -553,7 +717,6 @@ public class Device1_Parser extends Device_Parser{
 //    }
 
     private static class InsertSensorDataEntityAsyncTask extends AsyncTask<SensorDataEntity,Void,Void> {
-
         @Override
         protected Void doInBackground(SensorDataEntity... sensorDataEntities) {
             try {
@@ -565,6 +728,43 @@ public class Device1_Parser extends Device_Parser{
                 e.printStackTrace();
             }
             return null;
+        }
+    }
+
+    private static class InsertMarkerDataAsyncTask extends AsyncTask<MarkerData,Void,Void> {
+
+        @Override
+        protected Void doInBackground(MarkerData... markerData) {
+            try {
+                sessionCdlDb.getMarkerDataDAO().insertMarkerData(markerData[0]);
+            }catch (android.database.sqlite.SQLiteConstraintException e){
+                e.printStackTrace();
+            }
+            return null;
+        }
+    }
+
+    public static class GetLastPktNum extends AsyncTask<Void, Void, Long> {
+        private IGetLastPkt iGetLastPkt;
+        public  interface IGetLastPkt { void accept(Long pkt_num); }
+
+        public  GetLastPktNum(IGetLastPkt iGetLastPkt) { this.iGetLastPkt = iGetLastPkt; execute(); }
+
+        @Override
+        protected Long doInBackground(Void... voids) {
+            if(DeviceHelper.SESSION_SUMMARIES.size() == 0){
+                return -1l;
+            }
+            Map.Entry<Integer, SessionSummary> entry = DeviceHelper.SESSION_SUMMARIES.entrySet().iterator().next();
+            prev_pkt_num = sessionCdlDb.getSessionDataDAO().getLastPktNumSD(entry.getValue().getSession_id());
+            Log.d(TAG, "Prev Packet num = "+prev_pkt_num);
+
+            return prev_pkt_num;
+        }
+
+        @Override
+        protected void onPostExecute(Long pkt_num) {
+            iGetLastPkt.accept(pkt_num);
         }
     }
 

@@ -393,7 +393,7 @@ public class BluetoothLeService extends Service {
 //                Log.d(TAG, String.format("%20.3f", System.currentTimeMillis() / 1000.0) + ", " + device_id.toUpperCase() + "--" + stringBuilder); // + ", heart rate=" + hr_value);
                 try {
                     if (device_id.equalsIgnoreCase(DEV_1)) {
-                        Device1_Parser device1_parser = new Device1_Parser(getApplicationContext(), device_id, mac_address);
+                        Device1_Parser device1_parser = new Device1_Parser(getApplicationContext());
                         device1_parser.parse(received_data);
                     }else if (device_id.equalsIgnoreCase(DEV_2)) {
                         //parseDevice2(received_data);

@@ -15,7 +15,7 @@ public class Device_Parser {
 
     //    //01 pl1 pl2 pl3 pl4 pl5 pl6 cs1 cs2
 //    public static final String SESSION_CMD = "0x01 0x32 0x00 0x00 0x00 0x01 0x01 0x00 0x35";
-    protected byte[] request_session_data(int session_num, long packet_num){
+    protected static byte[] request_session_data(int session_num, long packet_num){
         byte[] cmd = new byte[9];
 
         cmd[0] = 0x01;
@@ -26,7 +26,7 @@ public class Device_Parser {
         cmd[4] = nums[1];
         cmd[5] = nums[0];
 
-        cmd[6] = 0x01;
+        cmd[6] = 0x02;
 
         int total = 0;
         for(int i = 0 ; i <= 7 ; i++ ){

@@ -1,13 +1,22 @@
 package com.decalthon.helmet.stability.Utilities;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.location.Location;
+import android.view.LayoutInflater;
+import android.view.View;
 
 import com.decalthon.helmet.stability.Activities.MainActivity;
 import com.decalthon.helmet.stability.R;
 import com.decalthon.helmet.stability.model.DeviceModels.DeviceDetails;
 
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.SocketAddress;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
@@ -17,6 +26,8 @@ It has helper methods.
  */
 
 public class Common {
+
+    public static String ACT_TYPE = "";
 
     // Convert String to bye array e.g. "50 FF" ==> [80, 255]
     public static byte[] convertingTobyteArray(String result) {
@@ -186,6 +197,15 @@ public class Common {
         calendar.add(Calendar.YEAR, -age);
         Date date = calendar.getTime();
         return  date.getTime()/1000;
+    }
+
+    public static void  isInternetAvailable(Context context) {
+        AlertDialog.Builder alert = new AlertDialog.Builder(context);
+        alert.setTitle("Alert");
+        alert.setMessage("Internet is not available. Please enable the internet");
+        alert.setPositiveButton("OK",null);
+        alert.show();
+
     }
 }
 

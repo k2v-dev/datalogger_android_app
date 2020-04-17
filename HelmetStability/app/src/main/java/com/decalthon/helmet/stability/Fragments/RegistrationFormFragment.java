@@ -27,6 +27,7 @@ import com.decalthon.helmet.stability.Utilities.Constants;
 import com.decalthon.helmet.stability.Utilities.Helper;
 import com.decalthon.helmet.stability.Utilities.UniqueKeyGen;
 import com.decalthon.helmet.stability.firestore.FirestoreUserModel;
+import com.decalthon.helmet.stability.model.InternetCheck;
 import com.decalthon.helmet.stability.preferences.ProfilePreferences;
 import com.decalthon.helmet.stability.preferences.UserPreferences;
 import com.decalthon.helmet.stability.webservice.requests.ProfileReq;
@@ -191,43 +192,49 @@ public class RegistrationFormFragment extends Fragment implements View.OnClickLi
 
     @Override
     public void onClick(View v) {
+        new InternetCheck(isInternet -> {
+            if(isInternet) {
+                if (registerBtn.getText().equals(getResources().getString(R.string.register))) {
+                    String name = userName.getText().toString();
+                    String phone = userPhone.getText().toString();
+                    String email = userEmail.getText().toString();
+                    String ccp_text = ccp.getFullNumberWithPlus();
 
-        if (registerBtn.getText().equals(getResources().getString(R.string.register))) {
-            String name = userName.getText().toString();
-            String phone = userPhone.getText().toString();
-            String email = userEmail.getText().toString();
-            String ccp_text = ccp.getFullNumberWithPlus();
+                    Log.d(TAG, "name="+name+", phone="+(ccp_text+phone)+", email="+email);
 
-            Log.d(TAG, "name="+name+", phone="+(ccp_text+phone)+", email="+email);
-
-            if (!TextUtils.isEmpty(name) && !TextUtils.isEmpty(phone) &&  !TextUtils.isEmpty(email)) {
-                if (!Helper.isValidEmail(email)) {
-                    Toast.makeText(getActivity(), "Please enter the valid email address", Toast.LENGTH_SHORT).show();
-                }else if( !ccp.isValidFullNumber()){
-                    Toast.makeText(getActivity(), "Please enter the valid phone number", Toast.LENGTH_SHORT).show();
-                }else{
-                    userInfoReq = new UserInfoReq();
-                    userInfoReq.email = email;
-                    userInfoReq.phone_no = ccp_text;
-                    userInfoReq.userName = name;
-                    userInfoReq.deviceId = UserPreferences.getInstance(getContext()).getDeviceID();
+                    if (!TextUtils.isEmpty(name) && !TextUtils.isEmpty(phone) &&  !TextUtils.isEmpty(email)) {
+                        if (!Helper.isValidEmail(email)) {
+                            Toast.makeText(getActivity(), "Please enter the valid email address", Toast.LENGTH_SHORT).show();
+                        }else if( !ccp.isValidFullNumber()){
+                            Toast.makeText(getActivity(), "Please enter the valid phone number", Toast.LENGTH_SHORT).show();
+                        }else{
+                            userInfoReq = new UserInfoReq();
+                            userInfoReq.email = email;
+                            userInfoReq.phone_no = ccp_text;
+                            userInfoReq.userName = name;
+                            userInfoReq.deviceId = UserPreferences.getInstance(getContext()).getDeviceID();
 //                    sendVerificationCode(ccp_text);
-                    getLoginUserByPhone(userInfoReq);
-                    pb_bar.setVisibility(View.VISIBLE);
-                }
-            } else {
-                Toast.makeText(getActivity(), "Please enter the details", Toast.LENGTH_SHORT).show();
-            }
-        }else if (registerBtn.getText().equals(getResources().getString(R.string.verify))) {
-            String OTP = pinView.getText().toString();
-            if(OTP.length() == 6){
-                verifyOtp(OTP);
-                pb_bar.setVisibility(View.VISIBLE);
-            }else{
-                Toast.makeText(getActivity(), "Please enter the 6 digit OTP", Toast.LENGTH_SHORT).show();
-            }
+                            getLoginUserByPhone(userInfoReq);
+                            pb_bar.setVisibility(View.VISIBLE);
+                        }
+                    } else {
+                        Toast.makeText(getActivity(), "Please enter the details", Toast.LENGTH_SHORT).show();
+                    }
+                }else if (registerBtn.getText().equals(getResources().getString(R.string.verify))) {
+                    String OTP = pinView.getText().toString();
+                    if(OTP.length() == 6){
+                        verifyOtp(OTP);
+                        pb_bar.setVisibility(View.VISIBLE);
+                    }else{
+                        Toast.makeText(getActivity(), "Please enter the 6 digit OTP", Toast.LENGTH_SHORT).show();
+                    }
 
-        }
+                }
+            }else{
+                Common.isInternetAvailable(getContext());
+            }
+        });
+
 
 //        if (registerBtn.getText().equals(getResources().getString(R.string.register))) {
 //            String name = userName.getText().toString();

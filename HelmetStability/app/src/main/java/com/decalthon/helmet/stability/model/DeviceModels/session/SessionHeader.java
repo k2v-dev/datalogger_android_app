@@ -21,6 +21,8 @@ public class SessionHeader {
     Date date; // dd-MM-YYYY HH:mm:SS.sss
     float data_size;
     int activity_type;
+    short firmwareType;
+    short samp_freq;
 
     public int getNumber() {
         return number;
@@ -52,5 +54,21 @@ public class SessionHeader {
 
     public void setActivity_type(int activity_type) {
         this.activity_type = activity_type;
+    }
+
+    public short getFirmwareType() {
+        return firmwareType;
+    }
+
+    public void setFirmwareType(short firmwareType) {
+        this.firmwareType = firmwareType;
+    }
+
+    public short getSamp_freq() {
+        return samp_freq;
+    }
+
+    public void setSamp_freq(short samp_freq) {
+        this.samp_freq = samp_freq;
     }
 }

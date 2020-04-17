@@ -3,6 +3,8 @@ package com.decalthon.helmet.stability.Utilities;
 import com.decalthon.helmet.stability.model.DeviceModels.DeviceDetails;
 import com.decalthon.helmet.stability.model.DeviceModels.HelmetData;
 import com.decalthon.helmet.stability.model.DeviceModels.SensoryWatch;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -101,6 +103,9 @@ public class Constants {
 
 
     public static final String  DevPREFERENCES = "com.decathlon.user.devices";
+    public static BiMap<String, Integer> ActivityCodeMap = HashBiMap.create();
+    public static final String INDOOR = "Indoor";
+    public static final String OUTDOOR = "Outdoor";
 //    static {
 //        DEVICE_MAPS.put(R.string.device1_tv, new DeviceDetails());
 //        DEVICE_MAPS.put("Device 2", new DeviceDetails());

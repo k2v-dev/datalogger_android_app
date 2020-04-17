@@ -145,4 +145,13 @@ public class ProfilePreferences {
         return ageInt;
     }
 
+    /**
+     * Clear the value of all devices
+     */
+    public void clear(){
+        SharedPreferences.Editor editor = sharedpreferences.edit();
+        editor.clear();
+        editor.apply();
+    }
+
 }

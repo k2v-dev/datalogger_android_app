@@ -54,6 +54,8 @@ public class SensorDataEntity {
 //    float gps_aux;
 //    int hr;
 //    Date hr_date;
+    public short gps_tag_type;
+    public short gps_tagger;
 
     public float ax_9axis_dev2;
     public float ay_9axis_dev2;

@@ -263,6 +263,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         @Override
         protected Void doInBackground(Void... voids) {
             markerDatas = sessionCdlDb.getMarkerDataDAO().getMarkerData(session_id);
+            if(markerDatas == null || markerDatas.size() == 0){
+                return null;
+            }
             gpsSpeeds = sessionCdlDb.gpsSpeedDAO().getGpsSpeed(markerDatas.get(0).marker_timestamp-1, markerDatas.get(markerDatas.size()-1).marker_timestamp+1);
 
             for(MarkerData markerData: markerDatas){

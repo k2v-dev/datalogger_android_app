@@ -30,6 +30,8 @@ public class DeviceDetails {
     public BluetoothGattCharacteristic mWriteCharacteristic = null;
     public BluetoothGattCharacteristic mReadBatteryCharacteristic = null ;
     public boolean noAutoconnect; // It will be use when no reconnection require e.g. disconnectted the device by user
+    public long total_pkts;
+    public long num_pkts_rcvd;
 
 
     /**
@@ -38,6 +40,8 @@ public class DeviceDetails {
 
     public DeviceDetails() {
         noAutoconnect = false;
+        total_pkts = 0;
+        num_pkts_rcvd = 0;
     }
 
     /**
@@ -214,10 +218,10 @@ public class DeviceDetails {
     }
 
     // Send data / command to bluetooth device, ignore this method . It's not part of requirement.
-    public void sendData(byte[] data){
+    public boolean sendData(byte[] data){
         if(mWriteCharacteristic == null || mac_address == null || mac_address.isEmpty()){
             Log.d("DeviceDetails", "No mWriteCharacteristic found or mac address is empty ");
-            return;
+            return false;
         }
 
         Common.wait(300);
@@ -228,9 +232,17 @@ public class DeviceDetails {
 //            Common.wait(500);
 //            result = MainActivity.shared().getBleService().writeCharacteristicNoresponse(Constants.ADDR_ID_MAPS.get(mac_address), mWriteCharacteristic, data);
 //       }
-        Log.d(TAG, "Send data to BLE : "+result);
+        Log.d(TAG, "Send data("+Common.convertByteArrToStr(data, true)+") to BLE : "+result);
+        return result;
     }
 
+    public float readData(){
+        if(total_pkts <= 0 ){
+            return 0;
+        }
+        Log.d(TAG, "num_pkts_rcvd="+num_pkts_rcvd+", total_pkts="+total_pkts);
+        return (((float)num_pkts_rcvd)*100.0f/((float)total_pkts));
+    }
 
     public void refresh(){
         if(mBluetoothGatt == null){

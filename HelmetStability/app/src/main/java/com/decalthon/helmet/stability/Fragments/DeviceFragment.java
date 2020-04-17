@@ -39,6 +39,7 @@ import com.decalthon.helmet.stability.preferences.DevicePreferences;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import at.grabner.circleprogress.CircleProgressView;
@@ -754,11 +755,6 @@ public class DeviceFragment extends Fragment {
     }
 
 
-
-
-
-
-
     /**
      * This thread enables notification for battery level reads, once in every five minutes.
      */
@@ -786,8 +782,6 @@ public class DeviceFragment extends Fragment {
                 if ( entry.getValue() != null ){
                     loadStr += " Device: "+ entry.getKey() + ", Connection state: "+ (entry.getValue().connected?"True":"False");
                     if (entry.getValue().connected == false && !entry.getValue().noAutoconnect) {
-
-
                         if(entry.getValue().num_delay >= Constants.RECONNECTION_TEST){
                             Log.d(TAG, "Reconnect request-"+entry.getKey()+", device addr="+entry.getValue().mac_address);
                             MainActivity.shared().getBleService().connect(entry.getKey());
@@ -796,6 +790,9 @@ public class DeviceFragment extends Fragment {
                             Constants.DEVICE_MAPS.get(entry.getKey()).num_delay += 1;
                         }
                     }
+                    float percent = entry.getValue().readData();
+                    viewUIMaps.get(entry.getKey()).progressBar.setProgress((int)percent);
+                    viewUIMaps.get(entry.getKey()).transfer_percent_tv.setText(String.format(Locale.getDefault(), "%5.2f%%", percent));
                     if(!entry.getValue().noAutoconnect){
                         bConnectionChk = true;
                     }
@@ -829,11 +826,6 @@ public class DeviceFragment extends Fragment {
             mListener.onFragmentInteraction(uri);
         }
     }
-
-
-
-
-
 
     /**
      * When a BLE device is picked from the device scan, the connection process starts
@@ -1039,6 +1031,10 @@ public class DeviceFragment extends Fragment {
         viewList2.scan_image = (ImageView) view.findViewById(R.id.scan_ble2);
         viewList3.scan_image = (ImageView) view.findViewById(R.id.scan_ble3);
 
+        viewList1.transfer_percent_tv = (TextView) view.findViewById(R.id.device_data_level1);
+        viewList2.transfer_percent_tv = (TextView) view.findViewById(R.id.device_data_level2);
+        viewList3.transfer_percent_tv = (TextView) view.findViewById(R.id.device_data_level3);
+
         progressBar[0] = (ProgressBar) view.findViewById(R.id.progress_bar_helmet);
         progressBar[1] = (ProgressBar) view.findViewById(R.id.progress_bar_sensory_watch);
         progressBar[2] = (ProgressBar) view.findViewById(R.id.progress_bar_heart_rate_belt);
@@ -1176,6 +1172,7 @@ class ViewList {
     ImageView scan_image;
     ImageView battery_icon;
     TextView battery_percent_tv;
+    TextView transfer_percent_tv;
     ProgressBar progressBar;
 
 }

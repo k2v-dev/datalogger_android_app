@@ -27,6 +27,7 @@ import androidx.room.RoomDatabase;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 
 import com.decalthon.helmet.stability.Activities.MainActivity;
+import com.decalthon.helmet.stability.BLE.Device1_Parser;
 import com.decalthon.helmet.stability.DB.Entities.GpsSpeed;
 import com.decalthon.helmet.stability.DB.SessionCDL;
 import com.decalthon.helmet.stability.DB.SessionCdlDb;
@@ -80,7 +81,7 @@ public class GPSSpeedFragment extends Fragment implements LocationListener  {
     private static GpsSpeed gpsSpeed;
     private static Cursor mergeCursor;
     public static SessionCdlDb sessionCdlDb;
-    static ArrayList<SessionCDL> sessionData;
+//    static ArrayList<SessionCDL> sessionData;
 
     public GPSSpeedFragment() {
         // Required empty public constructor
@@ -131,7 +132,7 @@ public class GPSSpeedFragment extends Fragment implements LocationListener  {
         Constants.isStart = true;
 
         //While the service begins to sense location updates, existing storage permissions are checked
-        checkAndRequestWriteLog();
+        //checkAndRequestWriteLog();
     }
 
     /**
@@ -149,7 +150,7 @@ public class GPSSpeedFragment extends Fragment implements LocationListener  {
         gpsSpeedView = inflater.inflate(R.layout.fragment_gps_speed, container, false);
 
         //The GPS speed update thread starts as soon as the view is created
-        gpsSpeedHandler.postDelayed(gpsSpeedUpdateThread, 0);
+//        gpsSpeedHandler.postDelayed(gpsSpeedUpdateThread, 0);
         return gpsSpeedView;
     }
 
@@ -175,6 +176,7 @@ public class GPSSpeedFragment extends Fragment implements LocationListener  {
             @Override
             public void onClick(View v) {
                 startStopView.setImageResource(R.drawable.play);
+                Device1_Parser.sendStopActivityCmd(getContext());
                 MainActivity.shared().onBackPressed();
 
             }
@@ -215,11 +217,13 @@ public class GPSSpeedFragment extends Fragment implements LocationListener  {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         registerAndCheck(this);
-        sessionCdlDb = Room.databaseBuilder(getActivity().getApplicationContext(), SessionCdlDb.class,"Gps_Speed_DB")
-                .fallbackToDestructiveMigration()
-                .addCallback(callback)
-                .build();
+        sessionCdlDb = SessionCdlDb.getInstance(getContext());
+//        sessionCdlDb = Room.databaseBuilder(getActivity().getApplicationContext(), SessionCdlDb.class,"Gps_Speed_DB")
+//                .fallbackToDestructiveMigration()
+//                .addCallback(callback)
+//                .build();
         Log.d(TAG,"GPS speed DB created");
+
     }
 
     /**
@@ -232,29 +236,27 @@ public class GPSSpeedFragment extends Fragment implements LocationListener  {
         }
     }
 
-    // Periodically writes data to the file log
-    private Runnable gpsSpeedUpdateThread = new Runnable() {
-        public void run() {
-
-            //The session can start only if if isStart is set to true
-
-            if(!Constants.isStart) {
-                return;
-            }
-
-            //Every second, GPS speed is updated and written to the log.
-            //Each session log is prefixed with "GPS Speed"
-            Log.d(TAG,"Timer="+new Date().toString());
-            if(gpsSpeed != null) {
-                FileUtilities.writeGpsSpeedDataToLog
-                        (getContext(), gpsSpeed);
-
-            }
-            gpsSpeedHandler.postDelayed(this, 1000);
-        }
-    };
-
-
+//    // Periodically writes data to the file log
+//    private Runnable gpsSpeedUpdateThread = new Runnable() {
+//        public void run() {
+//
+//            //The session can start only if if isStart is set to true
+//
+//            if(!Constants.isStart) {
+//                return;
+//            }
+//
+//            //Every second, GPS speed is updated and written to the log.
+//            //Each session log is prefixed with "GPS Speed"
+//            Log.d(TAG,"Timer="+new Date().toString());
+//            if(gpsSpeed != null) {
+//                FileUtilities.writeGpsSpeedDataToLog
+//                        (getContext(), gpsSpeed);
+//
+//            }
+//            gpsSpeedHandler.postDelayed(this, 1000);
+//        }
+//    };
 
 
     public boolean checkPermissions(){
@@ -313,8 +315,8 @@ public class GPSSpeedFragment extends Fragment implements LocationListener  {
     public void onDetach() {
         super.onDetach();
 //        mLocationManager.removeUpdates(GPSSpeedFragment.this);
-        loadSessionCDLData();
-        FileUtilities.closeFile();
+//        loadSessionCDLData();
+//        FileUtilities.closeFile();
         mListener = null;
     }
 
@@ -377,7 +379,7 @@ public class GPSSpeedFragment extends Fragment implements LocationListener  {
                     currentSpeed = location.getSpeed();
                     currentSpeed =  currentSpeed*(18.0f/5.0f);
                 Log.d(TAG, "Localtion has speed="+currentSpeed);
-                 gpsSpeed.speed = currentSpeed;
+                gpsSpeed.speed = currentSpeed;
 
                  //Accuracy of location, higher the value, lower the accuracy
                 if(location.hasAccuracy()){
@@ -415,11 +417,11 @@ public class GPSSpeedFragment extends Fragment implements LocationListener  {
 
     }
 
-    private void loadSessionCDLData(){
-
-        new SessionCDLDataLoadAsyncTask().execute();
-
-    }
+//    private void loadSessionCDLData(){
+//
+//        new SessionCDLDataLoadAsyncTask().execute();
+//
+//    }
 
 //    private void getMarkerSpeedTable(){
 //
@@ -427,27 +429,27 @@ public class GPSSpeedFragment extends Fragment implements LocationListener  {
 //
 //    }
 
-    RoomDatabase.Callback callback= new RoomDatabase.Callback() {
-        @Override
-        public void onCreate(@NonNull SupportSQLiteDatabase db) {
-            super.onCreate(db);
-
-            //Toast.makeText(getApplicationContext()," On Create Called ",Toast.LENGTH_LONG).show();
-            Log.i(TAG, " on create invoked ");
-
-        }
-
-
-        @Override
-        public void onOpen(@NonNull SupportSQLiteDatabase db) {
-            super.onOpen(db);
-
-            //  Toast.makeText(getApplicationContext()," On Create Called ",Toast.LENGTH_LONG).show();
-            Log.i(TAG, " on open invoked ");
-
-        }
-
-    };
+//    RoomDatabase.Callback callback= new RoomDatabase.Callback() {
+//        @Override
+//        public void onCreate(@NonNull SupportSQLiteDatabase db) {
+//            super.onCreate(db);
+//
+//            //Toast.makeText(getApplicationContext()," On Create Called ",Toast.LENGTH_LONG).show();
+//            Log.i(TAG, " on create invoked ");
+//
+//        }
+//
+//
+//        @Override
+//        public void onOpen(@NonNull SupportSQLiteDatabase db) {
+//            super.onOpen(db);
+//
+//            //  Toast.makeText(getApplicationContext()," On Create Called ",Toast.LENGTH_LONG).show();
+//            Log.i(TAG, " on open invoked ");
+//
+//        }
+//
+//    };
 
 //    private static class JoinMarkerSpeedAsyncTask extends AsyncTask<Void,Void,Void>{
 //
@@ -520,7 +522,7 @@ public class GPSSpeedFragment extends Fragment implements LocationListener  {
         super.onDestroy();
         System.out.println("-----------onDestroy-----------");
 //        mLocationManager.removeUpdates(this);
-        gpsSpeedHandler.removeCallbacks(gpsSpeedUpdateThread);
+        //gpsSpeedHandler.removeCallbacks(gpsSpeedUpdateThread);
         Intent intent  = new Intent(getActivity(), BackgroundLocationUpdateService.class);
         getActivity().stopService(intent);
 
@@ -532,30 +534,30 @@ public class GPSSpeedFragment extends Fragment implements LocationListener  {
         void onFragmentInteraction(Uri uri);
     }
 
-    private static class SessionCDLDataLoadAsyncTask extends  AsyncTask<Void,Void,Void>{
-        /**
-         * Override this method to perform a computation on a background thread. The
-         * specified parameters are the parameters passed to {@link #execute}
-         * by the caller of this task.
-         * <p>
-         * This will normally run on a background thread. But to better
-         * support testing frameworks, it is recommended that this also tolerates
-         * direct execution on the foreground thread, as part of the {@link #execute} call.
-         * <p>
-         * This method can call {@link #publishProgress} to publish updates
-         * on the UI thread.
-         *
-         * @param voids The parameters of the task.
-         * @return A result, defined by the subclass of this task.
-         * @see #onPreExecute()
-         * @see #onPostExecute
-         * @see #publishProgress
-         */
-        @Override
-        protected Void doInBackground(Void... voids) {
-            sessionData = (ArrayList<SessionCDL>) sessionCdlDb.getMergedDao().getGpsMarkerMerge();
-            System.out.println("SessionCDL data" + sessionData);
-            return null;
-        }
-    }
+//    private static class SessionCDLDataLoadAsyncTask extends  AsyncTask<Void,Void,Void>{
+//        /**
+//         * Override this method to perform a computation on a background thread. The
+//         * specified parameters are the parameters passed to {@link #execute}
+//         * by the caller of this task.
+//         * <p>
+//         * This will normally run on a background thread. But to better
+//         * support testing frameworks, it is recommended that this also tolerates
+//         * direct execution on the foreground thread, as part of the {@link #execute} call.
+//         * <p>
+//         * This method can call {@link #publishProgress} to publish updates
+//         * on the UI thread.
+//         *
+//         * @param voids The parameters of the task.
+//         * @return A result, defined by the subclass of this task.
+//         * @see #onPreExecute()
+//         * @see #onPostExecute
+//         * @see #publishProgress
+//         */
+//        @Override
+//        protected Void doInBackground(Void... voids) {
+//            sessionData = (ArrayList<SessionCDL>) sessionCdlDb.getMergedDao().getGpsMarkerMerge();
+//            System.out.println("SessionCDL data" + sessionData);
+//            return null;
+//        }
+//    }
 }

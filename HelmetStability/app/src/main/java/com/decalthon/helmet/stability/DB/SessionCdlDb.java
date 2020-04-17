@@ -18,7 +18,7 @@ import com.decalthon.helmet.stability.DB.Entities.SessionSummary;
 
 //This annotation is used to create a RoomDatabase with one or more entities.
 @Database(entities = {GpsSpeed.class, MarkerData.class, SensorDataEntity.class, ButtonBoxEntity.class
-        ,SessionSummary.class},  version = 27, exportSchema = false)
+        ,SessionSummary.class},  version = 29, exportSchema = false)
 public abstract class SessionCdlDb extends RoomDatabase {
     private static SessionCdlDb sessionCdlDb;
     private static String TAG = "SessionCdlDb";
@@ -26,7 +26,7 @@ public abstract class SessionCdlDb extends RoomDatabase {
         if(sessionCdlDb == null){
             sessionCdlDb = Room.databaseBuilder(context, SessionCdlDb.class,"Session_CDL_DB")
                     //.fallbackToDestructiveMigration()
-                    .addMigrations(MIGRATION_24_25, MIGRATION_25_26, MIGRATION_26_27)
+                    .addMigrations(MIGRATION_24_25, MIGRATION_25_26, MIGRATION_26_27, MIGRATION_27_28)
                     .addCallback(callback)
                     .build();
         }
@@ -89,4 +89,17 @@ public abstract class SessionCdlDb extends RoomDatabase {
                     + " ADD COLUMN altitude REAL NOT NULL DEFAULT '0.0'");
         }
     };
+
+    static final Migration MIGRATION_27_28 = new Migration(27, 28) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("ALTER TABLE SensorDataEntity "
+                    + " ADD COLUMN gps_tag_type INTEGER NOT NULL DEFAULT '0'");
+            database.execSQL("ALTER TABLE SensorDataEntity "
+                    + " ADD COLUMN gps_tagger INTEGER NOT NULL DEFAULT '0'");
+        }
+    };
+
+
+
 }

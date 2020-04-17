@@ -94,7 +94,20 @@ public interface SessionDataDao {
     @Query("select dateMillis from SensorDataEntity where session_id = (:session_id)")
     Long[] getTimestampsForSession(Long[] session_id);
 
+    // Delete all
     @Query("delete from marker_data")
     void deleteAll();
+
+    @Query("delete from SessionSummary where session_id = (:session_id)")
+    void deleteSessionSummary(long session_id);
+
+    @Query("delete from SensorDataEntity where session_id = (:session_id)")
+    void deleteSensorData(long session_id);
+
+    @Query("select MAX(packet_number) from SensorDataEntity where session_id = (:session_id)")
+    long getLastPktNumSD(long session_id);
+
+    @Query("select MAX(packet_number) from ButtonBoxEntity where session_id = (:session_id)")
+    long getLastPktNumBB(long session_id);
 
 }

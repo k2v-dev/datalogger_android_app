@@ -39,6 +39,7 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.decalthon.helmet.stability.Activities.MainActivity;
+import com.decalthon.helmet.stability.BLE.Device1_Parser;
 import com.decalthon.helmet.stability.DB.DatabaseHelper;
 import com.decalthon.helmet.stability.DB.Entities.GpsSpeed;
 import com.decalthon.helmet.stability.DB.Entities.MarkerData;
@@ -51,6 +52,8 @@ import com.decalthon.helmet.stability.Utilities.Constants;
 import com.decalthon.helmet.stability.Utilities.CsvGenerator;
 import com.decalthon.helmet.stability.Utilities.Helper;
 import com.decalthon.helmet.stability.Utilities.UniqueKeyGen;
+import com.decalthon.helmet.stability.model.InternetCheck;
+import com.decalthon.helmet.stability.preferences.DevicePreferences;
 import com.decalthon.helmet.stability.preferences.ProfilePreferences;
 import com.decalthon.helmet.stability.preferences.UserPreferences;
 import com.decalthon.helmet.stability.webservice.requests.ProfileReq;
@@ -110,7 +113,7 @@ public class HomeFragment extends Fragment  {
     private LocationManager mLocationManager;
     private static int percentage = 0;
     private static boolean isDone = false;
-
+    private String activityType = "";
 
     public HomeFragment() {
         // Required empty public constructor
@@ -326,8 +329,15 @@ public class HomeFragment extends Fragment  {
         catch (NullPointerException e){
             e.printStackTrace();
         }
-
+        new InternetCheck(isInternet -> {
+            if (!isInternet) {
+                Common.isInternetAvailable(getContext());
+            }
+        });
+        Common.wait(50);
         navigateToFragments();
+//        new DatabaseHelper.GetLastPktNum().execute();
+//        new DatabaseHelper.DeleteAll().execute((long) 1);
 //        if(!isDone){
 //            CsvGenerator csvGenerator = new CsvGenerator(getContext());
 //            csvGenerator.generateCSV(1);
@@ -461,10 +471,11 @@ public class HomeFragment extends Fragment  {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                     TextView itemText = (TextView)view;
-
+                    activityType = itemText.getText().toString().trim()+"_"+Constants.INDOOR;
                     /*IF the item is "OTHER", then all other edittext boxes should be disabled
                     As long as there is no text, the startbutton cannot be used
                      */
+
                     if(itemText.getText().toString().equalsIgnoreCase
                             (getString(R.string.other_sports))){
                         EditText indoorSportsEditText = startGpsSpeedPopupView.findViewById(R.id.indoor_other_sport_et);
@@ -517,7 +528,6 @@ public class HomeFragment extends Fragment  {
                         editTextIndoor.setVisibility(View.GONE);
                         startButton.setEnabled(true);
                     }
-                    
                 }
 
                 @Override
@@ -537,6 +547,7 @@ public class HomeFragment extends Fragment  {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                     TextView itemText = (TextView)view;
+                    activityType = itemText.getText().toString().trim()+"_"+Constants.OUTDOOR;
                     if(itemText.getText().toString().equalsIgnoreCase
                             (getString(R.string.other_sports))){
                         /*
@@ -588,7 +599,6 @@ public class HomeFragment extends Fragment  {
 
                 }
 
-
             });
 
             RadioButton outdoorSportsRadioButton = startGpsSpeedPopupView
@@ -603,6 +613,14 @@ public class HomeFragment extends Fragment  {
             startGpsSpeedPopupView.findViewById(R.id.gps_speed_start).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    Common.ACT_TYPE = activityType;
+                    //Log.d(TAG, "Activity :"+activityType+", code="+Constants.ActivityCodeMap.get(activityType));
+                    if(Constants.ActivityCodeMap.get(activityType) != null){
+                        Device1_Parser.sendStopCmd(getContext());
+                        Device1_Parser.sendStartActivityCmd(getContext(), Constants.ActivityCodeMap.get(activityType));
+                    }else{
+                        Log.d(TAG, "No activity code found");
+                    }
                     Fragment gpsFragment = new GPSSpeedFragment();
                     FragmentManager fragmentManager = getFragmentManager();
                     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();

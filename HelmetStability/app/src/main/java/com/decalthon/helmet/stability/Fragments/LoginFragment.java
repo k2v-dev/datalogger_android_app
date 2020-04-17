@@ -23,9 +23,11 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.chaos.view.PinView;
 import com.decalthon.helmet.stability.R;
+import com.decalthon.helmet.stability.Utilities.Common;
 import com.decalthon.helmet.stability.Utilities.Constants;
 import com.decalthon.helmet.stability.firestore.FirebaseStorageManager;
 import com.decalthon.helmet.stability.firestore.entities.impl.ProfileImpl;
+import com.decalthon.helmet.stability.model.InternetCheck;
 import com.decalthon.helmet.stability.preferences.UserPreferences;
 import com.decalthon.helmet.stability.webservice.requests.UserInfoReq;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -185,33 +187,41 @@ public class LoginFragment extends Fragment implements View.OnClickListener{
     @Override
     public void onClick(View v) {
 
-        if (loginBtn.getText().equals(getResources().getString(R.string.login))) {
+        new InternetCheck(isInternet -> {
+            if(isInternet) {
+                if (loginBtn.getText().equals(getResources().getString(R.string.login))) {
 
-            String phone = userPhone.getText().toString();
-            String ccp_text = ccp.getFullNumberWithPlus();
+                    String phone = userPhone.getText().toString();
+                    String ccp_text = ccp.getFullNumberWithPlus();
 
-            Log.d(TAG, " phone="+(ccp_text+phone));
-            if (!TextUtils.isEmpty(phone)&&  ccp.isValidFullNumber()) {
-                //ToDo: Will implmented below stepswhen login api is available
-                // Http request for login validation
-                // If login validation is Ok, then initiate phone number validation OTP
-                // else show error note
-                phone_number = ccp_text;
+                    Log.d(TAG, " phone="+(ccp_text+phone));
+                    if (!TextUtils.isEmpty(phone)&&  ccp.isValidFullNumber()) {
+                        //ToDo: Will implmented below stepswhen login api is available
+                        // Http request for login validation
+                        // If login validation is Ok, then initiate phone number validation OTP
+                        // else show error note
+                        phone_number = ccp_text;
 //                sendVerificationCode(ccp_text);
-                pb_bar.setVisibility(View.VISIBLE);
-                getLoginUserByPhone(phone_number);
-            } else {
-                Toast.makeText(getActivity(), "Please enter the details", Toast.LENGTH_SHORT).show();
-            }
-        }else if (loginBtn.getText().equals(getResources().getString(R.string.verify))) {
-            String OTP = pinView.getText().toString();
-            if(OTP.length() == 6){
-                verifyOtp(OTP);
-                pb_bar.setVisibility(View.VISIBLE);
+                        pb_bar.setVisibility(View.VISIBLE);
+                        getLoginUserByPhone(phone_number);
+                    } else {
+                        Toast.makeText(getActivity(), "Please enter the details", Toast.LENGTH_SHORT).show();
+                    }
+                }else if (loginBtn.getText().equals(getResources().getString(R.string.verify))) {
+                    String OTP = pinView.getText().toString();
+                    if(OTP.length() == 6){
+                        verifyOtp(OTP);
+                        pb_bar.setVisibility(View.VISIBLE);
+                    }else{
+                        Toast.makeText(getActivity(), "Please enter the 6 digit OTP", Toast.LENGTH_SHORT).show();
+                    }
+                }
             }else{
-                Toast.makeText(getActivity(), "Please enter the 6 digit OTP", Toast.LENGTH_SHORT).show();
+                Common.isInternetAvailable(getContext());
             }
-        }
+        });
+
+
     }
 
     public void getLoginUserByPhone(String phone_num) {

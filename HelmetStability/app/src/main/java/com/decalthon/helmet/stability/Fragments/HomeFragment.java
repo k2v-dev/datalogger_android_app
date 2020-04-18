@@ -12,6 +12,7 @@ import android.location.LocationManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -136,8 +137,6 @@ public class HomeFragment extends Fragment  {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate");
-
-
     }
 
     @Override
@@ -336,6 +335,27 @@ public class HomeFragment extends Fragment  {
         });
         Common.wait(50);
         navigateToFragments();
+
+
+//        if(!isDone){
+////            new DatabaseHelper.UpdateGPS().execute();
+//            new DatabaseHelper.UpdateMarkerData().execute(4l);
+//            isDone = true;
+//        }
+
+
+//        if(!isDone){
+//            try{
+//                new DatabaseHelper.UpdateSensorData().execute(4l);
+//                isDone = true;
+//            }catch (Exception e){
+//                e.printStackTrace();
+//            }
+//        }
+
+
+
+//        new DatabaseHelper.SetSessionSummary().execute();
 //        new DatabaseHelper.GetLastPktNum().execute();
 //        new DatabaseHelper.DeleteAll().execute((long) 1);
 //        if(!isDone){
@@ -1084,52 +1104,7 @@ public class HomeFragment extends Fragment  {
 
     }
 
-    private static class UpdateSensorData extends AsyncTask<Long,Void,Void> {
 
-        @Override
-        protected Void doInBackground(Long... longs) {
-            SessionCdlDb sessionCdlDb = SessionCdlDb.getInstance(MainActivity.shared().getApplicationContext());
-            List<SensorDataEntity> sensorDataEntityList = sessionCdlDb.getSessionDataDAO().getSessionEntityPacket((long) 1);
-            long ts_ms = 1586326298640L;//1586268823340
-
-            SensorDataEntity[] sensorDataEntities = new SensorDataEntity[sensorDataEntityList.size()];
-            for (int i= 0; i< sensorDataEntityList.size(); i++){
-                sensorDataEntities[i] = sensorDataEntityList.get(i);
-                long ts_ms_i = ts_ms + i*10;
-                sensorDataEntities[i].ax_9axis_dev2 = sensorDataEntities[i].ax_9axis_dev1;
-                sensorDataEntities[i].ay_9axis_dev2 = sensorDataEntities[i].ay_9axis_dev1;
-                sensorDataEntities[i].az_9axis_dev2 = sensorDataEntities[i].az_9axis_dev1;
-
-                sensorDataEntities[i].gx_9axis_dev2 = sensorDataEntities[i].gx_9axis_dev1;
-                sensorDataEntities[i].gy_9axis_dev2 = sensorDataEntities[i].gy_9axis_dev1;
-                sensorDataEntities[i].gz_9axis_dev2 = sensorDataEntities[i].gz_9axis_dev1;
-
-                sensorDataEntities[i].mx_9axis_dev2 = sensorDataEntities[i].mx_9axis_dev1;
-                sensorDataEntities[i].my_9axis_dev2 = sensorDataEntities[i].my_9axis_dev1;
-                sensorDataEntities[i].mz_9axis_dev2 = sensorDataEntities[i].mz_9axis_dev1;
-            }
-
-            try {
-                sessionCdlDb.getSessionDataDAO().updateSessionPacket(sensorDataEntities);
-            }catch (android.database.sqlite.SQLiteConstraintException e){
-                if(sensorDataEntities != null && sensorDataEntities.length > 0){
-                    Log.d(TAG, "packet #:"+sensorDataEntities[0].packet_number+", time="+sensorDataEntities[0].dateMillis);
-                }
-                e.printStackTrace();
-            }
-            return null;
-        }
-    }
-
-    private static class DeleteSensorData extends AsyncTask<Void, Void, Void> {
-        @Override
-        protected Void doInBackground(Void... voids) {
-            SessionCdlDb sessionCdlDb = SessionCdlDb.getInstance(MainActivity.shared().getApplicationContext());
-            List<SensorDataEntity> sensorDataEntityList = sessionCdlDb.getSessionDataDAO().getSessionEntityPacket((long) 1);
-            sessionCdlDb.getSessionDataDAO().deleteSessionPackets();
-            return null;
-        }
-    }
 
 
     /**

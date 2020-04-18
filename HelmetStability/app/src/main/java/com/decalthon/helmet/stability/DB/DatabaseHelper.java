@@ -11,6 +11,7 @@ import com.decalthon.helmet.stability.DB.Entities.MarkerData;
 import com.decalthon.helmet.stability.DB.Entities.SensorDataEntity;
 import com.decalthon.helmet.stability.DB.Entities.SessionSummary;
 import com.decalthon.helmet.stability.Fragments.HomeFragment;
+import com.decalthon.helmet.stability.Utilities.Common;
 import com.decalthon.helmet.stability.Utilities.Constants;
 import com.decalthon.helmet.stability.model.DeviceModels.DeviceHelper;
 
@@ -49,6 +50,28 @@ public class DatabaseHelper {
         }
     }
 
+    public static class SetSessionSummary extends  AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            sessionCdlDb.getSessionDataDAO().setSessionSummary();
+            sessionCdlDb.getSessionDataDAO().setSessionSummary1();
+            return null;
+        }
+    }
+
+    public static class InsertButtonBoxEntityAsyncTask extends AsyncTask<Boolean,Void,Long> {
+
+        @Override
+        protected Long doInBackground(Boolean... booleans) {
+            Common.wait(4000);
+            if(booleans[0]){
+                return 100L;
+            }
+            return -1L;
+        }
+    }
+
 
 //    public static class GetLastPktNum extends AsyncTask<Void, Void, Void> {
 //
@@ -73,26 +96,28 @@ public class DatabaseHelper {
     public static class UpdateGPS extends  AsyncTask<Void, Void, Void> {
         @Override
         protected Void doInBackground(Void... voids) {
-            List<GpsSpeed> gpsSpeeds = sessionCdlDb.gpsSpeedDAO().getGpsSpeed(0, 1596327229640l);
+            List<GpsSpeed> gpsSpeeds = sessionCdlDb.gpsSpeedDAO().getGpsSpeed(0, 1587046482100l);
             sessionCdlDb.gpsSpeedDAO().updateSpeed();
             System.out.println("---UpdateGPS---");
             return null;
         }
     }
 
-    private static class UpdateSensorData extends AsyncTask<Long,Void,Void> {
+    public static class UpdateSensorData extends AsyncTask<Long,Void,Void> {
 
         @Override
         protected Void doInBackground(Long... longs) {
             SessionCdlDb sessionCdlDb = SessionCdlDb.getInstance(MainActivity.shared().getApplicationContext());
-            List<SensorDataEntity> sensorDataEntityList = sessionCdlDb.getSessionDataDAO().getSessionEntityPacket(1);
-            long ts_ms = 1586326298640l;//1586268823340
-
+            List<SensorDataEntity> sensorDataEntityList = sessionCdlDb.getSessionDataDAO().getSessionEntityPacket(longs[0]);
             SensorDataEntity[] sensorDataEntities = new SensorDataEntity[sensorDataEntityList.size()];
+
+            List<ButtonBoxEntity> buttonBoxEntities = sessionCdlDb.getSessionDataDAO().getButtonBoxEntityPacket(longs[0]);
+            ButtonBoxEntity[] buttonBoxEntitiesArr = new ButtonBoxEntity[buttonBoxEntities.size()];
+
             for (int i= 0; i< sensorDataEntityList.size(); i++){
                 sensorDataEntities[i] = sensorDataEntityList.get(i);
-                long ts_ms_i = ts_ms + i*10;
-                sensorDataEntities[i].dateMillis = ts_ms_i;
+               // long ts_ms_i = ts_ms + i*10;
+                //sensorDataEntities[i].dateMillis = ts_ms_i;
                 sensorDataEntities[i].ax_9axis_dev2 = sensorDataEntities[i].ax_9axis_dev1;
                 sensorDataEntities[i].ay_9axis_dev2 = sensorDataEntities[i].ay_9axis_dev1;
                 sensorDataEntities[i].az_9axis_dev2 = sensorDataEntities[i].az_9axis_dev1;
@@ -104,10 +129,19 @@ public class DatabaseHelper {
                 sensorDataEntities[i].mx_9axis_dev2 = sensorDataEntities[i].mx_9axis_dev1;
                 sensorDataEntities[i].my_9axis_dev2 = sensorDataEntities[i].my_9axis_dev1;
                 sensorDataEntities[i].mz_9axis_dev2 = sensorDataEntities[i].mz_9axis_dev1;
+
+                if(i < buttonBoxEntities.size()){
+                    buttonBoxEntitiesArr[i] = buttonBoxEntities.get(i);
+                    long ts_ms_i = sensorDataEntities[i].dateMillis+3;
+                    buttonBoxEntitiesArr[i].dateMillis = ts_ms_i;
+                    buttonBoxEntitiesArr[i].ax_3axis = buttonBoxEntitiesArr[i].az_3axis;
+                }
             }
 
             try {
-                sessionCdlDb.getSessionDataDAO().insertSessionPacket(sensorDataEntities);
+//                sessionCdlDb.getSessionDataDAO().insertSessionPacket(sensorDataEntities);
+                sessionCdlDb.getSessionDataDAO().updateSessionPacket(sensorDataEntities);
+                sessionCdlDb.getSessionDataDAO().insertButtonBoxPacket(buttonBoxEntitiesArr);
             }catch (android.database.sqlite.SQLiteConstraintException e){
                 if(sensorDataEntities != null && sensorDataEntities.length > 0){
                     Log.d(TAG, "packet #:"+sensorDataEntities[0].packet_number+", time="+sensorDataEntities[0].dateMillis);
@@ -116,7 +150,14 @@ public class DatabaseHelper {
             }
             return null;
         }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            Log.d(TAG, "Update is done..now move to insertGPS()");
+            insertGPS();
+        }
     }
+
 
     private static class UpdateSessionSummary  extends AsyncTask<Void, Void, Void> {
 
@@ -133,13 +174,14 @@ public class DatabaseHelper {
             return null;
         }
     }
-    private static class DeleteSensorData extends AsyncTask<Void, Void, Void> {
+
+    public static class DeleteButtonBox extends AsyncTask<Long, Void, Void> {
         @Override
-        protected Void doInBackground(Void... voids) {
+        protected Void doInBackground(Long... longs) {
             SessionCdlDb sessionCdlDb = SessionCdlDb.getInstance(MainActivity.shared().getApplicationContext());
-            List<SensorDataEntity> sensorDataEntityList = sessionCdlDb.getSessionDataDAO().getSessionEntityPacket(1);
-            sessionCdlDb.getSessionDataDAO().deleteSessionPackets();
+            sessionCdlDb.getSessionDataDAO().deleteButtonBoxEntity(longs[0]);
             return null;
+
         }
     }
 
@@ -148,10 +190,10 @@ public class DatabaseHelper {
         try{
             new DeleteAllGps().execute();
             String temp;
-            java.io.InputStream iStream = MainActivity.shared().getApplicationContext().getAssets().open("ride4.txt");
+            java.io.InputStream iStream = MainActivity.shared().getApplicationContext().getAssets().open("ride2.txt");
             BufferedReader bufRead = new BufferedReader(new java.io.InputStreamReader(iStream));
             double latitude, longitude;
-            long ts_ms = 1586326298640l;//1586268823340
+            long ts_ms = 1587043905100L;//1586268823340
             long i = 0;
             while ((temp = bufRead.readLine()) != null) {
                 String[] coords = temp.split(",");

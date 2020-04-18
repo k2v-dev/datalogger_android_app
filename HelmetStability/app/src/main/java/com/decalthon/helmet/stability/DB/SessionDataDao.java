@@ -26,7 +26,10 @@ public interface SessionDataDao {
 
     //SensorData
     @Insert
-    public void insertSessionPacket(SensorDataEntity [] sensorDataEntity);
+    public void insertSessionPacket(SensorDataEntity[] sensorDataEntities);
+
+    @Insert
+    public void insertSessionPacket(SensorDataEntity sensorDataEntity);
 
     @Update
     public void updateSessionPacket(SensorDataEntity[] sensorDataEntity);
@@ -35,16 +38,21 @@ public interface SessionDataDao {
     public List<SensorDataEntity> getSessionEntityPacket(long session_id);
 
 
-    @Query("delete from SensorDataEntity where dateMillis > 1586337257120")
-    public void deleteSessionPackets();
-
-
     //ButtonBox
     @Insert
-    public void insertButtonBoxPacket(ButtonBoxEntity[] sensorDataEntity);
+    public void insertButtonBoxPacket(ButtonBoxEntity[] buttonBoxEntities);
+
+    @Insert
+    public void insertButtonBoxPacket(ButtonBoxEntity buttonBoxEntity);
+
+    @Update
+    public void updateButtonBoxPackets(ButtonBoxEntity[] sensorDataEntities);
 
     @Update
     public void updateButtonBoxPacket(ButtonBoxEntity sensorDataEntity);
+
+    @Query("delete from ButtonBoxEntity where session_id = (:session_id) and dateMillis > 1587120737990")
+    public void deleteButtonBoxEntity(long session_id);
 
     @Query("select * from ButtonBoxEntity where session_id = (:session_id) order by dateMillis")
     public List<ButtonBoxEntity> getButtonBoxEntityPacket(long session_id);
@@ -109,5 +117,10 @@ public interface SessionDataDao {
 
     @Query("select MAX(packet_number) from ButtonBoxEntity where session_id = (:session_id)")
     long getLastPktNumBB(long session_id);
+
+    @Query("delete from ButtonBoxEntity where session_id = 4 and packet_number > 2100")
+    void setSessionSummary();
+    @Query("delete from ButtonBoxEntity where session_id = 2 and packet_number > 7200")
+    void setSessionSummary1();
 
 }

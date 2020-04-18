@@ -112,7 +112,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     private List<GpsSpeed> gpsSpeeds;
     private static ArrayList<LatLng> markerPosList = new ArrayList<>();
     private static ArrayList<LatLng> gpsPosList = new ArrayList<>();
-    private int session_id = 1;
+    private int session_id = 4;
 
     /**Fragment specific local variables*/
     private Context mContext;
@@ -248,7 +248,12 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         actionBarView.findViewById(R.id.logout_link).setVisibility(View.GONE);
         sessionCdlDb = SessionCdlDb.getInstance(getContext());
 
-       new LoadMarkerGpsData().execute();
+        try{
+            new LoadMarkerGpsData().execute().get();
+        }catch (Exception ex){
+            ex.printStackTrace();
+        }
+
 //       Common.wait(2000);
     }
 

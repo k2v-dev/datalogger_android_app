@@ -344,19 +344,20 @@ public class BluetoothLeService extends Service {
         if(UUID_BATTERY_SERVER.equals(characteristic.getUuid()))
         {
             byte [] batteryLevel = UARTParser.getsensorsdata(characteristic);
-            int battery_level_value = batteryLevel[0] & 0xFF;
-            float battery_percentage_value = ( battery_level_value / 255.0f ) * 100;
-            battery_level_value = (int)battery_percentage_value;
+//            int battery_level_value = batteryLevel[0] & 0xFF;
+//            float battery_percentage_value = ( battery_level_value / 255.0f ) * 100;
+//            battery_level_value = (int)battery_percentage_value;
             String device_id = Constants.ADDR_ID_MAPS.get(address);
-            if(device_id.equals(getString(R.string.device3_tv))){
-                EventBus.getDefault().post(new BatteryLevel(batteryLevel[0],
-                        device_id));
-            }else{
-                EventBus.getDefault().post(new BatteryLevel(battery_level_value,
-                        device_id));
-            }
+            EventBus.getDefault().post(new BatteryLevel(batteryLevel[0],
+                    device_id));
+//            if(device_id.equals(getString(R.string.device3_tv))){
+//                EventBus.getDefault().post(new BatteryLevel(batteryLevel[0],
+//                        device_id));
+//            }else{
+//                EventBus.getDefault().post(new BatteryLevel(battery_level_value,
+//                        device_id));
+//            }
             Constants.DEVICE_MAPS.get(device_id).stopBroadcastBatteryNotify();
-
 //            intent.putExtra(BT_VALUE, battery_level_value);
 //            sendBroadcast(intent);
         }
@@ -603,9 +604,19 @@ public class BluetoothLeService extends Service {
             if (valueByte != null) {
                 characteristic.setValue(valueByte);
                 return Constants.DEVICE_MAPS.get(device_id).mBluetoothGatt.writeCharacteristic(characteristic);
+
             }
         }
+
         return false;
+    }
+
+    public boolean readCharacterisic(String device_id, BluetoothGattCharacteristic characteristic){
+        if (mBluetoothAdapter == null || Constants.DEVICE_MAPS.get(device_id).mBluetoothGatt == null || characteristic == null) {
+            return false;
+        } else {
+            return Constants.DEVICE_MAPS.get(device_id).mBluetoothGatt.readCharacteristic(characteristic);
+        }
     }
 
     public  void exchangeGattMtu(String device_id, int mtu) {

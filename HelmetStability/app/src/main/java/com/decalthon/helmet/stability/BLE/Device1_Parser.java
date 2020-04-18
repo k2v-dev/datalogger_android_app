@@ -131,7 +131,6 @@ public class Device1_Parser extends Device_Parser{
         }else if(prev_pkt_num >= sensorDataEntity.packet_number){
             return;
         }
-        prev_pkt_num = sensorDataEntity.packet_number;
 
         //TODO set SensorDataEntity.sessionsummary = current session summary
         Calendar calendar = Calendar.getInstance();
@@ -229,6 +228,7 @@ public class Device1_Parser extends Device_Parser{
             new UpdateNumberofReadPacketsAsyncTask().execute(DeviceHelper.SESSION_SUMMARIES.get(currentSessionNumber));
             Common.wait(50);
             DeviceHelper.SESSION_SUMMARIES.remove(currentSessionNumber);
+
             // Add stop marker in MarkerData table
             MarkerData markerData = new MarkerData(sensorDataEntity.dateMillis,  "0", "");
             markerData.session_id = sensorDataEntity.session_id;
@@ -272,7 +272,7 @@ public class Device1_Parser extends Device_Parser{
 
     private void addSensorDataEntity(SensorDataEntity sensorDataEntity) {
         try {
-            new InsertSensorDataEntityAsyncTask().execute(sensorDataEntity);
+            new InsertSensorDataEntityAsyncTask().execute(sensorDataEntity).get();
         }catch (Exception e){
             e.printStackTrace();
         }
@@ -720,7 +720,8 @@ public class Device1_Parser extends Device_Parser{
         @Override
         protected Void doInBackground(SensorDataEntity... sensorDataEntities) {
             try {
-                sessionCdlDb.getSessionDataDAO().insertSessionPacket(sensorDataEntities);
+                sessionCdlDb.getSessionDataDAO().insertSessionPacket(sensorDataEntities[0]);
+                prev_pkt_num = sensorDataEntities[0].packet_number;
             }catch (android.database.sqlite.SQLiteConstraintException e){
                 if(sensorDataEntities != null && sensorDataEntities.length > 0){
                     Log.d(TAG, "packet #:"+sensorDataEntities[0].packet_number+", time="+sensorDataEntities[0].dateMillis);

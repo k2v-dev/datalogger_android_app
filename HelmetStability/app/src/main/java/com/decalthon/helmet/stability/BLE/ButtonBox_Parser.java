@@ -135,7 +135,7 @@ public class ButtonBox_Parser extends Device_Parser{
         }else if(prev_pkt_num >= buttonBoxEntity.packet_number){
             return;
         }
-        prev_pkt_num = buttonBoxEntity.packet_number;
+
 
         Calendar calendar = Calendar.getInstance();
 
@@ -174,7 +174,7 @@ public class ButtonBox_Parser extends Device_Parser{
         if(buttonBoxEntity.packet_number
                 >= sessionSummary.getBb_total_pkts()){
             System.out.println("Number of packets-->"+buttonBoxEntity.packet_number);
-            num_pkt_read = prev_pkt_num;
+            num_pkt_read += prev_pkt_num;
             DeviceHelper.SESSION_SUMMARIES_BB.get(currentSessionNumber).setBb_isComplete(true);
             new UpdateNumberofReadPacketsAsyncTask().execute(DeviceHelper.SESSION_SUMMARIES_BB.get(currentSessionNumber));
             //sendSessionCommand();
@@ -209,9 +209,9 @@ public class ButtonBox_Parser extends Device_Parser{
 
     private void addButtonBoxEntity(ButtonBoxEntity buttonBoxEntity) {
         try {
-            new InsertButtonBoxEntityAsyncTask().execute(buttonBoxEntity);
+            new InsertButtonBoxEntityAsyncTask().execute(buttonBoxEntity).get();
         }catch (Exception e){
-            e.printStackTrace();
+            Log.d(TAG, "addButtonBoxEntity: "+e.getMessage());
         }
     }
 
@@ -534,12 +534,13 @@ public class ButtonBox_Parser extends Device_Parser{
         @Override
         protected Void doInBackground(ButtonBoxEntity... buttonBoxEntitiesboxEntities) {
             try {
-                sessionCdlDb.getSessionDataDAO().insertButtonBoxPacket(buttonBoxEntitiesboxEntities);
+                sessionCdlDb.getSessionDataDAO().insertButtonBoxPacket(buttonBoxEntitiesboxEntities[0]);
+                prev_pkt_num = buttonBoxEntitiesboxEntities[0].packet_number;
             }catch (android.database.sqlite.SQLiteConstraintException e){
                 if(buttonBoxEntitiesboxEntities != null && buttonBoxEntitiesboxEntities.length > 0){
                     Log.d(TAG, "packet #:"+buttonBoxEntitiesboxEntities[0].packet_number+", time="+buttonBoxEntitiesboxEntities[0].dateMillis);
                 }
-               e.printStackTrace();
+               Log.d(TAG, "InsertButtonBoxEntityAsyncTask: "+e.getMessage());
             }
             return null;
         }

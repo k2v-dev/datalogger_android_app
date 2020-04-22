@@ -13,12 +13,13 @@
     <string name="enter_otp_msg">Please check your sms </string>
     <string name="incorrect_otp">X Incorrect OTP</string>
     <string name="enter_details">Please enter the details</string>
+    <string name="enter_all_details">Please enter the all details</string>
     <string name="welcome_msg">Welcome to Helmet Stability</string>
     <string name="enter_name">Enter your name</string>
     <string name="enter_phone">Enter phone no.</string>
     <string name="enter_email">Enter email address</string>
     <string name="enter_otp">Enter the 6 digit OTP</string>
-    <string name="invalid_n_resent_otp">Didn\'t get the OTP? RESEND OTP.</string>
+    <string name="invalid_n_resent_otp">Didn\'t get the OTP? <font color="#C029B2">RESEND OTP.</font>></string>
     <string name="regiser_now">Don\’t have an account yet, <font color="#C029B2">Register Now</font></string>
     <string name="server_error">Internal Server Error</string>
     <string name="name_prompt"><![CDATA[<Profile Name>]]></string>
@@ -157,4 +158,13 @@
     <string name="acceleration">acceleration</string>
     <string name="gyroscope">gyroscope</string>
     <string name="magnetometer">magnetometer</string>
+    <string name="NO_INTERNET">"Internet is not available. Please enable the internet"</string>
+    <string name="log_out_msg">Are you sure you want to log out?</string>
+    <string name="user_not_exists">Phone number doesn\'t exists. Please register new login.</string>
+    <string name="login_details">"Please enter the details"</string>
+    <string name="enter_six_digit_otp">Please enter the 6 digit OTP</string>
+    <string name="no_valid_phone">"No valid phone number"</string>
+    <string name="enter_email_add">Please enter the valid email address</string>
+    <string name="enter_phone_num">Please enter the valid phone number</string>
+    <string name="use_other_email_id">It seems that email id is used by someone. Please use other email id.</string>
 </resources>

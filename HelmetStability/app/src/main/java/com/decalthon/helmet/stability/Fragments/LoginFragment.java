@@ -47,13 +47,6 @@ import com.hbb20.CountryCodePicker;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
-
 
 /**
  * A simple {@link Fragment} subclass.
@@ -74,7 +67,9 @@ public class LoginFragment extends Fragment implements View.OnClickListener{
     private PinView pinView;
     private Button loginBtn;
     private TextView topText,textU;
+    private TextView resend_otp_tv;
     private TextView register_now_tv;
+    private TextView error_msg_tv;
     private EditText userPhone;
     private ConstraintLayout first, second;
     private CountryCodePicker ccp;
@@ -82,6 +77,7 @@ public class LoginFragment extends Fragment implements View.OnClickListener{
     private ProgressBar pb_bar;
     FirebaseAuth mAuth;
     private String phone_number;
+    private PhoneAuthProvider.ForceResendingToken phone_token = null;
 
     String mVerificationId = "";
 
@@ -138,6 +134,8 @@ public class LoginFragment extends Fragment implements View.OnClickListener{
         textU = view.findViewById(R.id.textView_noti);
         pb_bar = view.findViewById(R.id.pb_bar);
         register_now_tv = view.findViewById(R.id.registration_tv);
+        resend_otp_tv = view.findViewById(R.id.resend_otp);
+        error_msg_tv = view.findViewById(R.id.error_msg_tv);
 
         mAuth = FirebaseAuth.getInstance();
 
@@ -155,6 +153,16 @@ public class LoginFragment extends Fragment implements View.OnClickListener{
                    navigateToRegistrationform();
                }
            }
+        );
+
+        resend_otp_tv.setOnClickListener(new View.OnClickListener() {
+                                               @Override
+                                               public void onClick(View v) {
+                                                   if(phone_token != null){
+                                                       resendVerificationCode(userInfo.phone_no, phone_token);
+                                                   }
+                                               }
+                                           }
         );
 
         return view;
@@ -186,7 +194,7 @@ public class LoginFragment extends Fragment implements View.OnClickListener{
 
     @Override
     public void onClick(View v) {
-
+        error_msg_tv.setText("");
         new InternetCheck(isInternet -> {
             if(isInternet) {
                 if (loginBtn.getText().equals(getResources().getString(R.string.login))) {
@@ -196,16 +204,13 @@ public class LoginFragment extends Fragment implements View.OnClickListener{
 
                     Log.d(TAG, " phone="+(ccp_text+phone));
                     if (!TextUtils.isEmpty(phone)&&  ccp.isValidFullNumber()) {
-                        //ToDo: Will implmented below stepswhen login api is available
-                        // Http request for login validation
-                        // If login validation is Ok, then initiate phone number validation OTP
-                        // else show error note
                         phone_number = ccp_text;
 //                sendVerificationCode(ccp_text);
                         pb_bar.setVisibility(View.VISIBLE);
                         getLoginUserByPhone(phone_number);
                     } else {
-                        Toast.makeText(getActivity(), "Please enter the details", Toast.LENGTH_SHORT).show();
+                        //Toast.makeText(getActivity(), "Please enter the details", Toast.LENGTH_SHORT).show();
+                        error_msg_tv.setText(getString(R.string.enter_phone_num));
                     }
                 }else if (loginBtn.getText().equals(getResources().getString(R.string.verify))) {
                     String OTP = pinView.getText().toString();
@@ -213,11 +218,12 @@ public class LoginFragment extends Fragment implements View.OnClickListener{
                         verifyOtp(OTP);
                         pb_bar.setVisibility(View.VISIBLE);
                     }else{
-                        Toast.makeText(getActivity(), "Please enter the 6 digit OTP", Toast.LENGTH_SHORT).show();
+                        //Toast.makeText(getActivity(), "Please enter the 6 digit OTP", Toast.LENGTH_SHORT).show();
+                        error_msg_tv.setText(getString(R.string.enter_six_digit_otp));
                     }
                 }
             }else{
-                Common.isInternetAvailable(getContext());
+                Common.noInternetAlert(getContext());
             }
         });
 
@@ -236,7 +242,7 @@ public class LoginFragment extends Fragment implements View.OnClickListener{
                     userInfo = documentSnapshot.toObject(UserInfoReq.class);
                     userId = documentSnapshot.getId();
 
-                    Toast.makeText(getContext(), "User phone already exist in the database ", Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(getContext(), "User phone already exist in the database ", Toast.LENGTH_SHORT).show();
                     if(userInfo != null){
                         sendVerificationCode(phone_num);
 //                        UserPreferences userPreferences = UserPreferences.getInstance(getContext());
@@ -258,7 +264,8 @@ public class LoginFragment extends Fragment implements View.OnClickListener{
 //                        fm.popBackStack(Constants.HOME_FRAGMENT, 0);
                     }
                 }else{
-                    Toast.makeText(getContext(), "Phone number doesn't exists. Please register new login.", Toast.LENGTH_SHORT).show();
+                    error_msg_tv.setText(getString(R.string.user_not_exists));
+                   // Toast.makeText(getContext(), "Phone number doesn't exists. Please register new login.", Toast.LENGTH_SHORT).show();
                     showOriginalUI();
                 }
             }
@@ -272,12 +279,24 @@ public class LoginFragment extends Fragment implements View.OnClickListener{
     public void sendVerificationCode(String phone_number){
         PhoneAuthProvider.getInstance().verifyPhoneNumber(
                 phone_number,
-                60,
+                120,
                 TimeUnit.SECONDS,
                 getActivity(),
                 mCall
         );
     }
+
+    private void resendVerificationCode(String phoneNumber,
+                                        PhoneAuthProvider.ForceResendingToken token) {
+        PhoneAuthProvider.getInstance().verifyPhoneNumber(
+                phoneNumber,        // Phone number to verify
+                120,                 // Timeout duration
+                TimeUnit.SECONDS,   // Unit of timeout
+                getActivity(),               // Activity (for callback binding)
+                mCall,         // OnVerificationStateChangedCallbacks
+                token);             // ForceResendingToken from callbacks
+    }
+
 
     /**
      * Implemented Call back method of above method verifyPhoneNumber.
@@ -290,13 +309,15 @@ public class LoginFragment extends Fragment implements View.OnClickListener{
 
         @Override
         public void onVerificationFailed(FirebaseException e) {
-            Toast.makeText(getContext(), "No valid phone number", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(getContext(), "No valid phone number", Toast.LENGTH_SHORT).show();
+            error_msg_tv.setText(getString(R.string.no_valid_phone));
             pb_bar.setVisibility(View.GONE);
         }
 
         @Override
         public void onCodeSent(String verificationId, PhoneAuthProvider.ForceResendingToken token) {
 //            pb_bar.setVisibility(View.GONE);
+            phone_token = token;
             mVerificationId = verificationId;
             Log.e("MapActivity" , "Verification id : " + verificationId);
             loginBtn.setText(getResources().getString(R.string.verify));
@@ -446,8 +467,8 @@ public class LoginFragment extends Fragment implements View.OnClickListener{
                             if (task.getException() instanceof FirebaseAuthInvalidCredentialsException) {
                                 message = "Invalid code entered...";
                             }
-
-                            Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+                            error_msg_tv.setText(message);
+                           // Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
                         }
                     }
                 });

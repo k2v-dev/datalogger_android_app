@@ -145,6 +145,17 @@ public class ProfilePreferences {
         return ageInt;
     }
 
+    public boolean isEmpty(){
+        ProfilePreferences profilePreferences = ProfilePreferences.getInstance(context);
+        float ht = profilePreferences.getHeight();
+        float wt = profilePreferences.getWeight();
+        int age = profilePreferences.getAge();
+        if ( ht < 59f || wt < 29f || age < 5) {
+            return true;
+        }
+        return false;
+    }
+
     /**
      * Clear the value of all devices
      */

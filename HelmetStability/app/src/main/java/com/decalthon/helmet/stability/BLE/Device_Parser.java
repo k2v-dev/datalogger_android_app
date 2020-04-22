@@ -5,13 +5,15 @@ import android.os.AsyncTask;
 import com.decalthon.helmet.stability.DB.Entities.SessionSummary;
 import com.decalthon.helmet.stability.DB.SessionCdlDb;
 import com.decalthon.helmet.stability.Utilities.ByteUtils;
+import com.decalthon.helmet.stability.Utilities.Constants;
+import com.decalthon.helmet.stability.model.DeviceModels.DeviceDetails;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 public class Device_Parser {
     protected static SessionCdlDb sessionCdlDb;
-
 
     //    //01 pl1 pl2 pl3 pl4 pl5 pl6 cs1 cs2
 //    public static final String SESSION_CMD = "0x01 0x32 0x00 0x00 0x00 0x01 0x01 0x00 0x35";
@@ -111,5 +113,20 @@ public class Device_Parser {
             System.out.println("Timestamp diff: Updating numreadpacket "+ (timestamp2-timestamp1));
             return null;
         }
+    }
+
+    public static float get_txf_status(){
+        long total_pkts = 0;
+        long cur_num_pkts = 0;
+        for(Map.Entry<String, DeviceDetails> entry : Constants.DEVICE_MAPS.entrySet() ) {
+            if (entry.getValue() != null) {
+                total_pkts += entry.getValue().total_pkts;
+                cur_num_pkts += entry.getValue().num_pkts_rcvd;
+            }
+        }
+        if(total_pkts < 1){
+            return  0.0f;
+        }
+        return ((float)cur_num_pkts)*100.0f/((float)total_pkts);
     }
 }

@@ -37,8 +37,10 @@ import androidx.room.RoomDatabase;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 
 import com.decalthon.helmet.stability.BLE.BluetoothLeService;
+import com.decalthon.helmet.stability.BLE.Device_Parser;
 import com.decalthon.helmet.stability.BLE.MyBroadcastReceiver;
 import com.decalthon.helmet.stability.BLE.gatt_server.BluetoothLeGattServer;
+import com.decalthon.helmet.stability.DB.DatabaseHelper;
 import com.decalthon.helmet.stability.DB.SessionCdlDb;
 import com.decalthon.helmet.stability.Fragments.CustomGraphFragment;
 import com.decalthon.helmet.stability.Fragments.CustomViewFragment;
@@ -86,12 +88,23 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
     private static SessionCdlDb sessionRoomDb = null;
     private String TAG = MainActivity.class.getSimpleName();
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         getSupportActionBar().setCustomView(R.layout.actionbar);
         mainActivity = MainActivity.this;
+
+//        try{
+//            long t1 = System.currentTimeMillis();
+//            Long res = new DatabaseHelper.WaitingTask().execute().get();
+//            long t2 = System.currentTimeMillis();
+//
+//            System.out.println("Result: "+ res+", time="+(t2-t1));
+//        }catch (Exception ex){
+//
+//        }
 
 //        DevicePreferences.getInstance(getApplicationContext()).clear();
        // FirebaseAuth.getInstance().signInAnonymously();
@@ -155,7 +168,7 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
             public void onClick(View v) {
                 AlertDialog dialog = new AlertDialog.Builder(getBaseContext())
                         .setTitle("Alert")
-                        .setMessage("  Do you want to logout?")
+                        .setMessage(getResources().getString(R.string.log_out_msg))
                         .setNegativeButton("No", null)
                         .setPositiveButton("Yes",new DialogInterface.OnClickListener() {
                             @Override
@@ -304,7 +317,7 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
         }
 
         for (int i = 0; i < outdoor.length; i++) {
-            String key = outdoor[i]+"_"+Constants.INDOOR;
+            String key = outdoor[i]+"_"+Constants.OUTDOOR;
             Constants.ActivityCodeMap.put(key, outdoor_code[i]);
         }
 
@@ -345,7 +358,7 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
     @Override
     protected void onResume() {
         super.onResume();
-        this.showProgressCircle(getApplicationContext(),0);
+        this.showProgressCircle(getApplicationContext(),Device_Parser.get_txf_status());
         System.out.println("onResume");
     }
 
@@ -389,8 +402,6 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
 //        Fragment frag = getSupportFragmentManager().findFragmentById(R.id.fragment);
         FragmentManager fragmentManager = getSupportFragmentManager();
 
-
-
         Fragment frag = fragmentManager.findFragmentByTag(DeviceFragment.class.getSimpleName());
         if(frag instanceof DeviceFragment){
 //            System.out.println("BACK PRESS::"+frag+"  Fragment");
@@ -401,8 +412,12 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
         }
         frag = fragmentManager.findFragmentByTag("Profile Fragment");
         if(frag instanceof  ProfileFragment){
-            fragmentManager.popBackStack();
-            restoreHomeActionBar();
+            if (ProfilePreferences.getInstance(getApplicationContext()).isEmpty()) {
+                Common.okAlertMessage(frag.getContext(), getString(R.string.enter_all_details));
+            }else {
+                fragmentManager.popBackStack();
+                restoreHomeActionBar();
+            }
         }
 
         frag = fragmentManager.findFragmentByTag("Map Fragment");
@@ -445,7 +460,7 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
     public void restoreHomeActionBar(){
         System.out.println("Restore action bar called");
         ActionBar mActionbar = getSupportActionBar();
-        showProgressCircle(getApplicationContext() ,0 );
+        showProgressCircle(getApplicationContext() , Device_Parser.get_txf_status() );
         mActionbar.getCustomView().findViewById(R.id.logout_link)
                 .setVisibility(View.VISIBLE);
         mActionbar.getCustomView().findViewById(R.id.profile_link)
@@ -469,30 +484,40 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
         dataLoadProgressView = actionbar.getCustomView().findViewById
                 (R.id.ble_device_connectivity);
         if(context != null){
-            for(Map.Entry<String, DeviceDetails> entry : Constants.DEVICE_MAPS.entrySet() ){
-                if(entry.getValue().connected){
+//            for(Map.Entry<String, DeviceDetails> entry : Constants.DEVICE_MAPS.entrySet() ){
+//                if(entry.getValue().connected){
+//                    deviceConnectedCount += 1;
+//                    anyDeviceConnected = true;
+//                }
+//            }
+            String[] devices = {context.getResources().getString(R.string.device1_tv), context.getResources().getString(R.string.device2_tv)};
+            for (int i = 0; i < 2; i++) {
+                DeviceDetails deviceDetails1 = Constants.DEVICE_MAPS.get(devices[i]);
+                if(deviceDetails1 != null && deviceDetails1.connected){
                     deviceConnectedCount += 1;
                     anyDeviceConnected = true;
                 }
             }
+
             if(!anyDeviceConnected){
                 dataLoadProgressView.setFillCircleColor(getResources().getColor(R.color.red));
-                dataLoadProgressView.setValueAnimated(24,1000);
+                dataLoadProgressView.setValueAnimated(increasePercent,500);
                 return;
             }else{
                 switch(deviceConnectedCount){
+//                    case 1:
+//                        dataLoadProgressView.setFillCircleColor(getResources().getColor(R.color.yellow));
+//                        break;
                     case 1:
-                        dataLoadProgressView.setFillCircleColor(getResources().getColor(R.color.yellow));
-                        break;
-                    case 2:
                         dataLoadProgressView.setFillCircleColor(getResources().getColor(R.color.orange));
                         break;
-                    case 3:
+                    case 2:
                         dataLoadProgressView.setFillCircleColor(getResources().getColor(R.color.green));
                         break;
                     default:
                         dataLoadProgressView.setFillCircleColor(getResources().getColor(R.color.red));
                 }
+                dataLoadProgressView.setValueAnimated(increasePercent,500);
             }
         }
     }

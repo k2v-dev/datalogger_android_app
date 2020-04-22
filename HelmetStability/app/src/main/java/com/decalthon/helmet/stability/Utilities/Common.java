@@ -1,6 +1,7 @@
 package com.decalthon.helmet.stability.Utilities;
 
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
@@ -167,7 +168,6 @@ public class Common {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
     }
 
     /**
@@ -199,13 +199,52 @@ public class Common {
         return  date.getTime()/1000;
     }
 
-    public static void  isInternetAvailable(Context context) {
+    /**
+     * Show alert dailog for non internet availability
+     * @param context
+     */
+    public static void noInternetAlert(Context context) {
         AlertDialog.Builder alert = new AlertDialog.Builder(context);
         alert.setTitle("Alert");
-        alert.setMessage("Internet is not available. Please enable the internet");
+        alert.setMessage(context.getResources().getString(R.string.NO_INTERNET));
         alert.setPositiveButton("OK",null);
         alert.show();
 
+    }
+
+    /**
+     * Show alert dialog with ok button only
+     * @param context
+     * @param message
+     */
+    public static void okAlertMessage(Context context, String message) {
+        AlertDialog.Builder alert = new AlertDialog.Builder(context);
+        alert.setTitle("Alert");
+        alert.setMessage(message);
+        alert.setPositiveButton("OK",null);
+        alert.show();
+    }
+
+
+    private static ProgressDialog wait_dialog;
+    /**
+ * Waiting cursor
+ */
+    public static ProgressDialog wait_cursor(Context context, String message){
+        stop_wait_cursor();
+        wait_dialog = new ProgressDialog(context);
+        wait_dialog.setMessage(message);
+        wait_dialog.setIndeterminate(true);
+        wait_dialog.setCancelable(false);
+        wait_dialog.show();
+        return wait_dialog;
+    }
+
+    public static void stop_wait_cursor(){
+        if(wait_dialog != null){
+            wait_dialog.dismiss();
+        }
+        wait_dialog = null;
     }
 }
 

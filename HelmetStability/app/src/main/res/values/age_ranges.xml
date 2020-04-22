@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="ages_array">
+        <item>Select</item>
         <item>5</item>
         <item>6</item>
         <item>7</item>

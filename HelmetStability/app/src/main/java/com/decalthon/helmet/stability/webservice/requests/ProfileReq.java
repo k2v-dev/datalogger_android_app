@@ -6,4 +6,11 @@ public class ProfileReq {
     public float weight; //kg
     public String gender = "M"	; //M or F or O
     public long dob;   //dob
+
+    public ProfileReq() {
+        height = 0.0f;
+        weight = 0.0f;
+        dob = 0;
+        gender = "M";
+    }
 }

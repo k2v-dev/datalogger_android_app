@@ -109,7 +109,6 @@ public class GPSSpeedFragment extends Fragment implements LocationListener  {
      * Fragment creation
      * @param savedInstanceState Any restore-able data
      */
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -178,7 +177,6 @@ public class GPSSpeedFragment extends Fragment implements LocationListener  {
                 startStopView.setImageResource(R.drawable.play);
                 Device1_Parser.sendStopActivityCmd(getContext());
                 MainActivity.shared().onBackPressed();
-
             }
         });
     }

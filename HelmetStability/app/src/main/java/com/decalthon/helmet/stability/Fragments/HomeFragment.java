@@ -40,7 +40,9 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.decalthon.helmet.stability.Activities.MainActivity;
+import com.decalthon.helmet.stability.BLE.ButtonBox_Parser;
 import com.decalthon.helmet.stability.BLE.Device1_Parser;
+import com.decalthon.helmet.stability.BLE.Device_Parser;
 import com.decalthon.helmet.stability.DB.DatabaseHelper;
 import com.decalthon.helmet.stability.DB.Entities.GpsSpeed;
 import com.decalthon.helmet.stability.DB.Entities.MarkerData;
@@ -240,7 +242,7 @@ public class HomeFragment extends Fragment  {
             backLink.setVisibility(View.GONE);
 
 
-            ((MainActivity)getActivity()).showProgressCircle(getContext(),0);
+            ((MainActivity)getActivity()).showProgressCircle(getContext(), Device_Parser.get_txf_status());
 
             UserPreferences userPreferences = UserPreferences.getInstance(getContext());
 
@@ -315,9 +317,17 @@ public class HomeFragment extends Fragment  {
                 public void onClick(View v) {
                     AlertDialog dialog = new AlertDialog.Builder(getContext())
                             .setTitle("Alert")
-                            .setMessage("  Do you want to logout?")
+                            .setMessage(getResources().getString(R.string.log_out_msg))
                             .setNegativeButton("No", null)
-                            .setPositiveButton("Yes",null)
+                            .setPositiveButton("Yes",new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    UserPreferences.getInstance(getContext()).clear();
+                                    ProfilePreferences.getInstance(getContext()).clear();
+                                    DevicePreferences.getInstance(getContext()).clear();
+                                    navigateToFragments();
+                                }
+                            })
                             .create();
                     dialog.show();
                     dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.parseColor("#FF1B5AAC")); // Set text color to blue color
@@ -328,12 +338,14 @@ public class HomeFragment extends Fragment  {
         catch (NullPointerException e){
             e.printStackTrace();
         }
-        new InternetCheck(isInternet -> {
-            if (!isInternet) {
-                Common.isInternetAvailable(getContext());
-            }
-        });
-        Common.wait(50);
+//        new InternetCheck(isInternet -> {
+//            if (!isInternet) {
+//                Common.isInternetAvailable(getContext());
+//            }
+//        });
+//        Common.wait(50);
+
+
         navigateToFragments();
 
 
@@ -360,7 +372,7 @@ public class HomeFragment extends Fragment  {
 //        new DatabaseHelper.DeleteAll().execute((long) 1);
 //        if(!isDone){
 //            CsvGenerator csvGenerator = new CsvGenerator(getContext());
-//            csvGenerator.generateCSV(1);
+//            csvGenerator.generateCSV(4);
 //            isDone = true;
 //        }
 
@@ -581,7 +593,7 @@ public class HomeFragment extends Fragment  {
                         outdoorEditText.addTextChangedListener(new TextWatcher() {
                             @Override
                             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                                if(outdoorEditText.getText().toString().equals("")) {
+                                if(outdoorEditText.getText().toString().trim().equals("")) {
                                     startButton.setEnabled(false);
                                 }else{
                                     startButton.setEnabled(true);
@@ -637,6 +649,7 @@ public class HomeFragment extends Fragment  {
                     //Log.d(TAG, "Activity :"+activityType+", code="+Constants.ActivityCodeMap.get(activityType));
                     if(Constants.ActivityCodeMap.get(activityType) != null){
                         Device1_Parser.sendStopCmd(getContext());
+                        ButtonBox_Parser.sendStopCmd(getContext());
                         Device1_Parser.sendStartActivityCmd(getContext(), Constants.ActivityCodeMap.get(activityType));
                     }else{
                         Log.d(TAG, "No activity code found");
@@ -931,6 +944,15 @@ public class HomeFragment extends Fragment  {
                 fragmentTransaction.addToBackStack(Constants.LOGIN_FRAGMENT);
                 fragmentTransaction.commit();
             }else{
+                //ToDo: validate Profile details, if no information, the navigate to Profile page
+                if ( ProfilePreferences.getInstance(getContext()).isEmpty()) {
+                    Fragment profileFragment = new ProfileFragment();
+                    FragmentTransaction fragmentTransaction = getFragmentManager()
+                            .beginTransaction();
+                    fragmentTransaction.replace(R.id.fragment, profileFragment,"Profile Fragment");
+                    fragmentTransaction.addToBackStack(null);
+                    fragmentTransaction.commit();
+                }
 //               upload_img();
                 //saveProfile();
 //                getProfile();

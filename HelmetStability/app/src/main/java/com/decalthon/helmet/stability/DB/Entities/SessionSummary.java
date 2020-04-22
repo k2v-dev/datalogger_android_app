@@ -8,6 +8,7 @@ import androidx.room.PrimaryKey;
 import androidx.room.TypeConverter;
 
 import com.decalthon.helmet.stability.DB.Entities.SensorDataEntity;
+import com.decalthon.helmet.stability.Utilities.Constants;
 
 import java.util.Date;
 @Entity(indices = {@Index(value = {"session_number","timestamp"}, unique = true)})
@@ -98,7 +99,6 @@ public class SessionSummary {
     public void setDate(long date) {
         this.date = date;
     }
-
 
     public float getDuration() {
         return duration;

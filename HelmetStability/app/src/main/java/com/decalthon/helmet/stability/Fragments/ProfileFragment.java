@@ -29,6 +29,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.decalthon.helmet.stability.Activities.MainActivity;
 import com.decalthon.helmet.stability.R;
+import com.decalthon.helmet.stability.Utilities.Common;
 import com.decalthon.helmet.stability.Utilities.Constants;
 import com.decalthon.helmet.stability.Utilities.FileUtilities;
 import com.decalthon.helmet.stability.firestore.FirebaseStorageManager;
@@ -181,7 +182,11 @@ public class ProfileFragment extends Fragment {
         backLink.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                MainActivity.shared().onBackPressed();
+                if (ProfilePreferences.getInstance(getContext()).isEmpty()) {
+                    Common.okAlertMessage(getContext(), getString(R.string.enter_all_details));
+                }else {
+                    MainActivity.shared().onBackPressed();
+                }
             }
         });
 
@@ -454,36 +459,49 @@ public class ProfileFragment extends Fragment {
         //The name of the user and his profile photo is saved as a user preference
         Button save = profileView.findViewById(R.id.save_profile);
         save.setOnClickListener(v -> {
+
+
+            final String name = profileName.getText().toString();
+
+            final String age = ageSpinner.getSelectedItem().toString();
+
+            final String height = heightSpinner.getSelectedItem().toString();
+
+            final String weight = weightSpinner.getSelectedItem().toString();
+
+            final String gender = genderSpinner.getSelectedItem().toString();
+
+            if(name == null || name.trim().length() == 0 ||
+               age.equalsIgnoreCase("Select") || height.equalsIgnoreCase("Select") ||
+               weight.equalsIgnoreCase("Select") || gender.equalsIgnoreCase("Select")){
+                Common.okAlertMessage(getContext(), getString(R.string.enter_all_details));
+                return;
+            }
+
+
             ProfilePreferences profilePreferences = ProfilePreferences.getInstance
                     (getContext());
 
-            final String name = profileName.getText().toString();
             UserPreferences userPreferences = UserPreferences.getInstance(getContext());
             userPreferences.saveName(name);
 
-
-            final String age = ageSpinner.getSelectedItem().toString();
             ageIndex = ageSpinner.getSelectedItemPosition();
             Calendar calendar = Calendar.getInstance();
             calendar.add(Calendar.YEAR, -(Integer.parseInt(age)));
             Date date = calendar.getTime();
 
-            final String height = heightSpinner.getSelectedItem().toString();
             profilePreferences.saveHeight(Float.parseFloat(height));
             heightIndex = heightSpinner.getSelectedItemPosition();
 
-
-            final String weight = weightSpinner.getSelectedItem().toString();
             profilePreferences.saveWeight(Float.parseFloat(weight));
             System.out.println("Got weight value-->"+ ProfilePreferences.
                     getInstance(getContext()).getWeight());
             weightIndex = weightSpinner.getSelectedItemPosition();
 
-
-            final String gender = genderSpinner.getSelectedItem().toString();
             profilePreferences.saveGender(gender);
             System.out.println("Got gender"+profilePreferences.getGender());
             genderIndex = genderSpinner.getSelectedItemPosition();
+
 
             String user_id = UserPreferences.getInstance(getContext()).getUserID();
             if(user_id.length() > 0){

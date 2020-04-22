@@ -34,7 +34,7 @@ public class Device1_Parser extends Device_Parser{
     private static byte[] last_data;
     private static short prevBtnType = -1;
     private static long prev_pkt_num = -1;
-    private static long num_pkt_read = 0;
+    protected static long num_pkt_read = 0;
 
 //    private static SessionCdlDb sessionCdlDb;
     private static SensorDataEntity currentSensorDataEntity;
@@ -240,8 +240,8 @@ public class Device1_Parser extends Device_Parser{
             sendStopCmd(context);
             // There is bug with below command, After sending the command , device stop sending any data and After that there is no change in session summary
             // When this bug get fixed, then uncomment sendReadSessionCmd  method and comment sendNextSessionCmd method
-            //sendReadSessionCmd(currentSessionNumber);
-            sendNextSessionCmd(context);
+            sendReadSessionCmd(currentSessionNumber);
+//            sendNextSessionCmd(context);
         }else{
             update_num_pkt_rcvd();
             addSensorDataEntity(sensorDataEntity);
@@ -345,14 +345,24 @@ public class Device1_Parser extends Device_Parser{
 
         sessionHeader.setActivity_type(received_data[14] & 0xFF);
 
-        sessionHeader.setSamp_freq((short) (received_data[15] & 0xFF));
+        int samp_freq = received_data[15] & 0xFF;
+
+        sessionHeader.setSamp_freq((short) (samp_freq));
 
         update_num_pkt_rcvd();
+
+        int total_pkts = DeviceHelper.SESSION_SUMMARIES.get(session_num).getTotal_pkts();
+        float duration = ((float) total_pkts)/((float)samp_freq);
 
         DeviceHelper.REC_SESSION_HDR = sessionHeader;
         DeviceHelper.SESSION_SUMMARIES.get(session_num).setActivity_type(sessionHeader.getActivity_type());
         DeviceHelper.SESSION_SUMMARIES.get(session_num).setFirmware_type(sessionHeader.getFirmwareType());
         DeviceHelper.SESSION_SUMMARIES.get(session_num).setSampling_freq(sessionHeader.getSamp_freq());
+        DeviceHelper.SESSION_SUMMARIES.get(session_num).setDuration(duration);
+        String name = Constants.ActivityCodeMap.inverse().get(sessionHeader.getActivity_type());
+        if(name != null && name.length() > 0){
+            DeviceHelper.SESSION_SUMMARIES.get(session_num).setName(name);
+        }
         //DeviceHelper.SESSION_HDRS.put(session_num, sessionHeader);
     }
 
@@ -443,6 +453,7 @@ public class Device1_Parser extends Device_Parser{
             for(SessionSummary sessionSummary:sessionSummariesStored){
 //                if(DeviceHelper.SESSION_SUMMARIES.get(sessionSummary.getSession_number()) != null ){
                     DeviceHelper.SESSION_SUMMARIES.put(sessionSummary.getSession_number(),sessionSummary);
+
 //                }
             }
 //            for(long timestamp : timestamps){
@@ -768,6 +779,8 @@ public class Device1_Parser extends Device_Parser{
             iGetLastPkt.accept(pkt_num);
         }
     }
+
+
 
 //    private static class InsertSensorDataEntityAsyncTask extends AsyncTask<Void,Void,Void> {
 //

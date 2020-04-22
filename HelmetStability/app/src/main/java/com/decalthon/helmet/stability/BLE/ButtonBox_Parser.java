@@ -38,7 +38,7 @@ public class ButtonBox_Parser extends Device_Parser{
     private static SensorDataEntity currentSensorDataEntity;
     private static short prevBtnType = -1;
     private static long prev_pkt_num = -1;
-    private static long num_pkt_read = 0;
+    protected static long num_pkt_read = 0;
 
     private List<SessionSummary> sessionSummaryList;
     private ArrayList<Long> timestamps;

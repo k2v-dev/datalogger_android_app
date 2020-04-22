@@ -5,6 +5,7 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.text.TextUtils;
+import android.util.Log;
 import android.util.Patterns;
 import android.view.MotionEvent;
 import android.view.View;
@@ -17,6 +18,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.text.DecimalFormat;
+import java.util.Locale;
 
 public class Helper {
 
@@ -149,6 +152,7 @@ public class Helper {
             scale--;
         }
     }
+
     public static void format6(StringBuilder builder, float d) {
         if (d < 0) {
             builder.append('-');
@@ -176,4 +180,76 @@ public class Helper {
         }
     }
 
+    public static void format6_new(StringBuilder sb, float val){
+        if(val < 0){
+            sb.append("-");
+            val = -val;
+        }
+        float rounded = (float)Math.floor(1000000 * val + 0.5) / 1000000;
+        sb.append(rounded);
+    }
+
+    public static void format3_old(StringBuilder sb, float val){
+        if(val < 0){
+            sb.append("-");
+            val = -val;
+        }
+        float rounded = (float)Math.floor(1000 * val + 0.5) / 1000;
+        sb.append(rounded);
+    }
+
+
+
+    public static void test_format(){
+        float val = 1234.234933f;
+
+        StringBuilder sb= new StringBuilder("");
+        long t1 = System.currentTimeMillis();
+        for(int i =0; i< 100;i++){
+            format3_old(sb, val);
+        }
+
+        long t2 = System.currentTimeMillis();
+        System.out.println("format3="+(t2-t1));
+        sb = new StringBuilder("");
+        for(int i =0; i< 100;i++){
+            format6(sb, val);
+        }
+
+        long t22 = System.currentTimeMillis();
+        DecimalFormat df = new DecimalFormat("#.###");
+        System.out.println("format6="+(t22-t2));
+        sb = new StringBuilder("");
+        for(int i =0; i< 100;i++){
+            sb.append(df.format(val));
+        }
+
+        long t3 = System.currentTimeMillis();
+        System.out.println("DecimalFormat="+(t3-t22));
+        sb = new StringBuilder("");
+        for(int i =0; i< 100;i++){
+            sb.append(String.format(Locale.getDefault(),"%5.3f", val));
+        }
+        long t4 = System.currentTimeMillis();
+        System.out.println("String="+(t4-t3));
+        for(int i =0; i< 100;i++){
+            format3(sb, val);
+        }
+
+        long t5 = System.currentTimeMillis();
+        System.out.println("format3_new="+(t5-t4));
+        sb = new StringBuilder("");
+        for(int i =0; i< 100;i++){
+            format6_new(sb, val);
+        }
+
+        long t6 = System.currentTimeMillis();
+        System.out.println("format6_new="+(t6-t5));
+        sb = new StringBuilder("");
+        for(int i =0; i< 100;i++){
+            sb.append(val);
+        }
+        long t7 = System.currentTimeMillis();
+        System.out.println("No api="+(t7-t6));
+    }
 }

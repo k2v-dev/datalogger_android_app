@@ -338,4 +338,19 @@ public class DatabaseHelper {
         }
     }
 
+    public static class WaitingTask extends  AsyncTask<Void , Void, Long> {
+
+        @Override
+        protected Long doInBackground(Void... voids) {
+            Common.wait(3000);
+
+            return 1234l;
+        }
+
+        @Override
+        protected void onPostExecute(Long aLong) {
+            System.out.println("On Post Exceuted: "+aLong);
+        }
+    }
+
 }

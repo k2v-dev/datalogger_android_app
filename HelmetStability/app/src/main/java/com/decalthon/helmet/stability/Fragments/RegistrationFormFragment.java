@@ -32,10 +32,6 @@ import com.decalthon.helmet.stability.preferences.ProfilePreferences;
 import com.decalthon.helmet.stability.preferences.UserPreferences;
 import com.decalthon.helmet.stability.webservice.requests.ProfileReq;
 import com.decalthon.helmet.stability.webservice.requests.UserInfoReq;
-import com.decalthon.helmet.stability.webservice.responses.AuthenticationDetails;
-import com.decalthon.helmet.stability.webservice.responses.ErrorCodes;
-import com.decalthon.helmet.stability.webservice.responses.ErrorMessages;
-import com.decalthon.helmet.stability.webservice.services.UserInfoService;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -52,22 +48,13 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
-import com.google.gson.GsonBuilder;
 import com.hbb20.CountryCodePicker;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
-
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
 
 
 /**
@@ -85,6 +72,8 @@ public class RegistrationFormFragment extends Fragment implements View.OnClickLi
     private PinView pinView;
     private Button registerBtn;
     private TextView topText,textU;
+    private TextView resend_otp_tv;
+    private TextView error_msg_tv;
     private EditText userName, userPhone, userEmail;
     private ConstraintLayout first, second;
     private CountryCodePicker ccp;
@@ -95,6 +84,7 @@ public class RegistrationFormFragment extends Fragment implements View.OnClickLi
     String mVerificationId = "";
     FirebaseFirestore firestoreDb;
     String user_id = "";
+    private PhoneAuthProvider.ForceResendingToken phone_token = null;
 
     // TODO: Rename and change types of parameters
 //    private String mParam1;
@@ -151,6 +141,8 @@ public class RegistrationFormFragment extends Fragment implements View.OnClickLi
         second = view.findViewById(R.id.secondStep);
         textU = view.findViewById(R.id.textView_noti);
         pb_bar = view.findViewById(R.id.pb_bar);
+        resend_otp_tv = view.findViewById(R.id.resend_otp);
+        error_msg_tv = view.findViewById(R.id.error_msg_tv);
 
         mAuth = FirebaseAuth.getInstance();
 
@@ -161,6 +153,16 @@ public class RegistrationFormFragment extends Fragment implements View.OnClickLi
         ccp.registerCarrierNumberEditText(userPhone);
 
         firestoreDb = FirebaseFirestore.getInstance();
+
+        resend_otp_tv.setOnClickListener(new View.OnClickListener() {
+                                             @Override
+                                             public void onClick(View v) {
+                                                 if(phone_token != null){
+                                                     resendVerificationCode(userInfoReq.phone_no, phone_token);
+                                                 }
+                                             }
+                                         }
+        );
 
         return view;
 
@@ -192,6 +194,7 @@ public class RegistrationFormFragment extends Fragment implements View.OnClickLi
 
     @Override
     public void onClick(View v) {
+        error_msg_tv.setText("");
         new InternetCheck(isInternet -> {
             if(isInternet) {
                 if (registerBtn.getText().equals(getResources().getString(R.string.register))) {
@@ -204,9 +207,11 @@ public class RegistrationFormFragment extends Fragment implements View.OnClickLi
 
                     if (!TextUtils.isEmpty(name) && !TextUtils.isEmpty(phone) &&  !TextUtils.isEmpty(email)) {
                         if (!Helper.isValidEmail(email)) {
-                            Toast.makeText(getActivity(), "Please enter the valid email address", Toast.LENGTH_SHORT).show();
+                            //Toast.makeText(getActivity(), "Please enter the valid email address", Toast.LENGTH_SHORT).show();
+                            error_msg_tv.setText(getString(R.string.enter_email_add));
                         }else if( !ccp.isValidFullNumber()){
-                            Toast.makeText(getActivity(), "Please enter the valid phone number", Toast.LENGTH_SHORT).show();
+                            //Toast.makeText(getActivity(), "Please enter the valid phone number", Toast.LENGTH_SHORT).show();
+                            error_msg_tv.setText(getString(R.string.enter_phone_num));
                         }else{
                             userInfoReq = new UserInfoReq();
                             userInfoReq.email = email;
@@ -218,7 +223,8 @@ public class RegistrationFormFragment extends Fragment implements View.OnClickLi
                             pb_bar.setVisibility(View.VISIBLE);
                         }
                     } else {
-                        Toast.makeText(getActivity(), "Please enter the details", Toast.LENGTH_SHORT).show();
+//                        Toast.makeText(getActivity(), "Please enter the details", Toast.LENGTH_SHORT).show();
+                        error_msg_tv.setText(R.string.enter_details);
                     }
                 }else if (registerBtn.getText().equals(getResources().getString(R.string.verify))) {
                     String OTP = pinView.getText().toString();
@@ -226,12 +232,12 @@ public class RegistrationFormFragment extends Fragment implements View.OnClickLi
                         verifyOtp(OTP);
                         pb_bar.setVisibility(View.VISIBLE);
                     }else{
-                        Toast.makeText(getActivity(), "Please enter the 6 digit OTP", Toast.LENGTH_SHORT).show();
+//                        Toast.makeText(getActivity(), "Please enter the 6 digit OTP", Toast.LENGTH_SHORT).show();
+                        error_msg_tv.setText(getString(R.string.enter_six_digit_otp));
                     }
-
                 }
             }else{
-                Common.isInternetAvailable(getContext());
+                Common.noInternetAlert(getContext());
             }
         });
 
@@ -283,6 +289,21 @@ public class RegistrationFormFragment extends Fragment implements View.OnClickLi
     }
 
     /**
+     * Resend OTP using same token
+     * @param phoneNumber
+     * @param token
+     */
+    private void resendVerificationCode(String phoneNumber,
+                                        PhoneAuthProvider.ForceResendingToken token) {
+        PhoneAuthProvider.getInstance().verifyPhoneNumber(
+                phoneNumber,        // Phone number to verify
+                120,                 // Timeout duration
+                TimeUnit.SECONDS,   // Unit of timeout
+                getActivity(),               // Activity (for callback binding)
+                mCall,         // OnVerificationStateChangedCallbacks
+                token);             // ForceResendingToken from callbacks
+    }
+    /**
      * Implemented Call back method of above method verifyPhoneNumber.
      */
     private PhoneAuthProvider.OnVerificationStateChangedCallbacks mCall = new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
@@ -293,11 +314,13 @@ public class RegistrationFormFragment extends Fragment implements View.OnClickLi
 
         @Override
         public void onVerificationFailed(FirebaseException e) {
+            e.printStackTrace();
             pb_bar.setVisibility(View.GONE);
         }
 
         @Override
         public void onCodeSent(String verificationId, PhoneAuthProvider.ForceResendingToken token) {
+            phone_token = token;
 //            pb_bar.setVisibility(View.GONE);
             mVerificationId = verificationId;
             Log.e("MapActivity" , "Verification id : " + verificationId);
@@ -423,7 +446,8 @@ public class RegistrationFormFragment extends Fragment implements View.OnClickLi
                                 message = "Invalid code entered...";
                             }
 
-                            Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+                            //Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+                            error_msg_tv.setText(message);
                         }
                     }
                 });
@@ -458,10 +482,8 @@ public class RegistrationFormFragment extends Fragment implements View.OnClickLi
                     FirestoreUserModel user = Objects.requireNonNull(task.getResult()).toObject(FirestoreUserModel.class);
                     //Navigate to profile page
                     if(user != null){
-                        Toast.makeText(getContext(), "It seems that email id is used by someone. Please use other email id.", Toast.LENGTH_SHORT).show();
-//                        FragmentManager fm = getActivity()
-//                                .getSupportFragmentManager();
-//                        fm.popBackStack(Constants.LOGIN_FRAGMENT, 0);
+//                        Toast.makeText(getContext(), "It seems that email id is used by someone. Please use other email id.", Toast.LENGTH_SHORT).show();
+                        error_msg_tv.setText(getString(R.string.use_other_email_id));
                     }else{
                         sendVerificationCode(firestoreUserModel.phone_no);
                         //addNewRegisteredUser(user_id, firestoreUserModel);
@@ -485,7 +507,7 @@ public class RegistrationFormFragment extends Fragment implements View.OnClickLi
 
         ProfileReq profileReq = new ProfileReq();
         profileReq.name = firestoreUserModel.userName;
-        profileReq.dob = Common.getTimestamp(25);
+        //profileReq.dob = Common.getTimestamp(25);
         Map<String, Object> profile = new HashMap<>();
         profile.put(Constants.ProfileFields.USERNAME, profileReq.name);
         profile.put(Constants.ProfileFields.WEIGHT, profileReq.weight);
@@ -510,14 +532,14 @@ public class RegistrationFormFragment extends Fragment implements View.OnClickLi
                 userPreferences.saveUserID(user_id);
 
                 ProfilePreferences profilePreferences = ProfilePreferences.getInstance(getContext());
-                profileReq.dob = Common.getTimestamp(25);
+                //profileReq.dob = Common.getTimestamp(25);
                 profilePreferences.saveDob(profileReq.dob);
                 profilePreferences.saveGender(profileReq.gender);
                 profilePreferences.saveHeight(profileReq.height);
                 profilePreferences.saveWeight(profileReq.weight);
 
-
                 pb_bar.setVisibility(View.INVISIBLE);
+
                 FragmentManager fm = getActivity()
                         .getSupportFragmentManager();
                 fm.popBackStack(Constants.HOME_FRAGMENT, 0);

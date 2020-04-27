@@ -13,7 +13,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:background = "#FF8C00"
             android:padding="20dp">
             <TextView
                 android:id="@+id/previous_year_link_vp"
@@ -53,8 +52,7 @@
             android:columnWidth="100dp"
             android:numColumns="3"
             android:verticalSpacing="0.5dp"
-            android:background="#25000000"/>
-<!--            android:background="#88FF8C00" />-->
+            android:background="#88FFFFFF" />
     </LinearLayout>
 
 </FrameLayout>

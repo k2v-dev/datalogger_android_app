@@ -4,7 +4,6 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.decalthon.helmet.stability.Activities.MainActivity;
 import com.decalthon.helmet.stability.DB.DatabaseHelper;
 import com.decalthon.helmet.stability.DB.Entities.ButtonBoxEntity;
 import com.decalthon.helmet.stability.DB.Entities.MarkerData;
@@ -23,6 +22,7 @@ import com.decalthon.helmet.stability.model.DeviceModels.session.SessionHeader;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -39,7 +39,9 @@ public class ButtonBox_Parser extends Device_Parser{
     private static short prevBtnType = -1;
     private static long prev_pkt_num = -1;
     protected static long num_pkt_read = 0;
-
+    private  static Map<Integer, Long> NUM_PKTS_MAP = new HashMap<>();
+    //private List<MarkerData> markerDatas = new ArrayList<>();
+    private static MarkerData markerData_g = null;
     private List<SessionSummary> sessionSummaryList;
     private ArrayList<Long> timestamps;
 
@@ -158,54 +160,66 @@ public class ButtonBox_Parser extends Device_Parser{
         buttonBoxEntity.ax_3axis = Helper.getShortValue(received_data[9], received_data[10])* Constants.ACC_3axis_SF;
         buttonBoxEntity.ay_3axis = Helper.getShortValue(received_data[11], received_data[12])*Constants.ACC_3axis_SF;
         buttonBoxEntity.az_3axis = Helper.getShortValue(received_data[13], received_data[14])*Constants.ACC_3axis_SF;
+        buttonBoxEntity.session_id = sessionSummary.getSession_id();
 
         short button_type = (short) (received_data[15] & 0xFF);
 
-        if(prevBtnType != button_type){// by default value is 0, it will be start marker
+
+       if(prevBtnType == -1){
+//            MarkerData markerData = new MarkerData(buttonBoxEntity.dateMillis,  ""+button_type, "", buttonBoxEntity.session_id);
+//            markerData.session_id = buttonBoxEntity.session_id;
+           if(buttonBoxEntity.packet_number == 1){
+
+               markerData_g = new MarkerData(buttonBoxEntity.dateMillis,  "64", "", buttonBoxEntity.session_id);
+               prevBtnType = 64;
+           }else {
+               prevBtnType = 0;
+           }
+        }else if(prevBtnType != button_type && (button_type != 0 && button_type != 255)){// by default value is 0, it will be start marker
             buttonBoxEntity.button_type = button_type;
-            prevBtnType = button_type;
+            markerData_g = new MarkerData(buttonBoxEntity.dateMillis,  button_type+"", "", buttonBoxEntity.session_id);
+           prevBtnType = button_type;
         }
 //        Integer currentSessionNumber = DeviceHelper.REC_SESSION_HDR_BB.getNumber();
 
-        buttonBoxEntity.session_id = sessionSummary.getSession_id();
+
 //        DeviceHelper.SESSION_SUMMARIES_BB.get(currentSessionNumber).setBb_num_read_pkt((int)buttonBoxEntity.packet_number);
 //        addButtonBoxEntity(buttonBoxEntity);
 
         if(buttonBoxEntity.packet_number
                 >= sessionSummary.getBb_total_pkts()){
             System.out.println("Number of packets-->"+buttonBoxEntity.packet_number);
-            num_pkt_read += prev_pkt_num;
+//            num_pkt_read += prev_pkt_num;
             DeviceHelper.SESSION_SUMMARIES_BB.get(currentSessionNumber).setBb_isComplete(true);
             new UpdateNumberofReadPacketsAsyncTask().execute(DeviceHelper.SESSION_SUMMARIES_BB.get(currentSessionNumber));
             //sendSessionCommand();
             sendReadSessionCmd(currentSessionNumber);
             DeviceHelper.SESSION_SUMMARIES_BB.remove(currentSessionNumber);
+            if(num_pkt_read > 50 ){
+                Log.d(TAG, "Ready for insert markers data");
+                new InsertMarkerDataAsyncTask().execute(new MarkerData(buttonBoxEntity.dateMillis,  "128", "", buttonBoxEntity.session_id));
+                new DatabaseHelper.UpdateMarkerData().execute(buttonBoxEntity.session_id);
+                new DatabaseHelper.CheckForCsvGeneration().execute(buttonBoxEntity.session_id);
+            }
+            num_pkt_read = 0;
+            markerData_g = null;
+            prevBtnType = -1;
+
         }else{
-            update_num_pkt_rcvd();
+            num_pkt_read++;
+//            update_num_pkt_rcvd();
             addButtonBoxEntity(buttonBoxEntity);
+            if(num_pkt_read > 5 && markerData_g != null){
+                new InsertMarkerDataAsyncTask().execute(new MarkerData(markerData_g.marker_timestamp, markerData_g.markerType, markerData_g.note, markerData_g.session_id));
+                markerData_g = null;
+            }
             if(buttonBoxEntity.packet_number % 100 == 0){
                 Log.d(TAG, "Packet number="+buttonBoxEntity.packet_number);
+                NUM_PKTS_MAP.put(currentSessionNumber, buttonBoxEntity.packet_number);
+                update_num_pkt_rcvd();
             }
         }
     }
-//    private void checkForHundredPackets(int session_number){
-//        long packet_check_index  = DeviceHelper.SESSION_SUMMARIES_BB.get(session_number).getBb_num_read_pkt();
-//        if( ( packet_check_index % 100 ) == 0){
-//            System.out.println(packet_check_index + " --> check for 100 packets");
-//            new UpdateNumberofReadPacketsAsyncTask().execute(DeviceHelper.SESSION_SUMMARIES_BB.get(session_number));
-//        }
-//    }
-
-//    private static int counter = 0;
-//    private void checkForHundredPackets(int session_number){
-//        int cur_pkt  = DeviceHelper.SESSION_SUMMARIES_BB.get(session_number).getBb_num_read_pkt();
-//
-//        if( (cur_pkt-counter) > 100){
-//            System.out.println("pkt_num="+ cur_pkt+" --> check for 100 packets");
-//            new UpdateNumberofReadPacketsAsyncTask().execute(DeviceHelper.SESSION_SUMMARIES_BB.get(session_number));
-//            counter = cur_pkt;
-//        }
-//    }
 
     private void addButtonBoxEntity(ButtonBoxEntity buttonBoxEntity) {
         try {
@@ -238,12 +252,12 @@ public class ButtonBox_Parser extends Device_Parser{
         }
 
         // if checksum and calculated checksume are not equal, then data is corrupted and so reject the packet
-//        if(checksum != total){
-//            System.out.println("Device1: Session Header: Unmatching checksum = "+checksum+", total ="+total+", packet="+Common.convertByteArrToStr(received_data, true));
-//            sendStopCmd(context);
-//            sendNextSessionCmd(context);
-//            return;
-//        }
+        if(checksum != total){
+            System.out.println("Device1: Session Header: Unmatching checksum = "+checksum+", total ="+total+", packet="+Common.convertByteArrToStr(received_data, true));
+            sendStopCmd(context);
+            sendNextSessionCmd(context);
+            return;
+        }
 
         SessionHeader sessionHeader = new SessionHeader();
         sessionHeader.setNumber(session_num);
@@ -279,6 +293,9 @@ public class ButtonBox_Parser extends Device_Parser{
         update_num_pkt_rcvd();
 
         DeviceHelper.REC_SESSION_HDR_BB = sessionHeader;
+        markerData_g = null;
+        num_pkt_read = 0;
+        prevBtnType = -1;
 //        DeviceHelper.SESSION_SUMMARIES_BB.get(session_num).setActivity_type(sessionHeader.getActivity_type());
         //DeviceHelper.SESSION_HDRS.put(session_num, sessionHeader);
     }
@@ -385,6 +402,7 @@ public class ButtonBox_Parser extends Device_Parser{
         //sendSessionCommand();
         sendStopCmd(context);
         sendNextSessionCmd(context);
+        new GetLastPktNums().execute();
     }
 
 //    private void sendSessionCommand(){
@@ -447,7 +465,13 @@ public class ButtonBox_Parser extends Device_Parser{
     public void update_num_pkt_rcvd(){
         DeviceDetails deviceDetails = Constants.DEVICE_MAPS.get(context.getResources().getString(R.string.device2_tv));
         if(deviceDetails != null && deviceDetails.mac_address != null) {
-            deviceDetails.num_pkts_rcvd = num_pkt_read+prev_pkt_num;
+//            deviceDetails.num_pkts_rcvd = num_pkt_read+prev_pkt_num;
+            int cur_num_pkts = 0;
+            for (Map.Entry<Integer, Long> entry : NUM_PKTS_MAP.entrySet()) {
+                // System.out.println("Item : " + entry.getKey() + " Count : " + entry.getValue());
+                cur_num_pkts += entry.getValue();
+            }
+            deviceDetails.num_pkts_rcvd = cur_num_pkts;
         }
     }
 
@@ -459,6 +483,7 @@ public class ButtonBox_Parser extends Device_Parser{
         DeviceDetails deviceDetails = Constants.DEVICE_MAPS.get(context.getResources().getString(R.string.device2_tv));
         if(deviceDetails != null && deviceDetails.mac_address != null) {
             deviceDetails.total_pkts = total_pkt_read;
+            Log.d(TAG, "total packets="+total_pkt_read);
         }
     }
 
@@ -570,17 +595,71 @@ public class ButtonBox_Parser extends Device_Parser{
         }
     }
 
-//    private static class InsertMarkerDataAsyncTask extends AsyncTask<MarkerData,Void,Void> {
+    public static class GetLastPktNums extends AsyncTask<Void, Void, Void> {
+        public  GetLastPktNums() { }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            if(DeviceHelper.SESSION_SUMMARIES_BB.size() == 0){
+                return null;
+            }
+            for (Map.Entry<Integer, SessionSummary> entry : DeviceHelper.SESSION_SUMMARIES_BB.entrySet()) {
+                long prev_pkt_num = sessionCdlDb.getSessionDataDAO().getLastPktNumBB(entry.getValue().getSession_id());
+                Log.d(TAG, "Session id="+entry.getValue().getSession_id()+", num_pkts="+prev_pkt_num);
+                NUM_PKTS_MAP.put(entry.getKey(), prev_pkt_num);
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void pkt_num) {
+
+        }
+    }
+
+//    private class InsertMarkerDataAsyncTask extends AsyncTask<Void,Void,Void> {
 //
 //        @Override
-//        protected Void doInBackground(MarkerData... markerData) {
+//        protected Void doInBackground(Void... voids) {
 //            try {
-//                sessionCdlDb.getMarkerDataDAO().insertMarkerData(markerData[0]);
+//                if(markerDatas.size() >= 2 ) {
+//                    Log.d(TAG, "InsertMarkerDataAsyncTask: insert marker data");
+//                    MarkerData[] markerDataArr = new MarkerData[markerDatas.size()];
+//                    //Iterate and convert to desired type
+//                    for (int i = 0; i < markerDatas.size(); i++) {
+//                        markerDataArr[i] = markerDatas.get(i);
+//                    }
+//                    sessionCdlDb.getMarkerDataDAO().insertMarkerData(markerDataArr);
+//                    markerDatas.clear();
+//                }
 //            }catch (android.database.sqlite.SQLiteConstraintException e){
 //                e.printStackTrace();
 //            }
 //            return null;
 //        }
 //    }
+
+    private static class InsertMarkerDataAsyncTask extends AsyncTask<MarkerData,Void,Void> {
+
+        @Override
+        protected Void doInBackground(MarkerData... markerData) {
+            try {
+//                if(markerDatas.size() >= 2 ) {
+//                    Log.d(TAG, "InsertMarkerDataAsyncTask: insert marker data");
+//                    MarkerData[] markerDataArr = new MarkerData[markerDatas.size()];
+//                    //Iterate and convert to desired type
+//                    for (int i = 0; i < markerDatas.size(); i++) {
+//                        markerDataArr[i] = markerDatas.get(i);
+//                    }
+//                    sessionCdlDb.getMarkerDataDAO().insertMarkerData(markerDataArr);
+//                    markerDatas.clear();
+//                }
+                sessionCdlDb.getMarkerDataDAO().insertMarkerData(markerData[0]);
+            }catch (android.database.sqlite.SQLiteConstraintException e){
+                e.printStackTrace();
+            }
+            return null;
+        }
+    }
 
 }

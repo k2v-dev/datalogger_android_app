@@ -2,6 +2,7 @@ package com.decalthon.helmet.stability.Fragments;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -16,6 +17,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -23,6 +25,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -75,7 +78,7 @@ import pl.aprilapps.easyphotopicker.MediaSource;
  * Use the {@link ProfileFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class ProfileFragment extends Fragment {
+public class ProfileFragment extends DialogFragment {
     public static final String TAG = ProfileFragment.class.getSimpleName();
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -166,26 +169,15 @@ public class ProfileFragment extends Fragment {
 
         firestoreDb = FirebaseFirestore.getInstance();
 
-        ActionBar mActionBar = ( (MainActivity) getActivity() ).getSupportActionBar();
-        View actionBarView = mActionBar.getCustomView();
-        TextView titleText = actionBarView.findViewById(R.id.title_text);
-        titleText.setText(R.string.profile_view_title);
-        titleText.setVisibility(View.VISIBLE);
-
-        actionBarView.findViewById(R.id.gps_session_start_btn).setVisibility(View.GONE);
-        actionBarView.findViewById(R.id.profile_link).setVisibility(View.INVISIBLE);
-        actionBarView.findViewById(R.id.ble_device_connectivity).setVisibility(View.GONE);
-        actionBarView.findViewById(R.id.logout_link).setVisibility(View.INVISIBLE);
-
-        CircleImageView backLink = actionBarView.findViewById(R.id.back_link);
-        backLink.setVisibility(View.VISIBLE);
+        ImageView backLink =
+                profileView.findViewById(R.id.close_profile_page_popup);
         backLink.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (ProfilePreferences.getInstance(getContext()).isEmpty()) {
                     Common.okAlertMessage(getContext(), getString(R.string.enter_all_details));
                 }else {
-                    MainActivity.shared().onBackPressed();
+                    dismiss();
                 }
             }
         });
@@ -536,6 +528,12 @@ public class ProfileFragment extends Fragment {
 
 
         //The popup close button to the top right dismisses the popup window
+    }
+
+    @Override
+    public void onDismiss(@NonNull DialogInterface dialog) {
+        super.onDismiss(dialog);
+        MainActivity.shared().onBackPressed();
     }
 
     /**Manipulate one captured/selected image at a time

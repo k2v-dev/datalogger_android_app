@@ -1,56 +1,116 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:clickable="true"
-    android:focusable="true"
     android:background="@color/white"
-    tools:context=".Fragments.MonthlyCalendarFragment">
-
-
-    <androidx.constraintlayout.widget.ConstraintLayout
+    android:orientation="vertical"
+    android:focusable="true"
+    android:clickable="true">
+<!--    <androidx.viewpager2.widget.ViewPager2-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="0dp"-->
+<!--        android:layout_weight="0.9"/>-->
+    <LinearLayout android:layout_height="0dp"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        >
+        android:layout_weight="0.2"
+        android:orientation="horizontal"
+        android:gravity="center_horizontal"
+        android:background="@color/white">
 
-        <com.applandeo.materialcalendarview.CalendarView
-            android:id="@+id/calendarView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            app:headerLabelColor="@color/black"
-            app:abbreviationsLabelsColor="@color/black"
-            app:abbreviationsBarColor="#AAFF8C00"
-            app:daysLabelsColor="@color/black"
-            app:headerColor="#FF8C00"
-            app:pagesColor="#88FF8C00"
-            app:eventsEnabled="true"
-            app:selectionColor="#CFFFA500"
-            app:selectionLabelColor="@color/black"
-            app:highlightedDaysLabelsColor="@color/black"
-            app:disabledDaysLabelsColor="#54000000"
-            app:anotherMonthsDaysLabelsColor="#54000000"
-            app:todayLabelColor="@color/black"
-            app:type="many_days_picker"
-            app:swipeEnabled="true"
+        <TextView
+            android:id = "@+id/left_month_pager"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text = "@string/page_left"
+            android:textSize="25sp"
+            android:layout_gravity="center_vertical"/>
+        <Space
+            android:layout_width="96dp"
+            android:layout_height="wrap_content"/>
+        <TextView
+            android:id = "@+id/month_view_tv"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:textSize="25sp"
+            android:text ="MONTH"
+            />
+        <Space
+            android:layout_width="96dp"
+            android:layout_height="wrap_content"/>
+        <TextView
+            android:id = "@+id/right_month_pager"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text = "@string/page_right"
+            android:textSize="25sp"
+            android:layout_gravity="center_vertical"/>
+    </LinearLayout>
+    <androidx.recyclerview.widget.RecyclerView
+        android:id = "@+id/days_grid_view"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:background = "@color/white"
+        android:layout_weight="0.8" />
+</LinearLayout>
+<!--<LinearLayout-->
+<!--    xmlns:android="http://schemas.android.com/apk/res/android"-->
+<!--    xmlns:tools="http://schemas.android.com/tools"-->
+<!--    xmlns:app="http://schemas.android.com/apk/res-auto"-->
+<!--    android:layout_height="match_parent"-->
+<!--    android:layout_width="match_parent"-->
+<!--    android:clickable="true"-->
+<!--    android:focusable="true"-->
+<!--    android:background="@color/white"-->
+<!--    android:orientation = "vertical">-->
 
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+<!--    <LinearLayout-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="0dp"-->
+<!--        android:layout_weight="0.1">-->
 
-        <!--        <com.google.android.material.floatingactionbutton.FloatingActionButton-->
-        <!--            android:id="@+id/floatingActionButton"-->
-        <!--            android:layout_width="wrap_content"-->
-        <!--            android:layout_height="wrap_content"-->
-        <!--            android:layout_margin="@dimen/margin_16"-->
-        <!--            android:src="@drawable/ic_add_white_24dp"-->
-        <!--            app:layout_constraintBottom_toBottomOf="parent"-->
-        <!--            app:layout_constraintRight_toRightOf="parent" />-->
+<!--        <include-->
+<!--            android:id="@+id/back_navigation_header"-->
+<!--            layout="@layout/actionbar_page" />-->
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+<!--    </LinearLayout>-->
 
-</FrameLayout>
+<!--    <ScrollView-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="0dp"-->
+<!--        android:layout_weight="0.9">-->
 
+<!--            <com.applandeo.materialcalendarview.CalendarView-->
+<!--                android:id="@+id/month_calendar_view"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="0dp"-->
+<!--                android:layout_weight="0.9"-->
+<!--                app:abbreviationsBarColor="#AAFF8C00"-->
+<!--                app:abbreviationsLabelsColor="@color/black"-->
+<!--                app:anotherMonthsDaysLabelsColor="#54000000"-->
+<!--                app:daysLabelsColor="@color/black"-->
+<!--                app:disabledDaysLabelsColor="#54000000"-->
+<!--                app:eventsEnabled="true"-->
+<!--                app:headerColor="#FF8C00"-->
+<!--                app:headerLabelColor="@color/black"-->
+<!--                app:highlightedDaysLabelsColor="@color/black"-->
+<!--                app:pagesColor="#88FF8C00"-->
+<!--                app:selectionColor="#CFFFA500"-->
+<!--                app:selectionLabelColor="@color/black"-->
+<!--                app:swipeEnabled="true"-->
+<!--                app:maximumDaysRange="3"-->
+<!--                app:todayLabelColor="@color/black"-->
+<!--                app:type="many_days_picker" />-->
 
+            <!--        <com.google.android.material.floatingactionbutton.FloatingActionButton-->
+            <!--            android:id="@+id/floatingActionButton"-->
+            <!--            android:layout_width="wrap_content"-->
+            <!--            android:layout_height="wrap_content"-->
+            <!--            android:layout_margin="@dimen/margin_16"-->
+            <!--            android:src="@drawable/ic_add_white_24dp"-->
+            <!--            app:layout_constraintBottom_toBottomOf="parent"-->
+            <!--            app:layout_constraintRight_toRightOf="parent" />-->
+<!--    </ScrollView>-->
+<!--</LinearLayout>-->

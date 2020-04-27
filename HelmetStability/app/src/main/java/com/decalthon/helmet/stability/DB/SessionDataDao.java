@@ -37,6 +37,9 @@ public interface SessionDataDao {
     @Query("select * from SensorDataEntity where session_id = (:session_id) order by packet_number")
     public List<SensorDataEntity> getSessionEntityPacket(long session_id);
 
+    @Query("delete from SensorDataEntity where session_id = (:session_id) and dateMillis > 1587883725700")
+    public void deleteSensorData_test(long session_id);
+
 
     //ButtonBox
     @Insert
@@ -51,7 +54,7 @@ public interface SessionDataDao {
     @Update
     public void updateButtonBoxPacket(ButtonBoxEntity sensorDataEntity);
 
-    @Query("delete from ButtonBoxEntity where session_id = (:session_id) and dateMillis > 1587120737990")
+    @Query("delete from ButtonBoxEntity where session_id = (:session_id) and dateMillis < 1587883725700")
     public void deleteButtonBoxEntity(long session_id);
 
     @Query("select * from ButtonBoxEntity where session_id = (:session_id) order by dateMillis")
@@ -122,5 +125,20 @@ public interface SessionDataDao {
     void setSessionSummary();
     @Query("delete from ButtonBoxEntity where session_id = 2 and packet_number > 7200")
     void setSessionSummary1();
+
+    @Query( "select * from SessionSummary order by timestamp desc limit 1")
+    SessionSummary getLatestSessionSummary();
+
+    @Query("select timestamp from SessionSummary order by timestamp limit 7")
+    List<Long> getTimestampsFromSessionSummary();
+
+    @Query("Select activity_type from sessionsummary")
+    Integer [] getAllActivityTypes();
+
+    @Query("Select sum(duration) from SessionSummary")
+    Float getAllActivitiesTotalTime();
+
+    @Query("Select sum(total_data) from SessionSummary")
+    Integer getTotalDataInBytes();
 
 }

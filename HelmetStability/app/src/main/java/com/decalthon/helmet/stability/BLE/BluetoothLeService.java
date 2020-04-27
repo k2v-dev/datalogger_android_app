@@ -313,8 +313,10 @@ public class BluetoothLeService extends Service {
 //            String string = stringBuilder.toString();
 //            System.out.println(address+", "+stringBuilder);
             //Log.d(TAG, "broadcastData: checking address and data\n " + address+", "+stringBuilder);
-
-            if(!ConsumerThread.stopProducing) {
+            if(!ConsumerThread.stopProducing && ConsumerThread.isThreadActive)  {
+                ConsumerThread.DATA_QUEUE.offer(new DeviceData(address, tx_value));
+            }else if(!ConsumerThread.isThreadActive){
+                new ConsumerThread(getApplicationContext()).start();
                 ConsumerThread.DATA_QUEUE.offer(new DeviceData(address, tx_value));
             }
 //            else if(string.startsWith("01 00 01") || string.startsWith("09 00 09")){
@@ -373,7 +375,6 @@ public class BluetoothLeService extends Service {
 //                intent.putExtra(BYTE_VALUES, new String(data) + "\n" + stringBuilder.toString());
 //            }
 //        }
-
     }
 
 

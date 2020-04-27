@@ -3,21 +3,13 @@ package com.decalthon.helmet.stability.Utilities;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.location.Location;
-import android.view.LayoutInflater;
-import android.view.View;
 
 import com.decalthon.helmet.stability.Activities.MainActivity;
 import com.decalthon.helmet.stability.R;
 import com.decalthon.helmet.stability.model.DeviceModels.DeviceDetails;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.net.SocketAddress;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
@@ -226,26 +218,37 @@ public class Common {
     }
 
 
-    private static ProgressDialog wait_dialog;
-    /**
- * Waiting cursor
- */
-    public static ProgressDialog wait_cursor(Context context, String message){
-        stop_wait_cursor();
-        wait_dialog = new ProgressDialog(context);
-        wait_dialog.setMessage(message);
-        wait_dialog.setIndeterminate(true);
-        wait_dialog.setCancelable(false);
-        wait_dialog.show();
-        return wait_dialog;
+    private static ProgressDialog wait_cursor;
+    public static void show_wait_bar(Context context, String message){
+        dismiss_wait_bar();
+        wait_cursor = new ProgressDialog(context);
+       // yourProgress.setTitle("Title");
+        wait_cursor.setMessage("Wait for a while");
+        wait_cursor.getProgress();
+        wait_cursor.setCancelable(true);
+        wait_cursor.show();
     }
 
-    public static void stop_wait_cursor(){
-        if(wait_dialog != null){
-            wait_dialog.dismiss();
+    public static void dismiss_wait_bar(){
+        if(wait_cursor != null){
+            wait_cursor.dismiss();
+            wait_cursor = null;
         }
-        wait_dialog = null;
     }
+
+//    public static void lowStorageAlert(Context context){
+//        try{
+//            String path = context.getPackageName() + File.separator ;
+//            File file = FileUtilities.createDirIfNotExists(path);
+//            long mb_avaiable = (new StatFs(file.getAbsolutePath()).getAvailableBytes())/(1024*1024);
+//            if(mb_avaiable < 500){
+//                okAlertMessage(context, context.getString(R.string.low_storage_alert));
+//            }
+//            System.out.println("Memory available:"+mb_avaiable);
+//        }catch (Exception ex){
+//            Log.d("Common","lowStorageAlert:"+ex.getMessage());
+//        }
+//    }
 }
 
 

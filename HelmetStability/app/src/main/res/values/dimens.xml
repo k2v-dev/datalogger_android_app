@@ -14,9 +14,9 @@
     <dimen name ="text_view_padding">10dp</dimen>
     <dimen name="graph_height">250dp</dimen>
     <dimen name="modal_height">240dp</dimen>
-    <dimen name="action_bar_height">160dp</dimen>
+    <dimen name="action_bar_height">70dp</dimen>
     <dimen name="card_radius">8dp</dimen>
-    <dimen name="card_padding">24dp</dimen>
+    <dimen name="card_padding">12dp</dimen>
     <!-- overrides-->
     <dimen name="design_bottom_navigation_text_size" tools:override="true">12sp</dimen>
     <dimen name="design_bottom_navigation_active_text_size" tools:override="true">12sp</dimen>

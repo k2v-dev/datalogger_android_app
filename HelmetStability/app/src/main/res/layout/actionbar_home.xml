@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:CircleProgressView="http://schemas.android.com/apk/res-auto"
+    android:layout_height="wrap_content"
+    android:layout_width="match_parent">
+
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/action_bar_height"
+    android:orientation="horizontal"
+    android:background="@color/colorPrimary">
+
+
+        <!-- In the home fragment , the back button is disabled by default-->
+<!--        <de.hdodenhof.circleimageview.CircleImageView-->
+<!--            android:id="@+id/back_link"-->
+<!--            android:layout_width="0dp"-->
+<!--            android:layout_height="40dp"-->
+<!--            android:layout_weight="0.2"-->
+<!--            android:layout_gravity="start"-->
+<!--            android:src = "@drawable/ic_back_button_foreground"-->
+<!--            android:visibility="gone"-->
+<!--            />-->
+
+
+        <!-- No title in the home page, the text view does not occupy any space
+            Text can occupy the space of three icons-->
+<!--        <TextView-->
+<!--            android:id="@+id/title_text"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:text= "@string/app_name"-->
+<!--            android:layout_marginStart="6dp"-->
+<!--            android:textAppearance="?android:attr/textAppearanceLarge"-->
+<!--            android:textColor="#fff"-->
+<!--            android:textStyle="bold"-->
+<!--            android:layout_weight="1"-->
+<!--            android:visibility="gone"/>-->
+
+
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.05"/>
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/gps_session_start_btn"
+            android:layout_weight="0.15"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:src="@mipmap/start_session_round"
+            android:visibility="visible"
+            />
+
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.10" />
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/profile_btn"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.15"
+            android:src="@mipmap/anonymous_round" />
+
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.10"/>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.15"
+            android:orientation="horizontal">
+                <at.grabner.circleprogress.CircleProgressView
+                    android:id="@+id/ble_device_btn"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center"
+
+                    CircleProgressView:cpv_autoTextSize="true"
+                    CircleProgressView:cpv_barColor="@color/gray"
+                    CircleProgressView:cpv_barWidth="5dp"
+                    CircleProgressView:cpv_fillColor="@color/red"
+                    CircleProgressView:cpv_innerContourColor="@color/white"
+                    CircleProgressView:cpv_innerContourSize="1dp"
+                    CircleProgressView:cpv_outerContourColor="@color/white"
+                    CircleProgressView:cpv_outerContourSize="2dp"
+                    CircleProgressView:cpv_rimColor="@color/gray"
+                    CircleProgressView:cpv_rimWidth="5dp"
+                    CircleProgressView:cpv_textScale="0.7" />
+        </LinearLayout>
+
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.10"/>
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/logout_link"
+            android:layout_width="0dp"
+            android:layout_weight="0.15"
+            android:layout_height="match_parent"
+            android:src = "@mipmap/logout"
+            />
+
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.05"/>
+<!--        <Space-->
+<!--            android:layout_width="0dp"-->
+<!--            android:layout_height="match_parent"-->
+<!--            android:layout_weight="0.4"/>-->
+
+
+
+
+        <!--        <de.hdodenhof.circleimageview.CircleImageView-->
+<!--            android:id="@+id/disconnect_btn"-->
+<!--            android:layout_weight="1"-->
+<!--            android:layout_width="0dp"-->
+<!--            android:layout_height="40dp"-->
+<!--            android:src="@drawable/ic_close_popup_24dp"-->
+<!--            android:visibility="gone"-->
+<!--            />-->
+
+    <!--        CircleProgressView:cpv_barColor="@color/orange"-->
+    <!--        CircleProgressView:cpv_barWidth="20dp"-->
+    <!--        CircleProgressView:cpv_fillColor="@color/silver"-->
+    <!--        CircleProgressView:cpv_textSize="10sp"-->
+    <!--        CircleProgressView:cpv_textMode="Percent"-->
+    <!--        CircleProgressView:cpv_innerContourSize="0dp"-->
+    <!--        CircleProgressView:cpv_maxValue="100"-->
+    <!--        CircleProgressView:cpv_rimColor="@color/gray"-->
+    <!--        CircleProgressView:cpv_rimWidth="10dp"-->
+    <!--        CircleProgressView:cpv_seekMode="true"-->
+    <!--        CircleProgressView:cpv_showUnit="true"-->
+    <!--        CircleProgressView:cpv_spinColor="@color/red"-->
+    <!--        CircleProgressView:cpv_textColor="@color/green"-->
+    <!--        CircleProgressView:cpv_textScale="1"-->
+    <!--        CircleProgressView:cpv_unit="%"-->
+    <!--        CircleProgressView:cpv_unitColor="@color/yellow"-->
+    <!--        CircleProgressView:cpv_unitPosition="right_top"-->
+    <!--        CircleProgressView:cpv_unitScale="1"-->
+    <!--        CircleProgressView:cpv_value="100" />-->
+    <!--    <androidx.coordinatorlayout.widget.CoordinatorLayout-->
+    <!--        android:id= "@+id/ble_device_connectivity"-->
+    <!--        android:layout_width="0dp"-->
+    <!--        android:layout_height ="40dp"-->
+    <!--        android:layout_weight="1">-->
+
+    <!--        <ImageView-->
+    <!--            android:id="@+id/ble_device_connectivity_dev1"-->
+    <!--            android:layout_width="40dp"-->
+    <!--            android:layout_height="40dp"-->
+    <!--            android:layout_gravity="center"-->
+    <!--            android:src = "@drawable/concentric_circle"-->
+    <!--            android:visibility="visible"-->
+    <!--       />-->
+    <!--        <ImageView-->
+    <!--            android:id="@+id/ble_device_data_progress_dev1"-->
+    <!--            android:layout_width="10dp"-->
+    <!--            android:layout_height="10dp"-->
+    <!--            android:src ="@drawable/status_circle"-->
+    <!--            android:layout_gravity="center_horizontal"-->
+    <!--            android:transformPivotX="0dp"-->
+    <!--            android:transformPivotY="19.5dp"-->
+    <!--            android:layout_marginTop="0dp"-->
+    <!--            android:visibility="visible"-->
+    <!--            />-->
+    <!--&lt;!&ndash;        <ImageView&ndash;&gt;-->
+    <!--&lt;!&ndash;            android:id="@+id/ble_device_connectivity_dev2"&ndash;&gt;-->
+    <!--&lt;!&ndash;            android:layout_width="30dp"&ndash;&gt;-->
+    <!--&lt;!&ndash;            android:layout_height="30dp"&ndash;&gt;-->
+
+    <!--&lt;!&ndash;            android:layout_gravity="center"&ndash;&gt;-->
+    <!--&lt;!&ndash;            android:src = "@drawable/concentric_circle"&ndash;&gt;-->
+    <!--&lt;!&ndash;            android:visibility="visible"&ndash;&gt;-->
+    <!--&lt;!&ndash;            />&ndash;&gt;-->
+    <!--&lt;!&ndash;        <ImageView&ndash;&gt;-->
+    <!--&lt;!&ndash;            android:id="@+id/ble_device_data_progress_dev2"&ndash;&gt;-->
+    <!--&lt;!&ndash;            android:layout_width="3dp"&ndash;&gt;-->
+    <!--&lt;!&ndash;            android:layout_height="3dp"&ndash;&gt;-->
+    <!--&lt;!&ndash;            android:layout_gravity="center_horizontal"&ndash;&gt;-->
+    <!--&lt;!&ndash;            android:transformPivotX="15dp"&ndash;&gt;-->
+    <!--&lt;!&ndash;            android:transformPivotY="0dp"&ndash;&gt;-->
+    <!--&lt;!&ndash;            android:src = "@drawable/status_circle"&ndash;&gt;-->
+    <!--&lt;!&ndash;            android:layout_marginTop="10dp"&ndash;&gt;-->
+    <!--&lt;!&ndash;            android:visibility="visible"&ndash;&gt;-->
+    <!--&lt;!&ndash;            />&ndash;&gt;-->
+    <!--&lt;!&ndash;        <ImageView&ndash;&gt;-->
+    <!--&lt;!&ndash;            android:id="@+id/ble_device_connectivity_dev3"&ndash;&gt;-->
+    <!--&lt;!&ndash;            android:layout_width="20dp"&ndash;&gt;-->
+    <!--&lt;!&ndash;            android:layout_height="20dp"&ndash;&gt;-->
+    <!--&lt;!&ndash;            android:layout_marginTop ="4dp"&ndash;&gt;-->
+    <!--&lt;!&ndash;            android:layout_marginBottom="4dp"&ndash;&gt;-->
+    <!--&lt;!&ndash;            android:layout_gravity="center"&ndash;&gt;-->
+    <!--&lt;!&ndash;            android:src = "@drawable/concentric_circle"&ndash;&gt;-->
+    <!--&lt;!&ndash;            android:visibility="visible"&ndash;&gt;-->
+    <!--&lt;!&ndash;            />&ndash;&gt;-->
+    <!--&lt;!&ndash;        <ImageView&ndash;&gt;-->
+    <!--&lt;!&ndash;            android:id="@+id/ble_device_data_progress_dev3"&ndash;&gt;-->
+    <!--&lt;!&ndash;            android:layout_width="3dp"&ndash;&gt;-->
+    <!--&lt;!&ndash;            android:layout_height="3dp"&ndash;&gt;-->
+    <!--&lt;!&ndash;            android:transformPivotX="10dp"&ndash;&gt;-->
+    <!--&lt;!&ndash;            android:transformPivotY="0dp"&ndash;&gt;-->
+    <!--&lt;!&ndash;            android:layout_gravity="center_horizontal"&ndash;&gt;-->
+    <!--&lt;!&ndash;            android:src = "@drawable/status_circle"&ndash;&gt;-->
+    <!--&lt;!&ndash;            android:layout_marginTop="15dp"&ndash;&gt;-->
+    <!--&lt;!&ndash;            android:visibility="visible"&ndash;&gt;-->
+    <!--&lt;!&ndash;            />&ndash;&gt;-->
+
+    <!--    </androidx.coordinatorlayout.widget.CoordinatorLayout>-->
+
+    <!--    <ProgressBar-->
+    <!--        android:id="@+id/ble_device_connectivity"-->
+    <!--        style="?android:attr/progressBarStyleHorizontal"-->
+    <!--        android:layout_width="40dp"-->
+    <!--        android:layout_height="40dp"-->
+    <!--        android:indeterminate="false"-->
+    <!--        android:max="60"-->
+    <!--        android:layout_weight="1"-->
+    <!--        android:progressDrawable="@drawable/progress_circle" />-->
+    <!--        android:progressDrawable="@drawable/status_circle"/>-->
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

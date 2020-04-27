@@ -3,6 +3,7 @@ package com.decalthon.helmet.stability.Fragments;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,6 +11,8 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
@@ -34,6 +37,9 @@ public class YearlyCalendarFragment extends Fragment {
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
+
+    private static String TAG =
+            YearlyCalendarFragment.class.getSimpleName();
 
     private OnFragmentInteractionListener mListener;
 
@@ -72,7 +78,14 @@ public class YearlyCalendarFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_yearly_calendar, container, false);
+        Log.d(TAG, "onCreateView: ");
+        return inflater.inflate(R.layout.fragment_yearly_calendar, container,
+                false);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         TextView yearTextView = view.findViewById(R.id.year_number_tv);
         yearTextView.setText(mParam1);
 
@@ -80,20 +93,17 @@ public class YearlyCalendarFragment extends Fragment {
         MonthGridAdapter monthGridAdapter = new MonthGridAdapter(getContext(), Constants.monthsThreeLetter);
         yearView.setAdapter(monthGridAdapter);
 
-        yearView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Fragment monthFragment = MonthlyCalendarFragment.newInstance
-                        (Integer.valueOf(position).toString(), yearTextView.getText().toString());
-                FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
-                fragmentTransaction.replace(R.id.year_pager_fragment, monthFragment);
-                fragmentTransaction.commit();
-            }
-        });
+//        yearView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//            @Override
+//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+//                Fragment monthFragment = MonthlyCalendarFragment.newInstance
+//                        (Integer.valueOf(position).toString(), yearTextView.getText().toString());
+//                FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
+//                fragmentTransaction.replace(R.id.year_pager_fragment, monthFragment);
+//                fragmentTransaction.commit();
+//            }
+//        });
 
-
-
-        return view;
     }
 
     // TODO: Rename method, update argument and hook method into UI event

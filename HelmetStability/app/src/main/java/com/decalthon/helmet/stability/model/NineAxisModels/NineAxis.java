@@ -4,12 +4,8 @@ package com.decalthon.helmet.stability.model.NineAxisModels;
 import android.content.Context;
 import android.graphics.Color;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.util.Log;
 
-import androidx.annotation.RequiresApi;
-
-import com.decalthon.helmet.stability.DB.Entities.SensorDataEntity;
 import com.decalthon.helmet.stability.DB.SessionCdlDb;
 import com.decalthon.helmet.stability.Utilities.Constants;
 import com.github.mikephil.charting.charts.LineChart;
@@ -24,8 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-import static com.github.vipulasri.timelineview.TimelineView.TAG;
-
 
 public class NineAxis {
 
@@ -35,7 +29,7 @@ public class NineAxis {
     private static float milliSecondUpdater = Constants.UPDATER_STATIC;
     private static SessionCdlDb sessionCdlDb;
     private static Context mContext;
-    private static Long mSessionId;
+    private static Long mSessionId = (long)4;
     private static MagnetometerData magnetometerData;
     private static NineAxis nineAxisInstance = null;
     private Long[] timestampData;
@@ -88,11 +82,14 @@ public class NineAxis {
         if(sensorDataReadings != null){
             for(SensorDataEntry sensorDataEntry : sensorDataReadings){
                 lineDataSetX.addEntry(new
-                        Entry(sensorDataEntry.getTime() - timeOfStart, sensorDataEntry.getXval()));
+                        Entry((sensorDataEntry.getTime() - timeOfStart)/1000.0f,
+                        sensorDataEntry.getXval()));
                 lineDataSetY.addEntry(new
-                        Entry(sensorDataEntry.getTime() - timeOfStart, sensorDataEntry.getYval()));
+                        Entry((sensorDataEntry.getTime() - timeOfStart)/1000.0f,
+                        sensorDataEntry.getYval()));
                 lineDataSetZ.addEntry(new
-                        Entry(sensorDataEntry.getTime() - timeOfStart, sensorDataEntry.getZval()));
+                        Entry((sensorDataEntry.getTime() - timeOfStart)/1000.0f,
+                        sensorDataEntry.getZval()));
             }
         }
         formatPlotCircles(lineDataSetX);
@@ -154,11 +151,14 @@ public class NineAxis {
     private static List<SensorDataEntry> getReadings(String graphType) throws ExecutionException, InterruptedException {
         List<SensorDataEntry> sensorDataReadings = new ArrayList<>();
         if(graphType.equalsIgnoreCase("Acceleration")){
-            sensorDataReadings = new GetAccNineAxisSensorDataAsyncTask().execute((long)1).get();
+            sensorDataReadings =
+                    new GetDevice1AccNineAxisSensorDataAsyncTask().execute((long)4).get();
         }else if(graphType.equalsIgnoreCase("Gyroscope")){
-            sensorDataReadings = new GetGyroNineAxisSensorDataAsyncTask().execute((long)1).get();
+            sensorDataReadings =
+                    new GetDevice1GyroNineAxisSensorDataAsyncTask().execute((long)4).get();
         }else if(graphType.equalsIgnoreCase(("Magnetometer"))){
-            sensorDataReadings = new GetMagnetoNineAxisSensorDataAsyncTask().execute((long)1).get();
+            sensorDataReadings =
+                    new GetDevice1MagnetoNineAxisSensorDataAsyncTask().execute((long)4).get();
         }
         return sensorDataReadings;
     }
@@ -433,7 +433,7 @@ public class NineAxis {
 //        }
 //    }
 
-    public static class GetAccNineAxisSensorDataAsyncTask extends AsyncTask<Long, Void, List<SensorDataEntry> > {
+    public static class GetDevice1AccNineAxisSensorDataAsyncTask extends AsyncTask<Long, Void, List<SensorDataEntry> > {
 
         @Override
         protected List<SensorDataEntry> doInBackground(Long... longs) {
@@ -475,7 +475,7 @@ public class NineAxis {
         }
     }
 
-    public static class GetGyroNineAxisSensorDataAsyncTask extends AsyncTask<Long,Void,List<SensorDataEntry>>{
+    public static class GetDevice1GyroNineAxisSensorDataAsyncTask extends AsyncTask<Long,Void,List<SensorDataEntry>>{
 
         @Override
         protected List<SensorDataEntry> doInBackground(Long... longs) {
@@ -483,7 +483,7 @@ public class NineAxis {
         }
     }
 
-    public static class GetMagnetoNineAxisSensorDataAsyncTask extends AsyncTask<Long,Void,List<SensorDataEntry>>{
+    public static class GetDevice1MagnetoNineAxisSensorDataAsyncTask extends AsyncTask<Long,Void,List<SensorDataEntry>>{
 
         @Override
         protected List<SensorDataEntry> doInBackground(Long... longs) {

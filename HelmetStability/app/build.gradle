@@ -44,7 +44,6 @@ android {
 //    implementation 'com.google.android.material:material:1.0.0'
 //}
 
-
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'androidx.appcompat:appcompat:1.0.0'
@@ -89,7 +88,8 @@ dependencies {
     implementation 'com.google.firebase:firebase-core:17.3.0'
     implementation 'com.google.firebase:firebase-storage:19.1.1'
 //    Ajit: End
+    def work_version = "2.3.4"
+    implementation "androidx.work:work-runtime:$work_version"
 }
-
 
 apply plugin: 'com.google.gms.google-services'

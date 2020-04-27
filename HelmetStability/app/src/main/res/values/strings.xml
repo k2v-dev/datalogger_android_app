@@ -68,9 +68,8 @@
     <string name="stop_button">Stop</string>
     <string name="connect_ble">Connect</string>
     <string name="device1_tv">Helmet</string>
-    <string name="device2_tv">Watch</string>
-    <string name="device3_tv">HR Belt</string>
-
+    <string name="device2_tv">Button Box</string>
+    <string name="device3_tv">Device 2</string>
 
     <string name="hr1">Hr1 :</string>
     <string name="hr2">Hr2 :</string>
@@ -119,7 +118,7 @@
     <string name="activity_duration_name">Activity Duration</string>
     <string name="activity_recorded_data_name">Data Recorded in Activity</string>
     <string name="activity_qty_data_name">Quantity of data recorded</string>
-    <string name="sample_bullet_point"><![CDATA[ -> ]]></string>
+    <string name="sample_bullet_point"><![CDATA[- ]]></string>
     <string name="all_activities">All Activities</string>
     <string name="all_activities_duration">All activities duration</string>
     <string name="all_activities_raw_data_recorded">Number of raw data recorded</string>
@@ -147,7 +146,7 @@
     <string name="time_placeholder">Time</string>
     <string name="session_name">Session Name</string>
     <string name="duration_placeholder">Duration</string>
-    <string name="type_of_data_placeholder">Type of data</string>
+    <string name="type_of_data_placeholder">Types of Data</string>
     <string name="size_placeholder">Size</string>
     <string name="text_note">Text Note</string>
     <string name="activity_outdoor">outdoor</string>
@@ -167,4 +166,31 @@
     <string name="enter_email_add">Please enter the valid email address</string>
     <string name="enter_phone_num">Please enter the valid phone number</string>
     <string name="use_other_email_id">It seems that email id is used by someone. Please use other email id.</string>
+    <string name="connect_helmet_dev">Please connect the Helmet device</string>
+    <string name="out_of_memory_dev1">Helmet device\'s memory has less memory. Please press Yes to transfer the data.</string>
+    <string name="worn_helmet">"Have you worn helmet properly?"</string>
+    <string name="low_storage_alert">Insufficient storage available. Please delete the unnecessary files.</string>
+    <string name="firmware">Specific Firmware</string>
+    <string name="algorithm_output">Algorithm Output</string>
+    <string name="collective_Summary_title_tv">Collective Summary</string>
+    <string name="date_value">YYYY/MM/DD</string>
+    <string name="time_value">HH:MM:SS</string>
+    <string name="size_value">Size</string>
+    <string name="page_left"><![CDATA[<]]></string>
+    <string name="page_right"><![CDATA[>]]></string>
+    <string name="card_heading_placeholder"><![CDATA[<SESSION>]]></string>
+    <string name="card_view_default_tv_text"><![CDATA[<Data Line>]]></string>
+    <string name="month_calendar" />
+    <string name="year_calendar" />
+    <string name="month_calleendar" />
+    <string name="months">month_calendar</string>
+    <string name="years">year_calendar</string>
+    <string name="notetype2">TextNote</string>
+    <string name="default_text_note">This is a text note. This is a text note. This is  a text note.</string>
+    <string name="session_name_desc">Session Name : </string>
+    <string name="activity_type_desc">Activity Type : </string>
+    <string name="duration_desc">Duration : </string>
+    <string name="total_data_desc">Total Data (KB): </string>
+    <string name="sampling_frequency_desc">Sampling Frequency : </string>
+    <string name="note_desc">Note : </string>
 </resources>

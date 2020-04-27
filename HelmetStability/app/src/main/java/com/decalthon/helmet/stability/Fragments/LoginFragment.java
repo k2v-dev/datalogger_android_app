@@ -495,7 +495,7 @@ public class LoginFragment extends Fragment implements View.OnClickListener{
         FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
         fragmentTransaction.add(R.id.fragment, fragment);
         fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-        fragmentTransaction.addToBackStack(Constants.REGISTRATION_FRAGMENT);
+        fragmentTransaction.addToBackStack(RegistrationFormFragment.class.getSimpleName());
         fragmentTransaction.commit();
     }
 

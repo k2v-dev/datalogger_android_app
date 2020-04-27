@@ -2,6 +2,7 @@ package com.decalthon.helmet.stability.Fragments;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
@@ -12,7 +13,6 @@ import android.location.LocationManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -43,47 +43,37 @@ import com.decalthon.helmet.stability.Activities.MainActivity;
 import com.decalthon.helmet.stability.BLE.ButtonBox_Parser;
 import com.decalthon.helmet.stability.BLE.Device1_Parser;
 import com.decalthon.helmet.stability.BLE.Device_Parser;
-import com.decalthon.helmet.stability.DB.DatabaseHelper;
-import com.decalthon.helmet.stability.DB.Entities.GpsSpeed;
-import com.decalthon.helmet.stability.DB.Entities.MarkerData;
-import com.decalthon.helmet.stability.DB.Entities.SensorDataEntity;
 import com.decalthon.helmet.stability.DB.Entities.SessionSummary;
 import com.decalthon.helmet.stability.DB.SessionCdlDb;
 import com.decalthon.helmet.stability.R;
 import com.decalthon.helmet.stability.Utilities.Common;
 import com.decalthon.helmet.stability.Utilities.Constants;
-import com.decalthon.helmet.stability.Utilities.CsvGenerator;
 import com.decalthon.helmet.stability.Utilities.Helper;
-import com.decalthon.helmet.stability.Utilities.UniqueKeyGen;
-import com.decalthon.helmet.stability.model.InternetCheck;
+import com.decalthon.helmet.stability.model.DeviceModels.DeviceDetails;
+import com.decalthon.helmet.stability.model.DeviceModels.MemoryUsage;
 import com.decalthon.helmet.stability.preferences.DevicePreferences;
 import com.decalthon.helmet.stability.preferences.ProfilePreferences;
 import com.decalthon.helmet.stability.preferences.UserPreferences;
-import com.decalthon.helmet.stability.webservice.requests.ProfileReq;
-import com.decalthon.helmet.stability.webservice.requests.UserInfoReq;
 import com.decalthon.helmet.stability.webservice.responses.ErrorCodes;
 import com.decalthon.helmet.stability.webservice.responses.ErrorMessages;
 import com.decalthon.helmet.stability.webservice.services.AvatarService;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
-import com.google.android.gms.tasks.Tasks;
-import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.gson.GsonBuilder;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Calendar;
-import java.util.HashMap;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-import java.util.Map;
+import java.util.Locale;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import at.grabner.circleprogress.CircleProgressView;
+import de.greenrobot.event.EventBus;
 import de.hdodenhof.circleimageview.CircleImageView;
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -95,7 +85,6 @@ import okhttp3.ResponseBody;
 import static androidx.core.content.ContextCompat.checkSelfPermission;
 import static com.decalthon.helmet.stability.Utilities.ViewDimUtils.applyDim;
 import static com.decalthon.helmet.stability.Utilities.ViewDimUtils.clearDim;
-import static java.lang.StrictMath.random;
 
 
 /**
@@ -112,11 +101,18 @@ public class HomeFragment extends Fragment  {
     private OnFragmentInteractionListener mListener;
 
     private ActionBar mActionBar;
+    private Context mContext;
 
     private LocationManager mLocationManager;
     private static int percentage = 0;
     private static boolean isDone = false;
+    private View actionbarView;
     private String activityType = "";
+     private static SessionSummary latestSessionSummary;
+    //A BLE device list adapter instance
+    private BluetoothAdapter mBluetoothAdapter;
+    //Event bus instance use for onEvent actions
+    private EventBus mBus = EventBus.getDefault();
 
     public HomeFragment() {
         // Required empty public constructor
@@ -128,6 +124,7 @@ public class HomeFragment extends Fragment  {
         Log.d(TAG, "onAttach");
         if (context instanceof OnFragmentInteractionListener) {
             mListener = (OnFragmentInteractionListener) context;
+            mContext = context;
         } else {
             throw new RuntimeException(context.toString()
                     + " must implement OnFragmentInteractionListener");
@@ -154,8 +151,158 @@ public class HomeFragment extends Fragment  {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        view.findViewById(R.id.latest_activity_summary);
-        view.setOnClickListener(new View.OnClickListener() {
+        actionbarView = view.findViewById(R.id.home_action_bar);
+
+        CircleImageView profileImageView = view.findViewById(R.id.profile_btn);
+
+        //Restoration of profile photo from shared preferences
+        UserPreferences userPreferences = UserPreferences.getInstance(getContext());
+
+        profileImageView.setImageBitmap(BitmapFactory.decodeFile
+                (userPreferences.getProfilePhoto()));
+        if(userPreferences.getProfilePhoto().equals("default")){
+            ;
+        }
+        else{
+            profileImageView.setImageBitmap(BitmapFactory.decodeFile
+                    (userPreferences.getProfilePhoto()));
+        }
+        //Navigation to profile edit page
+        profileImageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Fragment profileFragment = new ProfileFragment();
+                FragmentTransaction fragmentTransaction =
+                        getFragmentManager().beginTransaction();
+                fragmentTransaction.add(HomeFragment.this.getId(), profileFragment);
+                fragmentTransaction.addToBackStack(null);
+                fragmentTransaction.commit();
+            }
+        });
+
+        CircleImageView sessionStartImageView =
+                actionbarView.findViewById(R.id.gps_session_start_btn);
+
+        CircleImageView gpsSpeedShortcut =
+                view.findViewById(R.id.gps_session_start_btn);
+//        gpsSpeedShortcut.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                showHelmetAlertDialog();
+//                gpsSpeedShortcut.setOnClickListener(new View.OnClickListener() {
+//                    @Override
+//                    public void onClick(View view) {
+//                        MainActivity.shared().onBackPressed();
+//                    }
+//                });
+//            }
+//        });
+//        gpsSpeedShortcut.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//
+//                AlertDialog helmetDialog = new AlertDialog.Builder(getContext())
+//                        .setTitle("Alert")
+//                        .setMessage("Have you worn helmet properly?")
+//                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+//                            @Override
+//                            public void onClick(DialogInterface dialog, int which) {
+//                                inflatePopup(getContext());
+//                            }
+//                        })
+//                        .setNegativeButton("No", new DialogInterface.OnClickListener() {
+//                            @Override
+//                            public void onClick(DialogInterface dialog, int which) {
+//                                dialog.dismiss();
+//                            }
+//                        })
+//                        .create();
+//                helmetDialog.show();
+//                helmetDialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor
+//                        (Color.parseColor("#FF1B5AAC"));
+//                helmetDialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor
+//                        (Color.parseColor("#D3D3D3"));
+//            }
+//        });
+
+
+
+        //Device connectivity and data progress indicator
+        CircleProgressView bleStatusProgressView =
+                view.findViewById(R.id.ble_device_btn);
+        bleStatusProgressView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Fragment deviceFragment = new DeviceFragment();
+                FragmentTransaction fragmentTransaction =
+                        getFragmentManager().beginTransaction();
+                fragmentTransaction.add(HomeFragment.this.getId(),
+                        deviceFragment, DeviceFragment.class.getSimpleName());
+                fragmentTransaction.addToBackStack(null);
+                fragmentTransaction.commit();
+            }
+        });
+
+
+        //Latest session summary, topmost card
+        View latestSessionSummaryView =
+                view.findViewById(R.id.latest_activity_summary);
+        if (latestSessionSummary == null) {
+            try {
+                latestSessionSummary =
+                        new GetLatestSessionSummaryAsyncTask().execute().get();
+            } catch (ExecutionException | InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        //Setting card title as date and time in locale setting
+        TextView title_text = latestSessionSummaryView.findViewById(R.id.card_title);
+        Date date = new Date(latestSessionSummary.getDate());
+        String dateString = new SimpleDateFormat("MMM dd YYYY HH:MM:SS EEE",
+                Locale.getDefault()).format(date);
+        title_text.setText(dateString);
+
+        //Setting session name as retrieved from the DB
+        TextView session_name = latestSessionSummaryView.findViewById(R.id.session_name_tv);
+        String sessionNameStr =
+                getString(R.string.session_name_desc) + latestSessionSummary.getName();
+        session_name.setText(sessionNameStr);
+
+
+        TextView activity_type = latestSessionSummaryView.findViewById(R.id.activity_type_tv);
+//        String activityTypeStr =
+//                "Activity Type : " + latestSessionSummary.getActivity_type() + "";
+        String activityTypeStr =
+                getString(R.string.activity_type_desc) + Constants.ActivityCodeMap.inverse().get(52);
+        activity_type.setText(activityTypeStr);
+
+        TextView duration =
+                latestSessionSummaryView.findViewById(R.id.duration_tv);
+        String durationStr =
+                getString(R.string.duration_desc) + latestSessionSummary.getDuration() + "";
+        duration.setText(durationStr);
+
+        TextView total_dataTV = latestSessionSummaryView.findViewById(R.id.total_data_tv);
+        String totalDataStr =
+                getString(R.string.total_data_desc) + (latestSessionSummary.getTotal_data() / 1024);
+        total_dataTV.setText(totalDataStr);
+
+        String samplingRate = getString(R.string.sampling_frequency_desc) +
+                String.valueOf(latestSessionSummary.getSampling_freq());
+        TextView samplingFrequency =
+                latestSessionSummaryView.findViewById(R.id.sampling_rate_tv);
+        samplingFrequency.setText(samplingRate);
+
+        String oneLineNote =  getString(R.string.note_desc)  + latestSessionSummary.getNote();
+        TextView note =
+                latestSessionSummaryView.findViewById(R.id.text_note_summary_line_tv);
+        note.setText(oneLineNote);
+//        if(note.get)
+        //A click on the first card view navigates to tracker
+        //(A) Outdoor tracker is the GPS map view
+        //(B) Indoor tracker is the TimelineView
+        view.findViewById(R.id.latest_activity_summary).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Fragment mapFragment = MapFragment.newInstance(" SESSION 7", "Latest session");
@@ -163,52 +310,95 @@ public class HomeFragment extends Fragment  {
                 if (getFragmentManager() != null) {
                     fragmentTransaction = getFragmentManager()
                             .beginTransaction();
-                    fragmentTransaction.add(R.id.fragment, mapFragment, MapFragment.class.getSimpleName());
+                    fragmentTransaction.add(HomeFragment.this.getId(), mapFragment,
+                            MapFragment.class.getSimpleName());
                     fragmentTransaction.addToBackStack(null);
                     fragmentTransaction.commit();
                 }
             }
         });
 
-        view.findViewById(R.id.all_activity_basic_info).setOnClickListener(new View.OnClickListener() {
+        //This is the second card view - collective summary
+        View collective_summary_view =
+                view.findViewById(R.id.collective_summary);
+        TextView summary_title =
+                collective_summary_view.findViewById(R.id.card_title);
+        summary_title.setText(getString(R.string.collective_Summary_title_tv));
+
+        try {
+            List<Float> collective_summary_info =
+                    new GetCollectiveSummaryDetailsAsyncTask().execute().get();
+
+            collective_summary_view.findViewById(R.id.session_name_tv).setVisibility(View.GONE);
+
+            TextView activities_tv =
+                    collective_summary_view.findViewById(R.id.activity_type_tv);
+            String activities =
+                    "Activity Types : " + collective_summary_info.get(3).toString();
+//                    "Activity Types : " + Constants.ActivityCodeMap.inverse().get(52)
+//                    +(Constants.ActivityCodeMap.inverse().get(50));
+            activities_tv.setText(activities);
+
+            TextView total_duration_tv =
+                    collective_summary_view.findViewById(R.id.duration_tv);
+            String total_duration =
+                    "Total Duration : " + collective_summary_info.get(1).toString();
+            total_duration_tv.setText(total_duration);
+
+            TextView total_data_tv =
+                    collective_summary_view.findViewById(R.id.total_data_tv);
+            float total_data = (float)collective_summary_info.get(0);
+            String total_data_str =
+                    "Total Data (KB):" + (int)total_data;
+            total_data_tv.setText(total_data_str);
+
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace();
+        }
+
+
+        //Navigation to session summary page on clicking the collective summary
+        collective_summary_view.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
-                Fragment sevenSessionsSummaryFragment= new SevenSessionsSummaryFragment();
-                FragmentTransaction fragmentTransaction = null;
+                Fragment sevenSessionsSummaryFragment = new SevenSessionsSummaryFragment();
+                FragmentTransaction fragmentTransaction;
                 if (getFragmentManager() != null) {
                     fragmentTransaction = getFragmentManager()
                             .beginTransaction();
-                    fragmentTransaction.add
-                            (HomeFragment.this.getId()
-                                    ,sevenSessionsSummaryFragment,SevenSessionsSummaryFragment.class.getSimpleName());
+                    fragmentTransaction.add(HomeFragment.this.getId(),
+                            sevenSessionsSummaryFragment,
+                            SevenSessionsSummaryFragment.class.getSimpleName());
                     fragmentTransaction.addToBackStack(null);
                     fragmentTransaction.commit();
-
                 }
             }
         });
 
+
+        //Calendar icon, clicking on calendaar icon navigates to daywise
+        // ..calendar
         view.findViewById(R.id.calendar_icon)
                 .setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        Fragment calendarFragment  =
-                                MonthlyCalendarFragment.newInstance
-                                        (Integer.valueOf(Calendar.getInstance().get(Calendar.MONTH)).toString(),
-                                                Integer.valueOf(Calendar.getInstance().get(Calendar.YEAR)).toString());
-                        FragmentTransaction fragmentTransaction = null;
+                        Log.d(TAG, "onClick: check on click");
+                        Fragment calendarFragment =
+                                CalendarPagerFragment.newInstance
+                                        (MonthlyCalendarFragment.class.getSimpleName(), null);
+                        FragmentTransaction fragmentTransaction =
+                                null;
                         if (getFragmentManager() != null) {
-                            fragmentTransaction = getFragmentManager()
-                                    .beginTransaction();
+                            fragmentTransaction = getFragmentManager().beginTransaction();
                             fragmentTransaction.add
-                                    (R.id.fragment,calendarFragment,"Calendar Fragment");
+                                    (HomeFragment.this.getId(), calendarFragment,
+                                            CalendarPagerFragment.class.getSimpleName());
                             fragmentTransaction.addToBackStack(null);
                             fragmentTransaction.commit();
                         }
                     }
                 });
-
     }
 
 
@@ -219,17 +409,15 @@ public class HomeFragment extends Fragment  {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        registerAndCheck(this);
         Log.d(TAG, "onActivityCreated");
         try{
-            mActionBar = ( (MainActivity) getActivity() ).getSupportActionBar();
-
-            View actionBarView = mActionBar.getCustomView();
-
+            View actionBarView = this.getView();
             CircleImageView profileShortcut =
                     actionBarView.findViewById(R.id.profile_link);
 
             CircleProgressView deviceStatusShortcut = (CircleProgressView)
-                    actionBarView.findViewById(R.id.ble_device_connectivity);
+                    actionBarView.findViewById(R.id.ble_device_btn);
 
             CircleImageView gpsSpeedShortcut =
                     actionBarView.findViewById(R.id.gps_session_start_btn);
@@ -237,12 +425,11 @@ public class HomeFragment extends Fragment  {
             CircleImageView logoutMenuShorcut =
                     actionBarView.findViewById(R.id.logout_link);
 
-            CircleImageView backLink =
+            /*CircleImageView backLink =
                     actionBarView.findViewById(R.id.back_link);
-            backLink.setVisibility(View.GONE);
+            backLink.setVisibility(View.GONE);*/
 
-
-            ((MainActivity)getActivity()).showProgressCircle(getContext(), Device_Parser.get_txf_status());
+            ((MainActivity)getActivity()).showProgressCircle( Device_Parser.get_txf_status());
 
             UserPreferences userPreferences = UserPreferences.getInstance(getContext());
 
@@ -261,7 +448,8 @@ public class HomeFragment extends Fragment  {
                     Fragment profileFragment = new ProfileFragment();
                     FragmentTransaction fragmentTransaction = getFragmentManager()
                             .beginTransaction();
-                    fragmentTransaction.replace(R.id.fragment, profileFragment,"Profile Fragment");
+                    fragmentTransaction.add(R.id.fragment,
+                            profileFragment,ProfileFragment.class.getSimpleName());
                     fragmentTransaction.addToBackStack(null);
                     fragmentTransaction.commit();
                 }
@@ -274,7 +462,8 @@ public class HomeFragment extends Fragment  {
                     Fragment deviceFragment = new DeviceFragment();
                     FragmentTransaction fragmentTransaction = getFragmentManager()
                             .beginTransaction();
-                    fragmentTransaction.replace(R.id.fragment, deviceFragment,DeviceFragment.class.getSimpleName());
+                    fragmentTransaction.add(R.id.fragment, deviceFragment,
+                            DeviceFragment.class.getSimpleName());
                     fragmentTransaction.addToBackStack(null);
                     fragmentTransaction.commit();
                 }
@@ -285,28 +474,34 @@ public class HomeFragment extends Fragment  {
             gpsSpeedShortcut.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-
-                    AlertDialog helmetDialog = new AlertDialog.Builder(getContext())
-                            .setTitle("Alert")
-                            .setMessage("Have you worn helmet properly?")
-                            .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    inflatePopup(getContext());
-                                }
-                            })
-                            .setNegativeButton("No", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.dismiss();
-                                }
-                            })
-                            .create();
-                    helmetDialog.show();
-                    helmetDialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor
-                            (Color.parseColor("#FF1B5AAC"));
-                    helmetDialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor
-                            (Color.parseColor("#D3D3D3"));
+                    DeviceDetails deviceDetails = Constants.DEVICE_MAPS.get(getContext().getResources().getString(R.string.device1_tv));
+                    if(deviceDetails == null || deviceDetails.mac_address == null || !deviceDetails.connected) {
+                        Common.okAlertMessage(getContext(), getString(R.string.connect_helmet_dev));
+                        return;
+                    }else{
+                        Device1_Parser.sendMemoryCmd(getContext());
+                    }
+//                    AlertDialog helmetDialog = new AlertDialog.Builder(getContext())
+//                            .setTitle("Alert")
+//                            .setMessage("Have you worn helmet properly?")
+//                            .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+//                                @Override
+//                                public void onClick(DialogInterface dialog, int which) {
+//                                    inflatePopup(getContext());
+//                                }
+//                            })
+//                            .setNegativeButton("No", new DialogInterface.OnClickListener() {
+//                                @Override
+//                                public void onClick(DialogInterface dialog, int which) {
+//                                    dialog.dismiss();
+//                                }
+//                            })
+//                            .create();
+//                    helmetDialog.show();
+//                    helmetDialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor
+//                            (Color.parseColor("#FF1B5AAC"));
+//                    helmetDialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor
+//                            (Color.parseColor("#D3D3D3"));
                 }
             });
 
@@ -345,20 +540,29 @@ public class HomeFragment extends Fragment  {
 //        });
 //        Common.wait(50);
 
-
         navigateToFragments();
+//        WorkManager.getInstance(getContext()).cancelAllWorkByTag("Csv_Generation_Workertest");
+//        WorkManager.getInstance(getContext()).cancelAllWorkByTag("Csv_Generation_Worker");
+//        Common.show_wait_bar(getContext(), "Waiting for cursor");
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                Common.wait(5000);
+//                Common.dismiss_wait_bar();
+//            }
+//        }).start();
 
-
+//        Common.lowStorageAlert(getContext());
+//        new DatabaseHelper.DeleteButtonBox().execute(3l);
 //        if(!isDone){
-////            new DatabaseHelper.UpdateGPS().execute();
-//            new DatabaseHelper.UpdateMarkerData().execute(4l);
+//            new DatabaseHelper.UpdateGPS().execute();
+////            new DatabaseHelper.UpdateMarkerData().execute(4l);
 //            isDone = true;
 //        }
-
-
 //        if(!isDone){
 //            try{
-//                new DatabaseHelper.UpdateSensorData().execute(4l);
+//                //new DatabaseHelper.UpdateSensorData().execute(4l);
+//                DatabaseHelper.insertGPS(4l);
 //                isDone = true;
 //            }catch (Exception e){
 //                e.printStackTrace();
@@ -369,7 +573,7 @@ public class HomeFragment extends Fragment  {
 
 //        new DatabaseHelper.SetSessionSummary().execute();
 //        new DatabaseHelper.GetLastPktNum().execute();
-//        new DatabaseHelper.DeleteAll().execute((long) 1);
+//        new DatabaseHelper.DeleteAll().execute((long) 4);
 //        if(!isDone){
 //            CsvGenerator csvGenerator = new CsvGenerator(getContext());
 //            csvGenerator.generateCSV(4);
@@ -398,12 +602,16 @@ public class HomeFragment extends Fragment  {
 //        new UpdateGpsSpeedAsyncTask().execute();
 
 //       insertGPS();
+//        new DatabaseHelper.UpdateAndAddMarker().execute();
     }
 
     @Override
     public void onStart() {
         super.onStart();
-
+//        WorkMgrHelper workMgrHelper = new WorkMgrHelper(getContext());
+//        workMgrHelper.oneTimeCSVUploadingRequest();
+        //workMgrHelper.oneTimeCSVGenerationRequest();
+        DevicePreferences.getInstance(getContext()).lowStorageAlert(getContext());
         Log.d(TAG, "Start");
     }
 
@@ -445,7 +653,28 @@ public class HomeFragment extends Fragment  {
         }
     }
 
-
+    /**
+     * Check the bluetooth's availability before reconnection the recent connected device.
+     */
+//    private void autoConnection(){
+//        // Get BluetoothManager for getting bluetoothAdapter object
+//        final BluetoothManager bluetoothManager =
+//                (BluetoothManager) MainActivity.shared().getSystemService(Context.BLUETOOTH_SERVICE);
+//        mBluetoothAdapter = bluetoothManager.getAdapter();
+//
+//        // Checks if Bluetooth is supported o the device.
+//        if (mBluetoothAdapter == null) {
+//            Toast.makeText(getContext(), R.string.error_bluetooth_not_supported, Toast.LENGTH_SHORT).show();
+//
+//        }
+//        if (!((MainActivity)getActivity()).mBluetoothAdapter.isEnabled()) {
+//            Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+//            startActivityForResult(enableIntent, Constants.REQUEST_ENABLE_BT);
+//            return ;
+//
+//        }
+//
+//    }
 
 
 
@@ -580,6 +809,9 @@ public class HomeFragment extends Fragment  {
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                     TextView itemText = (TextView)view;
                     activityType = itemText.getText().toString().trim()+"_"+Constants.OUTDOOR;
+
+                    startButton.setEnabled(false);
+
                     if(itemText.getText().toString().equalsIgnoreCase
                             (getString(R.string.other_sports))){
                         /*
@@ -654,10 +886,16 @@ public class HomeFragment extends Fragment  {
                     }else{
                         Log.d(TAG, "No activity code found");
                     }
+
+                    CircleImageView gpsSpeedButton =
+                            HomeFragment.this.getView().findViewById(R.id.gps_session_start_btn);
+                    gpsSpeedButton.setImageResource(R.mipmap.pause_round);
+
                     Fragment gpsFragment = new GPSSpeedFragment();
                     FragmentManager fragmentManager = getFragmentManager();
                     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-                    fragmentTransaction.replace(R.id.fragment, gpsFragment,"GPS Fragment");
+                    fragmentTransaction.add(R.id.fragment, gpsFragment,
+                            GPSSpeedFragment.class.getSimpleName());
                     fragmentTransaction.addToBackStack(null);
                     fragmentTransaction.commit();
                     startGpsSpeedPopupWindow.dismiss();
@@ -941,7 +1179,7 @@ public class HomeFragment extends Fragment  {
                 FragmentTransaction fragmentTransaction = getActivity().
                         getSupportFragmentManager().beginTransaction();
                 fragmentTransaction.replace(R.id.fragment, fragment);
-                fragmentTransaction.addToBackStack(Constants.LOGIN_FRAGMENT);
+                fragmentTransaction.addToBackStack(LoginFragment.class.getSimpleName());
                 fragmentTransaction.commit();
             }else{
                 //ToDo: validate Profile details, if no information, the navigate to Profile page
@@ -949,184 +1187,15 @@ public class HomeFragment extends Fragment  {
                     Fragment profileFragment = new ProfileFragment();
                     FragmentTransaction fragmentTransaction = getFragmentManager()
                             .beginTransaction();
-                    fragmentTransaction.replace(R.id.fragment, profileFragment,"Profile Fragment");
+                    fragmentTransaction.replace(R.id.fragment, profileFragment,ProfileFragment.class.getSimpleName());
                     fragmentTransaction.addToBackStack(null);
                     fragmentTransaction.commit();
                 }
-//               upload_img();
-                //saveProfile();
-//                getProfile();
             }
         }catch (Exception ex){
             Log.d(TAG, ex.getMessage());
         }
     }
-
-//    public void getProfile(){
-//        ProfileService profileService = new ProfileService();
-//        Request request  = profileService.getProfile(getContext());
-//        if(request != null) {
-//            OkHttpClient okHttpClient = new OkHttpClient.Builder()
-//                    .connectTimeout(10, TimeUnit.SECONDS)
-//                    .writeTimeout(10, TimeUnit.SECONDS)
-//                    .readTimeout(30, TimeUnit.SECONDS)
-//                    .build();
-//            okHttpClient.newCall(request).enqueue(new Callback() {
-//
-//                @Override
-//                public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-//                    try (ResponseBody responseBody = response.body()) {
-//                        String json = response.body().string();
-//                        if (response.isSuccessful()) {
-//                            System.out.println("response=" + json);
-//                            ProfileResp profileResp = new GsonBuilder().create().fromJson(json, ProfileResp.class);
-//                            UserPreferences.getInstance(getContext()).saveName(profileResp.name);
-//                            ProfilePreferences profilePreferences = ProfilePreferences.getInstance(getContext());
-//                            profilePreferences.saveDob(profileResp.dob);
-//                            profilePreferences.saveGender(String.valueOf(profileResp.gender));
-//                            profilePreferences.saveHeight(profileResp.height);
-//                            profilePreferences.saveWeight(profileResp.weight);
-//                        }else if(json.contains("errorMessage")){
-//                            ErrorMessages errorMessages = new GsonBuilder().create().fromJson(json, ErrorMessages.class);
-//                            getActivity().runOnUiThread(new Runnable() {
-//                                public void run() {
-//                                    Toast.makeText(getContext(), errorMessages.errorMessage, Toast.LENGTH_LONG).show();
-//                                }
-//                            });
-//                            if(errorMessages.errorCode == ErrorCodes.NO_USER_FOUND.getCode() ||
-//                                    errorMessages.errorCode == ErrorCodes.NO_RECORD_FOUND.getCode()) {
-//                                // Update the UI
-//                            }
-//                        }
-//                    } catch (Exception ex) {
-//                        ex.printStackTrace();
-//                        // Reset UI
-//                    }
-//                }
-//
-//                @Override
-//                public void onFailure(@NotNull Call call, @NotNull IOException e) {
-//                    e.printStackTrace();
-//                }
-//            });
-//        }
-//
-//    }
-
-//    public void saveProfile(){
-//        ProfileReq profileReq = new ProfileReq();
-//        profileReq.dob = "1999-06-06";
-//        profileReq.gender = 'M';
-//        profileReq.height = 172;
-//        profileReq.weight = 72;
-//        profileReq.name = "PK Misra";
-//
-//        ProfileService profileService = new ProfileService();
-//        Request request  = profileService.saveProfile(getContext(), profileReq);
-//        if(request != null) {
-//            OkHttpClient okHttpClient = new OkHttpClient.Builder()
-//                    .connectTimeout(10, TimeUnit.SECONDS)
-//                    .writeTimeout(10, TimeUnit.SECONDS)
-//                    .readTimeout(30, TimeUnit.SECONDS)
-//                    .build();
-//
-//            okHttpClient.newCall(request).enqueue(new Callback() {
-//                @Override
-//                public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-//                    try (ResponseBody responseBody = response.body()) {
-//                        String json = response.body().string();
-//                        if (response.isSuccessful()) {
-//                            System.out.println("response=" + json);
-//                            ProfileResp profileResp = new GsonBuilder().create().fromJson(json, ProfileResp.class);
-//                            UserPreferences.getInstance(getContext()).saveName(profileResp.name);
-//                            ProfilePreferences profilePreferences = ProfilePreferences.getInstance(getContext());
-//                            profilePreferences.saveDob(profileResp.dob);
-//                            profilePreferences.saveGender(String.valueOf(profileResp.gender));
-//                            profilePreferences.saveHeight(profileResp.height);
-//                            profilePreferences.saveWeight(profileResp.weight);
-//                        }else if(json.contains("errorMessage")){
-//                            ErrorMessages errorMessages = new GsonBuilder().create().fromJson(json, ErrorMessages.class);
-//                            getActivity().runOnUiThread(new Runnable() {
-//                                public void run() {
-//                                    Toast.makeText(getContext(), errorMessages.errorMessage, Toast.LENGTH_LONG).show();
-//                                }
-//                            });
-//                            if(errorMessages.errorCode == ErrorCodes.NO_USER_FOUND.getCode() ||
-//                                    errorMessages.errorCode == ErrorCodes.NO_RECORD_FOUND.getCode()) {
-//                                // Update the UI
-//                            }
-//                        }
-//                    } catch (Exception ex) {
-//                        ex.printStackTrace();
-//                        // Reset UI
-//                    }
-//
-//                }
-//
-//                @Override
-//                public void onFailure(@NotNull Call call, @NotNull IOException e) {
-//                    e.printStackTrace();
-//                    // Reset UI
-//                }
-//            });
-//        }
-//    }
-
-    public void upload_img(){
-
-        try {
-            AvatarService avatarService = new AvatarService();
-            InputStream is = getActivity().getAssets().open("ajit.jpg");
-            File file = new File("temp.jpg");
-            Helper.copyInputStreamToFile(is, file);
-            Request req = avatarService.uploadAvatarImg(getContext(), file);
-            if(req != null){
-                OkHttpClient okHttpClient = new OkHttpClient.Builder()
-                        .connectTimeout(10, TimeUnit.SECONDS)
-                        .writeTimeout(10, TimeUnit.SECONDS)
-                        .readTimeout(30, TimeUnit.SECONDS)
-                        .build();
-                okHttpClient.newCall(req).enqueue(new Callback() {
-                    @Override
-                    public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                        try (ResponseBody responseBody = response.body()) {
-                            String json = response.body().string();
-                            if (response.isSuccessful()) {
-                                System.out.println("response="+json);
-                            }else if(json.contains("errorMessage")){
-                                ErrorMessages errorMessages = new GsonBuilder().create().fromJson(json, ErrorMessages.class);
-                                getActivity().runOnUiThread(new Runnable() {
-                                    public void run() {
-                                        Toast.makeText(getContext(), errorMessages.errorMessage, Toast.LENGTH_LONG).show();
-                                    }
-                                });
-                                if(errorMessages.errorCode == ErrorCodes.NO_USER_FOUND.getCode() ||
-                                        errorMessages.errorCode == ErrorCodes.NO_RECORD_FOUND.getCode()) {
-                                }
-                            }
-                        }catch (Exception ex){
-                            ex.printStackTrace();
-                            getActivity().runOnUiThread(new Runnable() {
-                                public void run() {
-                                    Toast.makeText(getContext(), getString(R.string.server_error), Toast.LENGTH_LONG).show();
-                                }
-                            });
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                        e.printStackTrace();
-                    }
-                });
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-    }
-
-
 
 
     /**
@@ -1146,6 +1215,80 @@ public class HomeFragment extends Fragment  {
         void onSessionStarted(String TAG,String message);
     }
 
+    void registerAndCheck(Object helper) {
+        if (!mBus.isRegistered(helper)) {
+            mBus.register(helper);
+        }
+    }
 
+    /**
+     * If more memory usage, then no activity start and ask user to transfer the data
+     * @param memoryUsage
+     */
+    public void onEvent(final MemoryUsage memoryUsage) {
+        Log.d(TAG, "Memory usage: ss="+memoryUsage.session_summaries+", pm="+memoryUsage.packet_memory);
+        // If one of datapacket's memory or session summaries' memory usage is more than 90% , then no activity
+            MainActivity.shared().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    String message = "";
+                    if(memoryUsage.packet_memory > 90 || memoryUsage.session_summaries > 90) {
+                        message = getString(R.string.out_of_memory_dev1);
+                    }else{
+                        message = getString(R.string.worn_helmet);
+                    }
+                    AlertDialog.Builder alert = new AlertDialog.Builder(getContext());
+                    alert.setTitle("Alert");
+                    alert.setMessage(message);
+                    alert.setPositiveButton("OK",new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+//                            if(memoryUsage.packet_memory > 90 || memoryUsage.session_summaries > 90) {
+//                                Device1_Parser.sendNotificationCmd(getContext());
+//                            }else{
+                                inflatePopup(getContext());
+//                            }
+                        }
+                    });
+                    alert.show();
+
+                }
+            });
+    }
+
+private class GetLatestSessionSummaryAsyncTask extends AsyncTask<Void,
+            Void,SessionSummary>{
+
+        @Override
+        protected SessionSummary doInBackground(Void... voids) {
+            return SessionCdlDb.getInstance(mContext).getSessionDataDAO().getLatestSessionSummary();
+        }
+
+    }
+
+    private class GetCollectiveSummaryDetailsAsyncTask extends AsyncTask<Void,
+            Void,List<Float>>{
+        @Override
+        protected List<Float> doInBackground(Void... voids) {
+            int totalDataSize =
+                    SessionCdlDb.getInstance(mContext).getSessionDataDAO().getTotalDataInBytes() / 1024;
+            Float duration_total =
+                    SessionCdlDb.getInstance(mContext).getSessionDataDAO().getAllActivitiesTotalTime();
+            Integer [] activity_codes =
+                    SessionCdlDb.getInstance(mContext).getSessionDataDAO().getAllActivityTypes();
+            List<Float> summary_list = new ArrayList<>();
+            summary_list.add((float) totalDataSize);
+            summary_list.add(duration_total);
+            for(Integer activity : activity_codes){
+                summary_list.add(Float.valueOf(activity));
+            }
+            return  summary_list;
+        }
+
+        @Override
+        protected void onPostExecute(List<Float> floats) {
+
+        }
+    }
 }
 

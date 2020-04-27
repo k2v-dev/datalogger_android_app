@@ -5,15 +5,18 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 import com.decalthon.helmet.stability.DB.Entities.ButtonBoxEntity;
+import com.decalthon.helmet.stability.DB.Entities.CsvFileStatus;
 import com.decalthon.helmet.stability.DB.Entities.GpsSpeed;
 import com.decalthon.helmet.stability.DB.Entities.MarkerData;
 import com.decalthon.helmet.stability.DB.Entities.SensorDataEntity;
 import com.decalthon.helmet.stability.DB.Entities.SessionSummary;
 import com.decalthon.helmet.stability.DB.SessionCdlDb;
-import com.decalthon.helmet.stability.Fragments.GPSSpeedFragment;
+import com.decalthon.helmet.stability.MainApplication;
+import com.decalthon.helmet.stability.preferences.CsvPreference;
 import com.decalthon.helmet.stability.preferences.ProfilePreferences;
 import com.decalthon.helmet.stability.preferences.UserPreferences;
 import com.decalthon.helmet.stability.webservice.requests.ProfileReq;
+import com.decalthon.helmet.stability.workmanager.WorkMgrHelper;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -27,7 +30,7 @@ import java.util.concurrent.TimeUnit;
 
 public class CsvGenerator {
     private static final String TAG = CsvGenerator.class.getSimpleName();
-    private static final String LOG_DIR = "LOG_FILES";
+
     String dateFilePattern = "yyyyMMdd_HHmmss";
     SimpleDateFormat dateFileFormat = new SimpleDateFormat(dateFilePattern);
     SessionCdlDb sessionCdlDb ;
@@ -43,6 +46,8 @@ public class CsvGenerator {
     ProfilePreferences profilePreferences;
     Map<String, String> genderMap = new HashMap<>();
     String PATH = null;
+    private Context context;
+
     public CsvGenerator(Context context) {
         sessionCdlDb = SessionCdlDb.getInstance(context);
         userId = UserPreferences.getInstance(context).getUserID();
@@ -50,16 +55,17 @@ public class CsvGenerator {
         genderMap.put("M", "Male");
         genderMap.put("F", "Female");
         genderMap.put("OTHER", "Other");
-        PATH = context.getPackageName() + File.separator + LOG_DIR;
+        PATH = context.getPackageName() + File.separator + Constants.CSV_LOG_DIR;
+        this.context = context;
     }
 
-    public void generateCSV(int session_id){
+    public void generateCSV(long session_id){
         roo_dir = FileUtilities.createDirIfNotExists(PATH);
         if (roo_dir==null)
         {
             return;
         }
-        new loadData().execute((long)session_id);
+        new LoadData().execute(session_id);
     }
 
     public void generateSensorDataFile(){
@@ -166,7 +172,7 @@ public class CsvGenerator {
                MarkerData markerData = new MarkerData();
                if(markerDatas.size() > 0 ){
                    MarkerData nxtMarkerData = markerDatas.get(0);
-                   if((Math.abs(buttonBoxEntity.dateMillis - nxtMarkerData.marker_timestamp) < 500)){
+                   if((Math.abs(buttonBoxEntity.dateMillis - nxtMarkerData.marker_timestamp) < 500) && (nxtMarkerData.markerNumber!=64 && nxtMarkerData.markerNumber!=128)){
                        markerData = markerDatas.remove(0);
                    }
                }
@@ -193,8 +199,12 @@ public class CsvGenerator {
 
            writer.flush();
            writer.close();
+//           sessionCdlDb.getCsvDao().insertReplace(new CsvFileStatus(fileName));
+           new InsertCsvFileStatusTask().execute(fileName);
            end = System.currentTimeMillis();
            Log.d(TAG, "File Write sensor data ="+(end-start)+" ms");
+           CsvPreference.getInstance(MainApplication.getAppContext()).removeSessionId(sessionSummary.getSession_id());
+           new WorkMgrHelper(context).oneTimeCSVUploadingRequest();
        }catch (Exception ex){
             ex.printStackTrace();
        }
@@ -218,6 +228,8 @@ public class CsvGenerator {
             writer.append(data);
             writer.flush();
             writer.close();
+            //sessionCdlDb.getCsvDao().insertReplace(new CsvFileStatus(fileName));
+            new InsertCsvFileStatusTask().execute(fileName);
         }catch (Exception ex){
             ex.printStackTrace();
         }
@@ -239,12 +251,14 @@ public class CsvGenerator {
             writer.append(data);
             writer.flush();
             writer.close();
+//            sessionCdlDb.getCsvDao().insertReplace(new CsvFileStatus(fileName));
+            new InsertCsvFileStatusTask().execute(fileName);
         }catch (Exception ex){
             ex.printStackTrace();
         }
     }
 
-    private class loadData extends AsyncTask<Long, Void, Void> {
+    private class LoadData extends AsyncTask<Long, Void, Void> {
 
         @Override
         protected Void doInBackground(Long... longs) {
@@ -294,14 +308,17 @@ public class CsvGenerator {
             Date date = new Date(sessionSummary.getDate());
             prefix = userId+"_"+dateFileFormat.format(date)+"_";
 //            new GenerateFile().execute();
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    generateUserFile();
-                    generateSessionSummaryFile(sessionSummary);
-                    generateSensorDataFile();
-                }
-            }).start();
+//            new Thread(new Runnable() {
+//                @Override
+//                public void run() {
+//                    generateUserFile();
+//                    generateSessionSummaryFile(sessionSummary);
+//                    generateSensorDataFile();
+//                }
+//            }).start();
+            generateUserFile();
+            generateSessionSummaryFile(sessionSummary);
+            generateSensorDataFile();
         }
     }
 
@@ -389,6 +406,15 @@ public class CsvGenerator {
         long second = TimeUnit.MILLISECONDS.toSeconds(duration) - (TimeUnit.MILLISECONDS.toMinutes(duration) *60);
         long ms = TimeUnit.MILLISECONDS.toMillis(duration) - (TimeUnit.MILLISECONDS.toSeconds(duration) *1000);
         return String.format(Locale.getDefault(), "%02d%02d%02d%03d", hours, minute, second, ms);
+    }
+
+    public class InsertCsvFileStatusTask extends AsyncTask<String, Void, Void>{
+
+        @Override
+        protected Void doInBackground(String... strings) {
+            sessionCdlDb.getCsvDao().insertReplace(new CsvFileStatus(strings[0]));
+            return null;
+        }
     }
 
 }

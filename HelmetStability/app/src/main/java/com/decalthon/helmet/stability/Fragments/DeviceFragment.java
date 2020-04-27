@@ -28,6 +28,7 @@ import androidx.fragment.app.Fragment;
 
 import com.decalthon.helmet.stability.Activities.DeviceScanActivity;
 import com.decalthon.helmet.stability.Activities.MainActivity;
+import com.decalthon.helmet.stability.BLE.Device_Parser;
 import com.decalthon.helmet.stability.R;
 import com.decalthon.helmet.stability.Utilities.Common;
 import com.decalthon.helmet.stability.Utilities.Constants;
@@ -125,11 +126,6 @@ public class DeviceFragment extends Fragment {
      * @return A new instance of fragment DeviceFragment.
      */
 
-
-
-
-
-
     // TODO: Rename and change types and number of parameters
     public static DeviceFragment newInstance(String param1, String param2) {
         DeviceFragment fragment = new DeviceFragment();
@@ -201,40 +197,40 @@ public class DeviceFragment extends Fragment {
 
         initialization(view);
 
-        ActionBar actionBar = ((MainActivity)getActivity()).getSupportActionBar();
+        View actionBarView = view.findViewById(R.id.back_navigation);
 
-        if (actionBar != null) {
+        if (actionBarView != null) {
 
-            actionBar.getCustomView().findViewById(R.id.gps_session_start_btn)
-            .setVisibility(View.GONE);
+//            actionBar.getCustomView().findViewById(R.id.gps_session_start_btn)
+//            .setVisibility(View.GONE);
+//
+//            actionBar.getCustomView().findViewById(R.id.profile_link)
+//                    .setVisibility(View.GONE);
+//
+//            actionBar.getCustomView().findViewById(R.id.logout_link)
+//                    .setVisibility(View.GONE);
+//
+//            TextView title = actionBar.getCustomView().findViewById(R.id.title_text);
+//            title.setText(R.string.device_view_title);
+//
+//            title.setVisibility(View.VISIBLE);
+//
+//            CircleProgressView progressView
+//            = actionBar.getCustomView().findViewById(R.id.ble_device_connectivity);
+//
+//            progressView.setVisibility(View.GONE);
+//
+//            CircleImageView disconnect = actionBar.getCustomView().findViewById
+//                    (R.id.disconnect_btn);
+//            disconnect.setVisibility(View.VISIBLE);
+//
+//            CircleImageView backLink = actionBar.getCustomView().findViewById(R.id.back_link);
 
-            actionBar.getCustomView().findViewById(R.id.profile_link)
-                    .setVisibility(View.GONE);
+            actionBarView.setVisibility(View.VISIBLE);
 
-            actionBar.getCustomView().findViewById(R.id.logout_link)
-                    .setVisibility(View.GONE);
+            actionBarView.setOnClickListener(v -> MainActivity.shared().onBackPressed());
 
-            TextView title = actionBar.getCustomView().findViewById(R.id.title_text);
-            title.setText(R.string.device_view_title);
-
-            title.setVisibility(View.VISIBLE);
-
-            CircleProgressView progressView
-            = actionBar.getCustomView().findViewById(R.id.ble_device_connectivity);
-
-            progressView.setVisibility(View.GONE);
-
-            CircleImageView disconnect = actionBar.getCustomView().findViewById
-                    (R.id.disconnect_btn);
-            disconnect.setVisibility(View.VISIBLE);
-
-            CircleImageView backLink = actionBar.getCustomView().findViewById(R.id.back_link);
-
-            backLink.setVisibility(View.VISIBLE);
-
-            backLink.setOnClickListener(v -> MainActivity.shared().onBackPressed());
-
-            disconnect.setOnClickListener(v -> disconnectAll());
+//            disconnect.setOnClickListener(v -> disconnectAll());
 
         }
 
@@ -414,15 +410,15 @@ public class DeviceFragment extends Fragment {
         isStartCall = true;
         startCallback();
 
-        boolean bNeed = false ;
-        for(Map.Entry<String, DeviceDetails> entry : Constants.DEVICE_MAPS.entrySet() ){
-            if(!entry.getValue().noAutoconnect){
-                bNeed = true;
-            }
-        }
-        if (bNeed) {
-            connectionChkHandler.postDelayed(updateTimerThread, 1000);
-        }
+//        boolean bNeed = false ;
+//        for(Map.Entry<String, DeviceDetails> entry : Constants.DEVICE_MAPS.entrySet() ){
+//            if(!entry.getValue().noAutoconnect){
+//                bNeed = true;
+//            }
+//        }
+//        if (bNeed) {
+//            connectionChkHandler.postDelayed(updateTimerThread, 1000);
+//        }
         total_time = 1;
 
 //        if(mBus != null){
@@ -436,7 +432,7 @@ public class DeviceFragment extends Fragment {
     public void onStop() {
         Log.d(TAG,"OnStop");
         super.onStop();
-        connectionChkHandler.removeCallbacks(updateTimerThread);
+//        connectionChkHandler.removeCallbacks(updateTimerThread);
 
 //        if(mBus != null){
 //            mBus.unregister(this);
@@ -447,17 +443,16 @@ public class DeviceFragment extends Fragment {
     public void onResume() {
         Log.d(TAG,"OnResume");
         super.onResume();
-
     }
 
     @Override
     public void onDetach() {
         Log.d(TAG,"OnDetach");
         super.onDetach();
-        ActionBar actionBar = ((MainActivity)getActivity()).getSupportActionBar();
+        /*ActionBar actionBar = ((MainActivity)getActivity()).getSupportActionBar();
         if(actionBar != null){
             actionBar.getCustomView().findViewById(R.id.disconnect_btn).setVisibility(View.GONE);
-        }
+        }*/
         mListener = null;
     }
 
@@ -678,7 +673,6 @@ public class DeviceFragment extends Fragment {
                             DevicePreferences.getInstance(getContext()).saveName(device_id, deviceDetails.name);
                             DevicePreferences.getInstance(getContext()).saveAddr(device_id, deviceDetails.mac_address);
 
-
                             //TODO uncomment this line when data is available
                             //                    viewUIMaps.get(device_id).progressBar.incrementProgressBy((data_received/total_data)/100);
                             connect_req.put(device_id, true);
@@ -793,10 +787,12 @@ public class DeviceFragment extends Fragment {
                     float percent = entry.getValue().readData();
                     viewUIMaps.get(entry.getKey()).progressBar.setProgress((int)percent);
                     viewUIMaps.get(entry.getKey()).transfer_percent_tv.setText(String.format(Locale.getDefault(), "%5.2f%%", percent));
+
                     if(!entry.getValue().noAutoconnect){
                         bConnectionChk = true;
                     }
                 }
+                MainActivity.shared().showProgressCircle(Device_Parser.get_txf_status());
             }
 
             Log.d(TAG, loadStr);
@@ -850,6 +846,11 @@ public class DeviceFragment extends Fragment {
      */
     public void onEvent(final BLEConnectionState event) {
         try {
+            DeviceDetails deviceDetails = Constants.DEVICE_MAPS.get(event.device_id);
+            if(deviceDetails != null){
+                deviceDetails.total_pkts = 0;
+                deviceDetails.num_pkts_rcvd = 0;
+            }
             MainActivity.shared().runOnUiThread(() -> {
                 if (event.connectionstate) {
                     viewUIMaps.get(event.device_id).scan_image.setImageResource(R.drawable.connected);
@@ -1096,8 +1097,6 @@ public class DeviceFragment extends Fragment {
                         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.parseColor("#FF1B5AAC"));
                         dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(Color.parseColor("#D3D3D3"));
 
-
-
                     }else{
                         //Initiates a device scan activity if the particular device id shows disconnected
                         if (((MainActivity)getActivity()).mBluetoothAdapter.isEnabled()) {
@@ -1112,9 +1111,6 @@ public class DeviceFragment extends Fragment {
             });
         }
     }
-
-
-
 
     void registerAndCheck(Object helper) {
         if (!mBus.isRegistered(helper)) {

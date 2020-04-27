@@ -2,13 +2,22 @@ package com.decalthon.helmet.stability.preferences;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.StatFs;
+import android.util.Log;
 
+import com.decalthon.helmet.stability.MainApplication;
+import com.decalthon.helmet.stability.R;
+import com.decalthon.helmet.stability.Utilities.Common;
 import com.decalthon.helmet.stability.Utilities.Constants;
+import com.decalthon.helmet.stability.Utilities.FileUtilities;
+
+import java.io.File;
+import java.util.Date;
 
 
 public class DevicePreferences {
     private static DevicePreferences single_instance = null;
-
+    private final String LST_TIME = "LAST_TIME_CHK";
 
     private SharedPreferences sharedpreferences;
 
@@ -70,5 +79,31 @@ public class DevicePreferences {
         SharedPreferences.Editor editor = sharedpreferences.edit();
         editor.clear();
         editor.apply();
+    }
+
+    public void lowStorageAlert(Context context){
+        try{
+            long timestamp_ms = sharedpreferences.getLong(LST_TIME, 0);
+            long cur_timestamp = System.currentTimeMillis();
+//            if((cur_timestamp - timestamp_ms) < 24*3600*1000){
+            if((cur_timestamp - timestamp_ms) < 600*1000){
+                System.out.println("Cur ts="+cur_timestamp+", prev ts="+timestamp_ms);
+                return;
+            }
+
+//            Context context = MainApplication.getAppContext();
+            String path = context.getPackageName() + File.separator ;
+            File file = FileUtilities.createDirIfNotExists(path);
+            long mb_avaiable = (new StatFs(file.getAbsolutePath()).getAvailableBytes())/(1024*1024);
+            if(mb_avaiable < 500){
+                Common.okAlertMessage(context, context.getString(R.string.low_storage_alert));
+            }
+            System.out.println("Memory available:"+mb_avaiable);
+            SharedPreferences.Editor editor = sharedpreferences.edit();
+            editor.putLong(LST_TIME, cur_timestamp);
+            editor.apply();
+        }catch (Exception ex){
+            Log.d("Common","lowStorageAlert:"+ex.getMessage());
+        }
     }
 }

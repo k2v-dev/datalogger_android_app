@@ -8,6 +8,19 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
+
+import com.decalthon.helmet.stability.Activities.MainActivity;
+import com.decalthon.helmet.stability.Fragments.CalendarPagerFragment;
+import com.decalthon.helmet.stability.Fragments.MonthlyCalendarFragment;
+import com.decalthon.helmet.stability.R;
+import com.decalthon.helmet.stability.Utilities.CalendarUtils;
+
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Map;
+
 public class MonthGridAdapter extends BaseAdapter {
 
     private Context mContext;
@@ -73,13 +86,39 @@ public class MonthGridAdapter extends BaseAdapter {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         TextView monthTextView = new TextView(mContext);
+
         monthTextView.setLayoutParams(new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT));
         monthTextView.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
-        monthTextView.setBackgroundColor(Color.parseColor("#AAFF8C00"));
+//        monthTextView.setBackgroundColor(Color.parseColor("#AAFF8C00"));
         monthTextView.setPadding(64,80,64,80);
         monthTextView.setText(months[position]);
+        monthTextView.setTextColor(Color.parseColor("#77FFFFFF"));
+        for(Map.Entry<Date,Integer> entry: CalendarUtils.dateMap.entrySet()){
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(entry.getKey());
+            TextView currentYear =
+                    parent.getRootView().findViewById(R.id.year_number_tv);
+            if(String.valueOf(calendar.get(Calendar.YEAR)).equals(currentYear.getText().toString())){
+                if( ( position + 1) == CalendarUtils.dateMap.get(entry.getKey())){
+//                    monthTextView.setBackgroundColor(Color.YELLOW);
+                    monthTextView.setTextColor(Color.BLACK);
+                    monthTextView.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            Fragment monthPager =
+                                    CalendarPagerFragment.newInstance(MonthlyCalendarFragment.class.getSimpleName(),String.valueOf(position));
+                            FragmentTransaction fragmentTransaction =
+                                    MainActivity.shared().getSupportFragmentManager().beginTransaction();
+                            fragmentTransaction.replace(R.id.main_activity,
+                                    monthPager,"Monthly Calendar Fragment");
+                            fragmentTransaction.commit();
+                        }
+                    });
+                }
+            }
+        }
         return monthTextView;
     }
 }

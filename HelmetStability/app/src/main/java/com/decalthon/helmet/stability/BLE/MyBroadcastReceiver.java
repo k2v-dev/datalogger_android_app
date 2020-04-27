@@ -70,7 +70,7 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
             }
             EventBus.getDefault().post(new BLEConnectionState(device_id, true));
 //            invalidateOptionsMenu();
-            new ConsumerThread(context).start();
+//            new ConsumerThread(context).start();
 
         } else if (BluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)) {
 //            activity.mConnected = false;
@@ -280,9 +280,6 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
 //            deviceDetails.sendData(Common.convertingTobyteArray(Constants.STOP_CMD));
 //        }
 //    }
-
-
-
 
     // Parsing the helmet data and
     private void parseDevice1_old(byte[] received_data){

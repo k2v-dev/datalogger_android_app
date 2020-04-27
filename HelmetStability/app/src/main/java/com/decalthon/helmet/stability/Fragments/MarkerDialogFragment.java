@@ -81,13 +81,13 @@ public class MarkerDialogFragment extends DialogFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this
-        ActionBar actionbar = ((MainActivity)getActivity()).getSupportActionBar();
+        /*ActionBar actionbar = ((MainActivity)getActivity()).getSupportActionBar();
         actionbar.getCustomView().findViewById(R.id.back_link).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 MarkerDialogFragment.this.dismiss();
             }
-        });
+        });*/
 
         View view = inflater.inflate(R.layout.fragment_marker_dialog, container, false);
         TextView dtTemp = view.findViewById(R.id.date_time_view) ;

@@ -164,22 +164,23 @@ public class GPSSpeedFragment extends Fragment implements LocationListener  {
         /*
         * Customizes the action bar for the GPS speed view
         * */
-        ActionBar mActionBar =
-                ( (MainActivity) getActivity() ).getSupportActionBar();
-
-        /*The button to start or stop location updates*/
-        startStopView =
-                mActionBar.getCustomView().findViewById(R.id.gps_session_start_btn);
+//        ActionBar mActionBar =
+//                ( (MainActivity) getActivity() ).getSupportActionBar();
+//
+//        /*The button to start or stop location updates*/
+        final CircleImageView startStopView =
+                MainActivity.shared().findViewById(R.id.gps_session_start_btn);
         startStopView.setImageResource(R.drawable.pause);
         startStopView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startStopView.setImageResource(R.drawable.play);
+                startStopView.setImageResource(R.mipmap.start_session_round);
                 Device1_Parser.sendStopActivityCmd(getContext());
                 MainActivity.shared().onBackPressed();
             }
         });
     }
+
 
     /**
      * For API levels above level 23

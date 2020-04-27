@@ -45,12 +45,13 @@ public class MarkerData {
     @Ignore
     public MarkerData(long marker_timestamp,
                       String markerType,
-                      String note) {
+                      String note, long session_id) {
 
         this.marker_timestamp = marker_timestamp;
 //        this.markerNumber = markerNumber;
         this.markerType = markerType;
         this.note = note;
+        this.session_id = session_id;
     }
 
     public void setMarkerNumber(int markerNumber) {

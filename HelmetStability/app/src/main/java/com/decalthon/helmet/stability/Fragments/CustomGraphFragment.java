@@ -74,7 +74,7 @@ public class CustomGraphFragment extends Fragment implements OnChartGestureListe
 //    private NineAxis.Magnetometer magnetometer;
 
     //These zoom variables are defined for capturing for an experimental trial
-    //TODO If zoom effect has to exhibited common to all graphs in the fragment, use these variables
+    //TODO If zoom effect has to exhibited comm to all graphs in the fragment, use these variables
     private float zoomX;
     private float zoomY;
 
@@ -152,17 +152,17 @@ public class CustomGraphFragment extends Fragment implements OnChartGestureListe
         three dimensional magnetic field values
          */
 
-//        if(fragmentType.equalsIgnoreCase(FRAGMENT_NAME_DEVICE1_9_AXIS)){
-//            return inflater.inflate(R.layout.fragment_plot_graph,container,false);
-//        }else if(fragmentType.equalsIgnoreCase(FRAGMENT_NAME_DEVICE1_3_AXIS)){
-//            return inflater.inflate(R.layout.fragment_plot_graph,container,false);
-//        }else if(fragmentType.equalsIgnoreCase(FRAGMENT_NAME_DEVICE2_9_AXIS)){
-//            return inflater.inflate(R.layout.fragment_plot_graph,container,false);
-//        }else if(fragmentType.equalsIgnoreCase(FRAGMENT_NAME_DEVICE2_3_AXIS)){
-//            return inflater.inflate(R.layout.fragment_plot_graph,container,false);
-//        }else if(fragmentType.equalsIgnoreCase(GPS_SPEED_NAME)){
-//            return inflater.inflate(R.layout.fragment_plot_graph,container,false);
-//        }
+        if(fragmentType.equalsIgnoreCase(FRAGMENT_NAME_DEVICE1_9_AXIS)){
+            return inflater.inflate(R.layout.fragment_plot_graph,container,false);
+        }else if(fragmentType.equalsIgnoreCase(FRAGMENT_NAME_DEVICE1_3_AXIS)){
+            return inflater.inflate(R.layout.fragment_plot_graph,container,false);
+        }else if(fragmentType.equalsIgnoreCase(FRAGMENT_NAME_DEVICE2_9_AXIS)){
+            return inflater.inflate(R.layout.fragment_plot_graph,container,false);
+        }else if(fragmentType.equalsIgnoreCase(FRAGMENT_NAME_DEVICE2_3_AXIS)){
+            return inflater.inflate(R.layout.fragment_plot_graph,container,false);
+        }else if(fragmentType.equalsIgnoreCase(GPS_SPEED_NAME)){
+            return inflater.inflate(R.layout.fragment_plot_graph,container,false);
+        }
 
         return inflater.inflate(R.layout.fragment_plot_graph,container,false);
 

@@ -20,7 +20,6 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.ActionBar;
 import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -31,7 +30,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.decalthon.helmet.stability.Activities.MainActivity;
 import com.decalthon.helmet.stability.DB.Entities.GpsSpeed;
 import com.decalthon.helmet.stability.DB.Entities.MarkerData;
-import com.decalthon.helmet.stability.DB.SessionCDL;
+import com.decalthon.helmet.stability.DB.Entities.SessionSummary;
 import com.decalthon.helmet.stability.DB.SessionCdlDb;
 import com.decalthon.helmet.stability.R;
 import com.decalthon.helmet.stability.Utilities.Common;
@@ -62,9 +61,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-import de.hdodenhof.circleimageview.CircleImageView;
-
 import static com.decalthon.helmet.stability.Fragments.GPSSpeedFragment.sessionCdlDb;
+import static com.decalthon.helmet.stability.Utilities.Constants.FRAGMENT_NAME_DEVICE1_9_AXIS;
 import static com.decalthon.helmet.stability.Utilities.Constants.INTER_MARKER_COUNT;
 
 //Frequently used static constants
@@ -88,6 +86,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String activityType = "outdoor";
 //    private static final String activityType = "indoor";
+//    private static final String activityType =
+//            Constants.ActivityCodeMap.inverse().get(52);
     private static final String ARG_PARAM2 = "param2";
     private GoogleMap mMap;
 //    private MapView mapView;
@@ -119,7 +119,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     private Dialog dialog;
     private PopupWindow graphPromptDialog;
     private LatLng exactPos;
-
+    private TextView dateTv,timeTv,sessionNameTv,durationTv,sessionDateSizeTv,
+            sessionDataTypesTv, sessionActivityTypeTv, textNoteTv;
     private final String timeFormat = "hh:mm:ss a dd-MM-yyyy";
 
 
@@ -206,12 +207,50 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             timeLineViewAdapter = new TimeLineViewAdapter(datalist);
             indoorRecyclerView.setLayoutManager(linearLayoutManager);
             indoorRecyclerView.setAdapter(timeLineViewAdapter);
+            indoorRecyclerView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    CustomViewFragment customViewFragment = CustomViewFragment.newInstance
+                            (FRAGMENT_NAME_DEVICE1_9_AXIS,"plot");
+                    FragmentTransaction ftxn = getFragmentManager()
+                            .beginTransaction();
+                    ftxn.replace(MapFragment.this.getId(),
+                            customViewFragment,
+                            CustomViewFragment.class.getSimpleName());
+                    ftxn.addToBackStack(MapFragment.class.getSimpleName());
+                    ftxn.commit();
+                }
+            });
         }
 
         view.setClickable(true);
         return view;
     }
 
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        view.findViewById(R.id.back_navigation).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                MainActivity.shared().onBackPressed();
+            }
+        });
+         dateTv = view.findViewById(R.id.date_value_tv);
+         timeTv = view.findViewById(R.id.time_value_tv);
+         sessionNameTv = view.findViewById(R.id.session_name_tv);
+         durationTv = view.findViewById(R.id.session_duration_value_tv);
+         sessionDateSizeTv = view.findViewById(R.id.session_data_size_value_tv);
+         sessionDataTypesTv =
+                 view.findViewById(R.id.session_data_types_value_tv);
+         sessionActivityTypeTv =  view.findViewById(R.id.activity_type_value);
+        sessionActivityTypeTv.setText(MapFragment.activityType);
+        textNoteTv = view.findViewById(R.id.text_note_tv);
+
+        new GetSessionDisplayHeaderAsyncTask().execute();
+
+    }
 
     @Override
     public void onStart() {
@@ -226,7 +265,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 //        Update
-        ActionBar mActionBar = ( (MainActivity) getActivity() ).getSupportActionBar();
+        /*ActionBar mActionBar = ( (MainActivity) getActivity() ).getSupportActionBar();
         View actionBarView = null;
         if (mActionBar != null) {
             actionBarView = mActionBar.getCustomView();
@@ -245,7 +284,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         actionBarView.findViewById(R.id.gps_session_start_btn).setVisibility(View.GONE);
         actionBarView.findViewById(R.id.profile_link).setVisibility(View.GONE);
         actionBarView.findViewById(R.id.ble_device_connectivity).setVisibility(View.GONE);
-        actionBarView.findViewById(R.id.logout_link).setVisibility(View.GONE);
+        actionBarView.findViewById(R.id.logout_link).setVisibility(View.GONE);*/
         sessionCdlDb = SessionCdlDb.getInstance(getContext());
 
         try{
@@ -271,7 +310,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             if(markerDatas == null || markerDatas.size() == 0){
                 return null;
             }
-            gpsSpeeds = sessionCdlDb.gpsSpeedDAO().getGpsSpeed(markerDatas.get(0).marker_timestamp-1, markerDatas.get(markerDatas.size()-1).marker_timestamp+1);
+            gpsSpeeds = sessionCdlDb.gpsSpeedDAO().getGpsSpeed(markerDatas.get(0).marker_timestamp-100, markerDatas.get(markerDatas.size()-1).marker_timestamp+100);
 
             for(MarkerData markerData: markerDatas){
                 markerPosList.add(new LatLng(markerData.lat, markerData.lng));
@@ -454,11 +493,22 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                         exactPos = new LatLng(clickLat,clicklong);
                         difference = calcDeviation(exactPos);
                         if(difference < Constants.POLYLINE_DISTANCE) {
-                            promptMenu();
+//                            promptMenu();
+                        Log.d(TAG, "onMapClick: " + difference);
+                        CustomViewFragment customViewFragment = CustomViewFragment.newInstance
+                            (FRAGMENT_NAME_DEVICE1_9_AXIS,"plot");
+                        FragmentTransaction ftxn = getFragmentManager()
+                                .beginTransaction();
+                        ftxn.replace(MapFragment.this.getId(),
+                                customViewFragment,
+                                CustomViewFragment.class.getSimpleName());
+                        ftxn.addToBackStack(MapFragment.class.getSimpleName());
+                        ftxn.commit();
                         }
                     }
                 }
         );
+
     }
 
     /**
@@ -1187,7 +1237,54 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             return graphListEntryView;
         }
     }
+
+    public class GetSessionDisplayHeaderAsyncTask extends  AsyncTask<Void,Void,
+            SessionSummary> {
+
+        @Override
+        protected SessionSummary doInBackground(Void... voids) {
+            return SessionCdlDb.getInstance(mContext).getSessionDataDAO().getSessionSummaryById(4);
+        }
+
+        @Override
+        protected void onPostExecute(SessionSummary sessionSummary) {
+            super.onPostExecute(sessionSummary);
+            Date date = new Date(sessionSummary.getDate());
+            String dateStr = new SimpleDateFormat("dd/MM/YYYY",
+                    Locale.getDefault()).format(date);
+            String timeStr = new SimpleDateFormat("hh:mm",
+                    Locale.getDefault()).format(date);
+            String sessionNameStr = sessionSummary.getName();
+            String sessionDuration =
+                    String.valueOf(sessionSummary.getDuration());
+            dateTv.setText(dateStr);
+            timeTv.setText(timeStr);
+            sessionNameTv.setText(sessionNameStr);
+            durationTv.setText(sessionDuration);
+            String sessionDataSize =
+                    String.valueOf(sessionSummary.getTotal_data()/1024) +"KB";
+            sessionDateSizeTv.setText(sessionDataSize);
+            String typesOfData = String.valueOf(Constants.typesOfData);
+            sessionDataTypesTv.setText(typesOfData);
+            sessionActivityTypeTv.setText(MapFragment.activityType);
+            textNoteTv.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Fragment markerDialogFragment =
+                            MarkerDialogFragment.newInstance(String.valueOf(sessionSummary.getSession_id()),getString(R.string.notetype2));
+                    FragmentTransaction fragmentTransaction =
+                            getFragmentManager().beginTransaction();
+                    fragmentTransaction.add(MapFragment.this.getId(),
+                            markerDialogFragment,MapFragment.class.getSimpleName());
+                    fragmentTransaction.addToBackStack(null);
+                    fragmentTransaction.commit();
+                }
+            });
+        }
+    }
 }
+
+
 
 
 

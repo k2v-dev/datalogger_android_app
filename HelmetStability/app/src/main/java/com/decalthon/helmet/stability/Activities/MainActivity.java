@@ -42,6 +42,7 @@ import com.decalthon.helmet.stability.BLE.MyBroadcastReceiver;
 import com.decalthon.helmet.stability.BLE.gatt_server.BluetoothLeGattServer;
 import com.decalthon.helmet.stability.DB.DatabaseHelper;
 import com.decalthon.helmet.stability.DB.SessionCdlDb;
+import com.decalthon.helmet.stability.Fragments.CalendarPagerFragment;
 import com.decalthon.helmet.stability.Fragments.CustomGraphFragment;
 import com.decalthon.helmet.stability.Fragments.CustomViewFragment;
 import com.decalthon.helmet.stability.Fragments.DeviceFragment;
@@ -56,6 +57,7 @@ import com.decalthon.helmet.stability.Fragments.RegistrationFormFragment;
 import com.decalthon.helmet.stability.Fragments.SevenSessionsSummaryFragment;
 import com.decalthon.helmet.stability.Fragments.YearPagerFragment;
 import com.decalthon.helmet.stability.Fragments.YearlyCalendarFragment;
+import com.decalthon.helmet.stability.MainApplication;
 import com.decalthon.helmet.stability.R;
 import com.decalthon.helmet.stability.Utilities.Common;
 import com.decalthon.helmet.stability.Utilities.Constants;
@@ -70,6 +72,7 @@ import com.decalthon.helmet.stability.preferences.UserPreferences;
 import com.google.common.collect.BiMap;
 import com.google.firebase.auth.FirebaseAuth;
 
+import java.util.Calendar;
 import java.util.Map;
 
 import at.grabner.circleprogress.CircleProgressView;
@@ -78,7 +81,7 @@ import de.hdodenhof.circleimageview.CircleImageView;
 import static com.decalthon.helmet.stability.Utilities.Constants.DEVICE_MAPS;
 import static com.decalthon.helmet.stability.Utilities.Constants.DevPREFERENCES;
 
-public class MainActivity extends AppCompatActivity implements HomeFragment.OnFragmentInteractionListener, LoginFragment.OnFragmentInteractionListener, RegistrationFormFragment.OnFragmentInteractionListener, MonthlyCalendarFragment.OnFragmentInteractionListener,  ProfileFragment.OnFragmentInteractionListener , DeviceFragment.OnFragmentInteractionListener , MapFragment.OnFragmentInteractionListener, CustomViewFragment.OnFragmentInteractionListener, CustomGraphFragment.OnFragmentInteractionListener, GPSSpeedFragment.OnFragmentInteractionListener , SevenSessionsSummaryFragment.OnFragmentInteractionListener , MarkerDialogFragment.OnFragmentInteractionListener , YearlyCalendarFragment.OnFragmentInteractionListener, YearPagerFragment.OnFragmentInteractionListener{
+public class MainActivity extends AppCompatActivity implements HomeFragment.OnFragmentInteractionListener, LoginFragment.OnFragmentInteractionListener, RegistrationFormFragment.OnFragmentInteractionListener, MonthlyCalendarFragment.OnFragmentInteractionListener,  ProfileFragment.OnFragmentInteractionListener , DeviceFragment.OnFragmentInteractionListener , MapFragment.OnFragmentInteractionListener, CustomViewFragment.OnFragmentInteractionListener, CustomGraphFragment.OnFragmentInteractionListener, GPSSpeedFragment.OnFragmentInteractionListener , SevenSessionsSummaryFragment.OnFragmentInteractionListener , MarkerDialogFragment.OnFragmentInteractionListener , YearlyCalendarFragment.OnFragmentInteractionListener, YearPagerFragment.OnFragmentInteractionListener , CalendarPagerFragment.OnFragmentInteractionListener{
 
     private static MainActivity mainActivity;
     public BluetoothAdapter mBluetoothAdapter = null;
@@ -93,7 +96,7 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        getSupportActionBar().setCustomView(R.layout.actionbar);
+        //getSupportActionBar().setCustomView(R.layout.actionbar);
         mainActivity = MainActivity.this;
 
 //        try{
@@ -148,25 +151,27 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
         final Intent gattServiceIntent = new Intent(this, BluetoothLeService.class);
         bindService(gattServiceIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
 
-        navigateToFragments();
+
         mGattUpdateReceiver = new MyBroadcastReceiver();
         checkAndRequestPermission();
 
-        ActionBar mActionBar = getSupportActionBar();
+        /*ActionBar mActionBar = getSupportActionBar();
         mActionBar.setDisplayShowHomeEnabled(false);
         mActionBar.setDisplayShowTitleEnabled(false);
         LayoutInflater mInflater = LayoutInflater.from(getApplicationContext());
         View mCustomView = mInflater.inflate(R.layout.actionbar, null);
         mActionBar.setCustomView(mCustomView);
-        mActionBar.setDisplayShowCustomEnabled(true);
+        mActionBar.setDisplayShowCustomEnabled(true);*/
         getSupportFragmentManager().addOnBackStackChangedListener(getListener());
         LocalBroadcastManager.getInstance(this).registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
 
-        CircleImageView logoutMenuButton = mActionBar.getCustomView().findViewById(R.id.logout_link);
+
+        CircleImageView logoutMenuButton =
+                findViewById(R.id.logout_link);
         logoutMenuButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                AlertDialog dialog = new AlertDialog.Builder(getBaseContext())
+                AlertDialog dialog = new AlertDialog.Builder(mainActivity)
                         .setTitle("Alert")
                         .setMessage(getResources().getString(R.string.log_out_msg))
                         .setNegativeButton("No", null)
@@ -256,8 +261,8 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
             BluetoothLeGattServer.getInstance(getApplicationContext()).stopAll();
             View actionbarView = getActionBar().getCustomView();
 
-            CircleImageView connect = actionbarView.findViewById(R.id.ble_device_connectivity);
-            connect.setImageResource(R.drawable.ic_bluetooth_connected_24dp);
+//            CircleImageView connect = actionbarView.findViewById(R.id.ble_device_connectivity);
+//            connect.setImageResource(R.drawable.ic_bluetooth_connected_24dp);
         }
     };
 
@@ -339,7 +344,7 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
         Fragment fragment = new HomeFragment();
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
         fragmentTransaction.add(R.id.fragment, fragment);
-        fragmentTransaction.addToBackStack("DeviceFragment");
+        fragmentTransaction.addToBackStack(HomeFragment.class.getSimpleName());
         fragmentTransaction.commit();
 
 //        Fragment fragment = new MonthlyCalendarFragment();
@@ -358,7 +363,7 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
     @Override
     protected void onResume() {
         super.onResume();
-        this.showProgressCircle(getApplicationContext(),Device_Parser.get_txf_status());
+        this.showProgressCircle(Device_Parser.get_txf_status());
         System.out.println("onResume");
     }
 
@@ -402,54 +407,71 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
 //        Fragment frag = getSupportFragmentManager().findFragmentById(R.id.fragment);
         FragmentManager fragmentManager = getSupportFragmentManager();
 
-        Fragment frag = fragmentManager.findFragmentByTag(DeviceFragment.class.getSimpleName());
+        Fragment frag =
+                fragmentManager.findFragmentByTag(DeviceFragment.class.getSimpleName());
         if(frag instanceof DeviceFragment){
 //            System.out.println("BACK PRESS::"+frag+"  Fragment");
             ((DeviceFragment) frag).startByActivity();
             fragmentManager.popBackStack();
-            restoreHomeActionBar();
+//            restoreHomeActionBar();
             Log.d("DeviceFragment","popped");
+            return;
         }
-        frag = fragmentManager.findFragmentByTag("Profile Fragment");
+        frag = fragmentManager.findFragmentByTag(ProfileFragment.class.getSimpleName());
         if(frag instanceof  ProfileFragment){
             if (ProfilePreferences.getInstance(getApplicationContext()).isEmpty()) {
                 Common.okAlertMessage(frag.getContext(), getString(R.string.enter_all_details));
             }else {
+                System.out.println("Back button2");
                 fragmentManager.popBackStack();
-                restoreHomeActionBar();
+//                restoreHomeActionBar();
             }
+            return;
         }
 
-        frag = fragmentManager.findFragmentByTag("Map Fragment");
+        frag = fragmentManager.findFragmentByTag(MapFragment.class.getSimpleName());
         if(frag instanceof  MapFragment){
             fragmentManager.popBackStack();
+            return;
         }
 
-        frag = fragmentManager.findFragmentByTag("Graph Fragment");
-        if(frag instanceof CustomGraphFragment || frag instanceof CustomViewFragment){
+        frag = fragmentManager.findFragmentByTag(CustomViewFragment.class.getSimpleName());
+        if(frag instanceof CustomViewFragment){
             fragmentManager.popBackStack();
+            return;
         }
 
-        frag = fragmentManager.findFragmentByTag("GPS Fragment");
+        frag = fragmentManager.findFragmentByTag(GPSSpeedFragment.class.getSimpleName());
         if(frag instanceof GPSSpeedFragment){
             fragmentManager.popBackStack();
+            return;
         }
 
-        frag = fragmentManager.findFragmentByTag("Calendar Fragment");
-        if(frag instanceof MonthlyCalendarFragment){
+        frag = fragmentManager.findFragmentByTag(CalendarPagerFragment.class.getSimpleName());
+        if(frag instanceof CalendarPagerFragment){
             fragmentManager.popBackStack();
+            return;
         }
 
         frag = fragmentManager.findFragmentByTag(SevenSessionsSummaryFragment.class.getSimpleName());
 
         if(frag instanceof SevenSessionsSummaryFragment){
-
+            fragmentManager.popBackStack();
+            return;
         }
 
-        frag = fragmentManager.findFragmentByTag("Marker Dialog Fragment");
+        frag = fragmentManager.findFragmentByTag(MarkerDialogFragment.class.getSimpleName());
         if(frag instanceof MarkerDialogFragment){
-            //Do not pop stack
-            ((MarkerDialogFragment) frag).dismiss();
+            fragmentManager.popBackStack();
+            return;
+        }
+
+        frag =
+                fragmentManager.findFragmentByTag(HomeFragment.class.getSimpleName());
+        if(frag instanceof HomeFragment){
+            fragmentManager.popBackStack();
+            finish();
+            return;
         }
 
         if(frag instanceof RegistrationFormFragment ){
@@ -457,10 +479,10 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
         }
     }
 
-    public void restoreHomeActionBar(){
+    /*public void restoreHomeActionBar(){
         System.out.println("Restore action bar called");
         ActionBar mActionbar = getSupportActionBar();
-        showProgressCircle(getApplicationContext() , Device_Parser.get_txf_status() );
+        showProgressCircle(Device_Parser.get_txf_status());
         mActionbar.getCustomView().findViewById(R.id.logout_link)
                 .setVisibility(View.VISIBLE);
         mActionbar.getCustomView().findViewById(R.id.profile_link)
@@ -473,16 +495,16 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
                 .setVisibility(View.GONE);
         mActionbar.getCustomView().findViewById(R.id.back_link)
                 .setVisibility(View.GONE);
-    }
+    }*/
 
-    public void showProgressCircle(Context context,float increasePercent){
+    public void showProgressCircle(float increasePercent){
 
         boolean anyDeviceConnected = false;
         int deviceConnectedCount = 0;
         CircleProgressView dataLoadProgressView;
-        ActionBar actionbar = getSupportActionBar();
-        dataLoadProgressView = actionbar.getCustomView().findViewById
-                (R.id.ble_device_connectivity);
+        dataLoadProgressView = findViewById(R.id.fragment).findViewById
+                (R.id.ble_device_btn);
+        Context context = MainApplication.getAppContext();
         if(context != null){
 //            for(Map.Entry<String, DeviceDetails> entry : Constants.DEVICE_MAPS.entrySet() ){
 //                if(entry.getValue().connected){
@@ -490,6 +512,7 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
 //                    anyDeviceConnected = true;
 //                }
 //            }
+
             String[] devices = {context.getResources().getString(R.string.device1_tv), context.getResources().getString(R.string.device2_tv)};
             for (int i = 0; i < 2; i++) {
                 DeviceDetails deviceDetails1 = Constants.DEVICE_MAPS.get(devices[i]);
@@ -498,7 +521,7 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
                     anyDeviceConnected = true;
                 }
             }
-
+            Log.d(TAG, "DeviceConnection="+deviceConnectedCount+", percent="+increasePercent);
             if(!anyDeviceConnected){
                 dataLoadProgressView.setFillCircleColor(getResources().getColor(R.color.red));
                 dataLoadProgressView.setValueAnimated(increasePercent,500);
@@ -520,6 +543,11 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
                 dataLoadProgressView.setValueAnimated(increasePercent,500);
             }
         }
+        invalidateOptionsMenu();
+//        if (Build.VERSION.SDK_INT >= 11)
+//        {
+//            VersionHelper.refreshActionBarMenu(this);
+//        }
     }
 
     private void checkAndRequestPermission(){

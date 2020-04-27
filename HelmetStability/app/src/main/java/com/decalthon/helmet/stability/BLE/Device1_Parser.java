@@ -16,15 +16,19 @@ import com.decalthon.helmet.stability.Utilities.Constants;
 import com.decalthon.helmet.stability.Utilities.Helper;
 import com.decalthon.helmet.stability.model.DeviceModels.DeviceDetails;
 import com.decalthon.helmet.stability.model.DeviceModels.DeviceHelper;
+import com.decalthon.helmet.stability.model.DeviceModels.MemoryUsage;
 import com.decalthon.helmet.stability.model.DeviceModels.session.SessionHeader;
 import com.decalthon.helmet.stability.DB.Entities.SessionSummary;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+
+import de.greenrobot.event.EventBus;
 
 public class Device1_Parser extends Device_Parser{
     private static final String TAG = Device1_Parser.class.getSimpleName();
@@ -32,9 +36,10 @@ public class Device1_Parser extends Device_Parser{
 //    String device_id;
 //    String address;
     private static byte[] last_data;
-    private static short prevBtnType = -1;
+//    private static short prevBtnType = -1;
     private static long prev_pkt_num = -1;
     protected static long num_pkt_read = 0;
+    private  static Map<Integer, Long> NUM_PKTS_MAP = new HashMap<>();
 
 //    private static SessionCdlDb sessionCdlDb;
     private static SensorDataEntity currentSensorDataEntity;
@@ -48,7 +53,10 @@ public class Device1_Parser extends Device_Parser{
 //        this.address = address;
         sessionCdlDb = SessionCdlDb.getInstance(context);
         timestamps = new ArrayList<>();
+
     }
+
+
 
     // Parsing the helmet data and
     public void parse( byte[] received_data){
@@ -72,7 +80,43 @@ public class Device1_Parser extends Device_Parser{
         {
             //Log.d(TAG, "parse: in device1: Received session data with 0xAA");
             parseSensorData(received_data);
+        }else if (received_data[0] == (byte)0xAD) // for data packet header
+        {
+            //Log.d(TAG, "parse: in device1: Received session data with 0xAA");
+            parseMemoryData(received_data);
         }
+    }
+
+    /**
+     * Parse memory response and send event which will received by home fragment
+     * @param received_data
+     */
+    private void parseMemoryData(byte[] received_data) {
+        int packet_size = 5;
+        if(received_data.length < packet_size) {
+            Log.d(TAG, "Invalid packet data");
+            return ;
+        }
+        //Get checksum value from packet
+        int checksum = Helper.getIntValue(received_data[packet_size-2], received_data[packet_size - 1]);
+
+        // Calculate the checksum from packet
+        int total = 0;
+        for(int i = 0 ; i <= (packet_size-3) ; i++ ){
+            int val = received_data[i] & 0xFF;
+            total += val;
+        }
+
+        // if checksum and calculated checksume are not equal, then data is corrupted and so reject the packet
+        if(checksum != total){
+            System.out.println("Device1: Memory data: Unmatching checksum = "+checksum+", total ="+total);
+            return;
+        }
+
+        MemoryUsage memoryUsage = new MemoryUsage();
+        memoryUsage.session_summaries = (short) (received_data[1] & 0xFF);
+        memoryUsage.packet_memory = (short) (received_data[2] & 0xFF);
+        EventBus.getDefault().post(memoryUsage);
     }
 
     private void parseSensorData(byte[] received_data) {
@@ -173,21 +217,21 @@ public class Device1_Parser extends Device_Parser{
         //short gps_tag_type = (short)(received_data[45] & 0xFF);
         sensorDataEntity.gps_tagger = (short)(received_data[46] & 0xFF);
 
-        if(prevBtnType == -1){
-            MarkerData markerData = new MarkerData(sensorDataEntity.dateMillis,  "0", "");
-            markerData.session_id = sensorDataEntity.session_id;
-            new InsertMarkerDataAsyncTask().execute(markerData);
-            prevBtnType = (short) sensorDataEntity.packet_number;
-            //prevBtnType = gps_tag_type;
-        }
-
-        if(sensorDataEntity.gps_tagger > 0){
-            MarkerData markerData = new MarkerData(sensorDataEntity.dateMillis,  prevBtnType+"", "");
-            markerData.session_id = sensorDataEntity.session_id;
-            new InsertMarkerDataAsyncTask().execute(markerData);
-            prevBtnType++;
-            //prevBtnType = gps_tag_type;
-        }
+//        if(prevBtnType == -1){
+//            MarkerData markerData = new MarkerData(sensorDataEntity.dateMillis,  "0", "");
+//            markerData.session_id = sensorDataEntity.session_id;
+//            new InsertMarkerDataAsyncTask().execute(markerData);
+//            prevBtnType = (short) sensorDataEntity.packet_number;
+//            //prevBtnType = gps_tag_type;
+//        }
+//
+//        if(sensorDataEntity.gps_tagger > 0){
+//            MarkerData markerData = new MarkerData(sensorDataEntity.dateMillis,  prevBtnType+"", "");
+//            markerData.session_id = sensorDataEntity.session_id;
+//            new InsertMarkerDataAsyncTask().execute(markerData);
+//            prevBtnType++;
+//            //prevBtnType = gps_tag_type;
+//        }
 
 
         sensorDataEntity.ax_9axis_dev2 = Helper.getShortValue(received_data[47], received_data[48])*Constants.ACC_9axis_SF;
@@ -226,15 +270,15 @@ public class Device1_Parser extends Device_Parser{
             // Update the session summary table like number of read packet and completee read
             DeviceHelper.SESSION_SUMMARIES.get(currentSessionNumber).setComplete(true);
             new UpdateNumberofReadPacketsAsyncTask().execute(DeviceHelper.SESSION_SUMMARIES.get(currentSessionNumber));
-            Common.wait(50);
+            Common.wait(10);
             DeviceHelper.SESSION_SUMMARIES.remove(currentSessionNumber);
 
             // Add stop marker in MarkerData table
-            MarkerData markerData = new MarkerData(sensorDataEntity.dateMillis,  "0", "");
-            markerData.session_id = sensorDataEntity.session_id;
-            new InsertMarkerDataAsyncTask().execute(markerData);
-            prevBtnType = -1;
-            new DatabaseHelper.UpdateMarkerData().execute(sensorDataEntity.session_id);
+//            MarkerData markerData = new MarkerData(sensorDataEntity.dateMillis,  "0", "");
+//            markerData.session_id = sensorDataEntity.session_id;
+//            new InsertMarkerDataAsyncTask().execute(markerData);
+//            prevBtnType = -1;
+//            new DatabaseHelper.UpdateMarkerData().execute(sensorDataEntity.session_id);
             // Send command to device for getting next session's data
             //sendSessionCommand();
             sendStopCmd(context);
@@ -242,11 +286,17 @@ public class Device1_Parser extends Device_Parser{
             // When this bug get fixed, then uncomment sendReadSessionCmd  method and comment sendNextSessionCmd method
             sendReadSessionCmd(currentSessionNumber);
 //            sendNextSessionCmd(context);
+            if(num_pkt_read > 50){
+                new DatabaseHelper.CheckForCsvGeneration().execute(sensorDataEntity.session_id);
+            }
+            num_pkt_read = 0;
         }else{
-            update_num_pkt_rcvd();
+            num_pkt_read++;
             addSensorDataEntity(sensorDataEntity);
             if(sensorDataEntity.packet_number % 100 == 0){
                 Log.d(TAG, "Packet number="+sensorDataEntity.packet_number);
+                NUM_PKTS_MAP.put(currentSessionNumber, sensorDataEntity.packet_number);
+                update_num_pkt_rcvd();
             }
 //            try{
 //                // Update the session on every 100th packet
@@ -258,17 +308,6 @@ public class Device1_Parser extends Device_Parser{
         }
     }
 
-//    private static int counter = 0;
-//    private void checkForHundredPackets(int session_number){
-//                int cur_pkt  = DeviceHelper.SESSION_SUMMARIES.get(session_number).getNum_read_pkt();
-//
-//                if( (cur_pkt-counter) > 100){
-////                    System.out.println(counter + " --> check for 100 packets");
-//                    System.out.println("pkt_num="+ cur_pkt+" --> check for 100 packets");
-//                    new UpdateNumberofReadPacketsAsyncTask().execute(DeviceHelper.SESSION_SUMMARIES.get(session_number));
-//                    counter = cur_pkt;
-//                }
-//    }
 
     private void addSensorDataEntity(SensorDataEntity sensorDataEntity) {
         try {
@@ -278,10 +317,6 @@ public class Device1_Parser extends Device_Parser{
         }
     }
 
-//    private void addSensorDataEntity() {
-//        System.out.println("Entering async task wit db instance " + sessionCdlDb.toString());
-//        new InsertSensorDataEntityAsyncTask().execute();
-//    }
     // Parsing session header which recevied just before packets
     private void parseSessionHeader(byte[] received_data) {
         int packet_size = 18; // change to 16 when new firmwarer availabe
@@ -363,7 +398,9 @@ public class Device1_Parser extends Device_Parser{
         if(name != null && name.length() > 0){
             DeviceHelper.SESSION_SUMMARIES.get(session_num).setName(name);
         }
+        last_data = null;
         //DeviceHelper.SESSION_HDRS.put(session_num, sessionHeader);
+        num_pkt_read = 0;
     }
 
     // Parse Session summary data
@@ -501,6 +538,7 @@ public class Device1_Parser extends Device_Parser{
 //        }
         sendStopCmd(context);
         sendNextSessionCmd(context);
+        new GetLastPktNums().execute();
     }
 
 //    private void sendSessionCommand(){
@@ -621,21 +659,41 @@ public class Device1_Parser extends Device_Parser{
         }
     }
 
-
-    public static void sendStopActivityCmd(Context context){
-        byte[] cmd = new byte[4];
-
-        cmd[0] = 0x07;
-        cmd[1] = 0x00;
-        cmd[2] = 0x00;
-        cmd[3] = 0x07;
-
+    /**
+     * send notification command to start transfer data
+     * @param context
+     */
+    public static void sendNotificationCmd(Context context) {
         DeviceDetails deviceDetails = Constants.DEVICE_MAPS.get(context.getResources().getString(R.string.device1_tv));
-
         if(deviceDetails != null && deviceDetails.mac_address != null){
-            deviceDetails.sendData(cmd);
+
+            deviceDetails.sendData(Common.convertingTobyteArray(Constants.SEND_NOTIF_CMD));
         }
     }
+
+    /**
+     * Send command stop activity
+     * @param context
+     */
+    public static void sendStopActivityCmd(Context context){
+        DeviceDetails deviceDetails = Constants.DEVICE_MAPS.get(context.getResources().getString(R.string.device1_tv));
+        if(deviceDetails != null && deviceDetails.mac_address != null){
+
+            deviceDetails.sendData(Common.convertingTobyteArray(Constants.STOP_ACT_CMD));
+        }
+    }
+
+    /**
+     * Send memory utility command to get memory usage of helmet device
+     * @param context
+     */
+    public static void sendMemoryCmd(Context context){
+        DeviceDetails deviceDetails = Constants.DEVICE_MAPS.get(context.getResources().getString(R.string.device1_tv));
+        if(deviceDetails != null && deviceDetails.mac_address != null){
+            deviceDetails.sendData(Common.convertingTobyteArray(Constants.MEM_USAGE_CMD));
+        }
+    }
+
 
     public void sendReadSessionCmd(int session_num){
         byte[] cmd = new byte[4];
@@ -667,7 +725,13 @@ public class Device1_Parser extends Device_Parser{
     public void update_num_pkt_rcvd(){
         DeviceDetails deviceDetails = Constants.DEVICE_MAPS.get(context.getResources().getString(R.string.device1_tv));
         if(deviceDetails != null && deviceDetails.mac_address != null) {
-            deviceDetails.num_pkts_rcvd = num_pkt_read+prev_pkt_num;
+//            deviceDetails.num_pkts_rcvd = num_pkt_read+prev_pkt_num;
+            int cur_num_pkts = 0;
+            for (Map.Entry<Integer, Long> entry : NUM_PKTS_MAP.entrySet()) {
+               // System.out.println("Item : " + entry.getKey() + " Count : " + entry.getValue());
+                cur_num_pkts += entry.getValue();
+            }
+            deviceDetails.num_pkts_rcvd = cur_num_pkts;
         }
     }
 
@@ -681,6 +745,7 @@ public class Device1_Parser extends Device_Parser{
             deviceDetails.total_pkts = total_pkt_read;
         }
     }
+
 //    private void insertSessionSummary(SessionSummary sessionSummary) {
 //        SessionSummary currentSessionSummary = null;
 //        try {
@@ -780,57 +845,30 @@ public class Device1_Parser extends Device_Parser{
         }
     }
 
+    public static class GetLastPktNums extends AsyncTask<Void, Void, Void> {
 
+        public  GetLastPktNums() { }
 
-//    private static class InsertSensorDataEntityAsyncTask extends AsyncTask<Void,Void,Void> {
-//
-//        @Override
-//        protected Void doInBackground(Void... voids) {
-//            sessionCdlDb.getSessionDataDAO().insertSessionPacket(currentSensorDataEntity);
-//            return null;
-//        }
-//    }
-//
-//    private static class InsertSessionSummaryAsyncTask extends AsyncTask<SessionSummary,Void,Void>{
-//        @Override
-//        protected Void doInBackground(SessionSummary... sessionSummaries) {
-//            sessionCdlDb.getSessionDataDAO().insertSessionSummary(sessionSummaries);
-//            return null;
-//        }
-//    }
-//
-//    private static class GetSessionSummaryListAsyncTask extends AsyncTask<Long , Void, List<SessionSummary>> {
-//        @Override
-//        protected List<SessionSummary> doInBackground(Long... longs) {
-//            return sessionCdlDb.getSessionDataDAO().getSummaryList(longs);
-//        }
-//
-//        @Override
-//        protected void onPostExecute(List<SessionSummary> sessionSummaries) {
-//            super.onPostExecute(sessionSummaries);
-//        }
-//    }
-//
-//    private static class GetSessionSummaryAsyncTask extends  AsyncTask<Long, Void, SessionSummary>{
-//
-//        @Override
-//        protected SessionSummary doInBackground(Long... longs) {
-//            if(longs != null && longs.length > 0) {
-//                return sessionCdlDb.getSessionDataDAO().getSessionSummary(longs[0]);
-//            }
-//            return null;
-//        }
-//    }
-//
-//    private static  class UpdateNumberofReadPacketsAsyncTask extends AsyncTask<SessionSummary,Void,Void>  {
-//
-//        @Override
-//        protected Void doInBackground(SessionSummary... sessionSummaries) {
-//            long timestamp1 = System.currentTimeMillis();
-//            sessionCdlDb.getSessionDataDAO().updateSessionSummary(sessionSummaries);
-//            long timestamp2 = System.currentTimeMillis();
-//            System.out.println("Timestamp diff: Updating numreadpacket "+ (timestamp2-timestamp1));
-//            return null;
-//        }
-//    }
+        @Override
+        protected Void doInBackground(Void... voids) {
+            if(DeviceHelper.SESSION_SUMMARIES.size() == 0){
+                return null;
+            }
+            for (Map.Entry<Integer, SessionSummary> entry : DeviceHelper.SESSION_SUMMARIES.entrySet()
+                 ) {
+                long prev_pkt_num = sessionCdlDb.getSessionDataDAO().getLastPktNumSD(entry.getValue().getSession_id());
+                NUM_PKTS_MAP.put(entry.getKey(), prev_pkt_num);
+            }
+//            Map.Entry<Integer, SessionSummary> entry = DeviceHelper.SESSION_SUMMARIES.entrySet().iterator().next();
+//            prev_pkt_num = sessionCdlDb.getSessionDataDAO().getLastPktNumSD(entry.getValue().getSession_id());
+//            Log.d(TAG, "Prev Packet num = "+prev_pkt_num);
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void pkt_num) {
+
+        }
+    }
+
 }

@@ -38,6 +38,8 @@ public class Constants {
     public static final String LOGIN_FRAGMENT = "LoginFragment";
     public static final String REGISTRATION_FRAGMENT = "RegistrationFormFragment";
     public static final int MAX_SESSIONS_COUNT = 7;
+    public static final int MAX_SESSION_CARD_LINES = 10;
+
 
 
     public static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
@@ -62,11 +64,11 @@ public class Constants {
     public static Map<String, String> ADDR_ID_MAPS = new HashMap<>();
 
     public static final String Dev1_type = "HELMET MAC";
-    public static final String Dev2_type = "Watch MAC";
+    public static final String Dev2_type = "ButtonBox MAC";
     public static final String Dev3_type = "HEARTBELT MAC";
 
     public static final String Dev1_name = "HELMET NAME";
-    public static final String Dev2_name = "Watch NAME";
+    public static final String Dev2_name = "ButtonBox NAME";
     public static final String Dev3_name = "HEARTBELT NAME";
 
     public static final String SHARED_PREFERENCES = "ThermalComfortPrefs" ;
@@ -88,6 +90,8 @@ public class Constants {
     //Send Notification Command
     public static final String SEND_NOTIF_CMD = "0x08 0x00 0x00 0x08";
     public static final String STOP_CMD = "0x09 0x00 0x00 0x09";
+    public static final String STOP_ACT_CMD = "0x07 0x00 0x00 0x07";
+    public static final String MEM_USAGE_CMD = "0x12 0x00 0x00 0x12";
     public static final String ERASE_ALL = "0x05 0x00 0x00 0x05";
 
     //01 pl1 pl2 pl3 pl4 pl5 pl6 cs1 cs2
@@ -103,9 +107,12 @@ public class Constants {
 
 
     public static final String  DevPREFERENCES = "com.decathlon.user.devices";
+    public static final String  CsvPREFERENCES = "com.decathlon.user.csv.file";
     public static BiMap<String, Integer> ActivityCodeMap = HashBiMap.create();
     public static final String INDOOR = "Indoor";
     public static final String OUTDOOR = "Outdoor";
+
+    public static final int typesOfData = 38;
 //    static {
 //        DEVICE_MAPS.put(R.string.device1_tv, new DeviceDetails());
 //        DEVICE_MAPS.put("Device 2", new DeviceDetails());
@@ -177,8 +184,10 @@ public class Constants {
 
 
     public static final String MAP_NAME = "MAP";
-    public static final String NINE_AXES_NAME = "9-Axis";
-    public static final String THREE_AXES_NAME = "3-Axis";
+    public static final String DEV1_NINE_AXES_NAME = "9-AXIS DEVICE 1";
+    public static final String DEV1_THREE_AXES_NAME = "3-AXIS DEVICE 1";
+    public static final String DEV2_NINE_AXES_NAME = "9-AXIS DEVICE 2";
+    public static final String DEV2_THREE_AXES_NAME = "9-AXIS DEVICE 2";
     public static final String GPS_SPEED_NAME = "GPS speed";
     public static final String STEP_COUNT_NAME = "STEP COUNT";
     public static final String SAMPLE_CHART1_NAME = "SAMPLE CHART 1";
@@ -194,6 +203,8 @@ public class Constants {
     public static final String FRAGMENT_NAME_DEVICE2_9_AXIS = "FRAGMENT DEVICE_2_9_AXIS";
     public static final String FRAGMENT_NAME_DEVICE2_3_AXIS = "FRAGMENT DEVICE_2_3_AXIS";
     public static final String FRAGMENT_NAME_GPS_SPEED = "FRAGMENT_GPS_SPEED";
+    public static final String UPLOAD_API_KEY  = "AIzaSyD47XeJv-_Q31QHekEftRrEmd3Zu8xYrHE";
+    public static final String CSV_LOG_DIR = "LOG_FILES";
 //    public static final String FRAGMENT_NAME_STEP_COUNT = "FRAGMENT_STEP_COUNT";
 //    public static final String FRAGMENT_NAME_CHART1 = "FRAGMENT_SAMPLE_CHART1";
 //    public static final String FRAGMENT_NAME_CHART2 = "FRAGMENT_SAMPLE_CHART2";
@@ -223,7 +234,7 @@ public class Constants {
     public static final float ACC_3axis_SF = 7.6518f;
 
     // Consumer Thread
-    public static final int WAIT_FOR_DATA = 200;
+    public static final int WAIT_FOR_DATA = 60;
 
     // Firestore
     public static final String PHOTO_DIR = "photos";

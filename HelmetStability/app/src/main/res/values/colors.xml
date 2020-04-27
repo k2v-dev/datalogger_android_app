@@ -25,4 +25,8 @@
     <color name="red_color">#F44336</color>
     <color name="green_color">#4CAF50</color>
     <color name="lightgray"> #f3f3f3 </color>
+    <color name="anonymous_background">#A7A7A7</color>
+    <color name="logout_background">#A7A7A7</color>
+    <color name="pause_background">#A7A7A7</color>
+    <color name="start_session_background">#A7A7A7</color>
 </resources>

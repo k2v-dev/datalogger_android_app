@@ -20,13 +20,14 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class ConsumerThread extends Thread{
     private final String TAG = "ConsumerThread";
     public static ConcurrentLinkedQueue<DeviceData> DATA_QUEUE = new ConcurrentLinkedQueue<>();
-    private static boolean isThreadActive = false;
+    public static boolean isThreadActive = false;
     public static boolean stopProducing = false;
 
     private Context context;
     private  String DEV_1 ;
     private  String DEV_2 ;
     private  String DEV_3;
+    private boolean bSentStopCmd = false;
 
     //Single instance
 //    private static ConsumerThread singleInstance ;
@@ -92,10 +93,10 @@ public class ConsumerThread extends Thread{
             }
 
             if (deviceData.bytes != null && deviceData.bytes.length > 0) {
-                final StringBuilder stringBuilder = new StringBuilder(deviceData.bytes.length);
-                for(byte byteChar : deviceData.bytes)
-                    stringBuilder.append(String.format("%02X ", byteChar));
-                Log.d(TAG, "broadcastData: checking address and data\n " + deviceData.mac_address +", "+stringBuilder);
+//                final StringBuilder stringBuilder = new StringBuilder(deviceData.bytes.length);
+//                for(byte byteChar : deviceData.bytes)
+//                    stringBuilder.append(String.format("%02X ", byteChar));
+//                Log.d(TAG, "broadcastData: checking address and data\n " + deviceData.mac_address +", "+stringBuilder);
                 try{
                     checkPacketType(device_id, deviceData.bytes, deviceData.mac_address);
                 }catch (Exception ex){
@@ -122,14 +123,17 @@ public class ConsumerThread extends Thread{
     }
 
     private void checkPacketType(String device_id, byte[] bytes, String address){
+
         if((bytes[0] == 0x65) && (bytes[1] == 0x00)  && (bytes[2] == 0x65)){
             sendNxtSessioncmd(device_id);
-        }else if((bytes[0] == 0x40) && (bytes[1] == 0x00)  && (bytes[1] == 0x40)){
+        }else if((bytes[0] == 0x40) && (bytes[1] == 0x00)  && (bytes[2] == 0x40)){
            //removeSession(device_id);
             sendStopCmd(device_id);
-        }else if((bytes[0] == 0x50) && (bytes[1] == 0x50)  && (bytes[1] == 0x50)){
+        }else if((bytes[0] == 0x50) && (bytes[1] == 0x00)  && (bytes[2] == 0x50)){
             sendStopCmd(device_id);
-        } else{
+        }else if((bytes[0] == 0x09) && (bytes[1] == 0x00)  && (bytes[2] == 0x09)){
+//            sendStopCmd(device_id);
+        }else{
             sendParsingData(device_id, bytes, address);
         }
     }

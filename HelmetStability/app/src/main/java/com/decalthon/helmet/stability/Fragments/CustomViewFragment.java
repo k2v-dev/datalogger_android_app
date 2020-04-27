@@ -6,29 +6,24 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.ActionBar;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.decalthon.helmet.stability.Activities.MainActivity;
 import com.decalthon.helmet.stability.R;
-import com.decalthon.helmet.stability.Adapters.CustomPagerAdapter;
+import com.decalthon.helmet.stability.Adapters.GraphPagerAdapter;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
-import de.hdodenhof.circleimageview.CircleImageView;
-
+import static com.decalthon.helmet.stability.Utilities.Constants.DEV2_NINE_AXES_NAME;
+import static com.decalthon.helmet.stability.Utilities.Constants.DEV2_THREE_AXES_NAME;
 import static com.decalthon.helmet.stability.Utilities.Constants.GPS_SPEED_NAME;
-import static com.decalthon.helmet.stability.Utilities.Constants.NINE_AXES_NAME;
-import static com.decalthon.helmet.stability.Utilities.Constants.SAMPLE_CHART1_NAME;
-import static com.decalthon.helmet.stability.Utilities.Constants.SAMPLE_CHART2_NAME;
-import static com.decalthon.helmet.stability.Utilities.Constants.STEP_COUNT_NAME;
-import static com.decalthon.helmet.stability.Utilities.Constants.THREE_AXES_NAME;
+import static com.decalthon.helmet.stability.Utilities.Constants.DEV1_NINE_AXES_NAME;
+import static com.decalthon.helmet.stability.Utilities.Constants.DEV1_THREE_AXES_NAME;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -54,8 +49,9 @@ public class CustomViewFragment extends Fragment {
     private String mParam2;
 
     private OnFragmentInteractionListener mListener;
-    private CustomPagerAdapter customPagerAdapter;
+    private GraphPagerAdapter customGraphPagerAdapter;
     private ViewPager2 viewPager;
+    private View actionBarView;
 
     public CustomViewFragment() {
         // Required empty public constructor
@@ -116,20 +112,17 @@ public class CustomViewFragment extends Fragment {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        ActionBar mActionBar = ( (MainActivity) getActivity() ).getSupportActionBar();
-        View actionBarView =  mActionBar.getCustomView();
-        TextView title = actionBarView.findViewById(R.id.title_text);
-        title.setText(R.string.graph_fragment_title);
-        CircleImageView backLink = actionBarView.findViewById(R.id.back_link);
-        backLink.setVisibility(View.VISIBLE);
+
+        View backLink =
+                CustomViewFragment.this.getView().findViewById(R.id.back_navigation);
         backLink.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 MainActivity.shared().onBackPressed();
             }
         });
-        CircleImageView logoutMenuButton = actionBarView.findViewById(R.id.logout_link);
-        logoutMenuButton.setVisibility(View.GONE);
+        /*CircleImageView logoutMenuButton = actionBarView.findViewById(R.id.logout_link);
+        logoutMenuButton.setVisibility(View.GONE);*/
     }
 
     /**
@@ -143,14 +136,14 @@ public class CustomViewFragment extends Fragment {
 
         System.out.println("Custom fragment view created");
 
-        customPagerAdapter = new CustomPagerAdapter(getActivity());
+        customGraphPagerAdapter = new GraphPagerAdapter(getActivity());
 
         //Extract the pager from ID and set its defined adapter
 
         viewPager = view.findViewById(R.id.pager);
 
         viewPager.setUserInputEnabled(false);
-        viewPager.setAdapter(customPagerAdapter);
+        viewPager.setAdapter(customGraphPagerAdapter);
 
         /**
          * Matches the tab position or graph with the tab layout
@@ -176,20 +169,18 @@ public class CustomViewFragment extends Fragment {
         System.out.println("Inside get page title");
         switch(position){
             case 0:
-                return(NINE_AXES_NAME);
+                return(DEV1_NINE_AXES_NAME);
             case 1:
-                return(THREE_AXES_NAME);
+                return(DEV1_THREE_AXES_NAME);
             case 2:
+                return(DEV2_NINE_AXES_NAME);
+            case 3:
+                return(DEV2_THREE_AXES_NAME);
+            case 4:
                 return(GPS_SPEED_NAME);
                 //====Additional charts below====//
-            case 3:
-                return(STEP_COUNT_NAME);
-            case 4:
-                return(SAMPLE_CHART1_NAME);
-            case 5:
-                return(SAMPLE_CHART2_NAME);
         }
-        return NINE_AXES_NAME;
+        return DEV1_NINE_AXES_NAME;
     }
 
 

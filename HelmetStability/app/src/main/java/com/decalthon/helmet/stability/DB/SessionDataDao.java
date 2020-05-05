@@ -37,7 +37,7 @@ public interface SessionDataDao {
     @Query("select * from SensorDataEntity where session_id = (:session_id) order by packet_number")
     public List<SensorDataEntity> getSessionEntityPacket(long session_id);
 
-    @Query("delete from SensorDataEntity where session_id = (:session_id) and dateMillis > 1587883725700")
+    @Query("delete from SensorDataEntity where session_id = (:session_id) and dateMillis > 1587043905100")
     public void deleteSensorData_test(long session_id);
 
 
@@ -54,7 +54,7 @@ public interface SessionDataDao {
     @Update
     public void updateButtonBoxPacket(ButtonBoxEntity sensorDataEntity);
 
-    @Query("delete from ButtonBoxEntity where session_id = (:session_id) and dateMillis < 1587883725700")
+    @Query("delete from ButtonBoxEntity where session_id = (:session_id) and dateMillis > 1587043905100")
     public void deleteButtonBoxEntity(long session_id);
 
     @Query("select * from ButtonBoxEntity where session_id = (:session_id) order by dateMillis")
@@ -74,6 +74,14 @@ public interface SessionDataDao {
 
     @Query( "select * from SessionSummary order by timestamp desc limit 7")
     public List<SessionSummary> getLastSevenSessionSummaries();
+
+    @Query("select * from SessionSummary where timestamp > (:startOfDay) and " +
+            "timestamp < (:endOfDay)" +
+            "order by " +
+            "timestamp desc " +
+            "limit 7 ")
+    public List<SessionSummary> getDailySessionSummary(long startOfDay,
+                                                       long endOfDay);
 
     @Query("select * from SessionSummary where timestamp in (:timestamps)")
     public List<SessionSummary> getSummaryList(Long... timestamps);
@@ -106,8 +114,8 @@ public interface SessionDataDao {
     Long[] getTimestampsForSession(Long[] session_id);
 
     // Delete all
-    @Query("delete from marker_data")
-    void deleteAll();
+//    @Query("delete from marker_data")
+//    void deleteAll();
 
     @Query("delete from SessionSummary where session_id = (:session_id)")
     void deleteSessionSummary(long session_id);
@@ -132,7 +140,11 @@ public interface SessionDataDao {
     @Query("select timestamp from SessionSummary order by timestamp limit 7")
     List<Long> getTimestampsFromSessionSummary();
 
-    @Query("Select activity_type from sessionsummary")
+    @Query("select count(*) from sessionsummary order by timestamp limit 7")
+    Integer getCollectiveMNumberOfSessions();
+
+    @Query("Select distinct activity_type from sessionsummary order by " +
+            "timestamp limit 7")
     Integer [] getAllActivityTypes();
 
     @Query("Select sum(duration) from SessionSummary")
@@ -141,4 +153,33 @@ public interface SessionDataDao {
     @Query("Select sum(total_data) from SessionSummary")
     Integer getTotalDataInBytes();
 
+    @Query("select  dateMillis as timestamp, ax_3axis_dev1 as xval," +
+            "ay_3axis_dev1 as yval ,az_3axis_dev1 as zval from " +
+            "SensorDataEntity where session_id in (:ids)")
+    List<SensorDataEntry> getThreeAxisDevice1(Long... ids);
+
+
+    @Query("select  dateMillis as timestamp, ax_3axis_dev2 as xval," +
+            "ay_3axis_dev2 as yval ,az_3axis_dev2 as zval from " +
+            "SensorDataEntity where session_id in (:ids)")
+    List<SensorDataEntry> getThreeAxisDevice2(Long... ids);
+
+
+    @Query("select  dateMillis as timestamp, gx_9axis_dev2 as xval," +
+            "gy_9axis_dev2 as yval, gz_9axis_dev2 as zval from " +
+            "SensorDataEntity where session_id in (:session_ids) ")
+    List<SensorDataEntry> getDevice2GyroscopeData(Long[] session_ids);
+
+    @Query("select  dateMillis as timestamp, mx_9axis_dev2 as xval, " +
+            "my_9axis_dev2 as yval ,mz_9axis_dev2 as zval  from " +
+            "SensorDataEntity where session_id in (:session_ids) ")
+    List<SensorDataEntry> getDevice2MagnetometerData(Long[] session_ids);
+
+    @Query("select  dateMillis as timestamp, ax_9axis_dev2 as xval," +
+            "ay_9axis_dev2 as yval ,az_9axis_dev2 as zval from " +
+            "SensorDataEntity where session_id in (:session_ids)")
+    List<SensorDataEntry> getDevice2AccelerometerData(Long[] session_ids);
+
+//    @Query("Select gps_speed from gps_speed where ")
+//    List<Float> getGpsSpeeds(Long aLong);
 }

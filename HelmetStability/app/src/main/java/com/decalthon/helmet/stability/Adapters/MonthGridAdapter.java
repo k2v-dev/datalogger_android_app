@@ -2,6 +2,7 @@ package com.decalthon.helmet.stability.Adapters;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,10 +11,12 @@ import android.widget.TextView;
 
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.viewpager2.widget.ViewPager2;
 
 import com.decalthon.helmet.stability.Activities.MainActivity;
 import com.decalthon.helmet.stability.Fragments.CalendarPagerFragment;
 import com.decalthon.helmet.stability.Fragments.MonthlyCalendarFragment;
+import com.decalthon.helmet.stability.Fragments.YearlyCalendarFragment;
 import com.decalthon.helmet.stability.R;
 import com.decalthon.helmet.stability.Utilities.CalendarUtils;
 
@@ -24,6 +27,7 @@ import java.util.Map;
 public class MonthGridAdapter extends BaseAdapter {
 
     private Context mContext;
+    private static String TAG = MonthGridAdapter.class.getSimpleName();
 
     private final String months[];
 
@@ -85,16 +89,39 @@ public class MonthGridAdapter extends BaseAdapter {
      */
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
+        View parentView = (View) parent.getParent();
+        TextView leftCaret = parentView.findViewById(R.id.previous_year_link_vp);
+        TextView rightCaret = parentView.findViewById(R.id.next_year_link_vp);
+
+        leftCaret.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                ViewPager2 parentPager = parentView.getRootView().findViewById(R.id.calendar_pager);
+                int currentPosition = parentPager.getCurrentItem();
+                parentPager.setCurrentItem(currentPosition - 1);
+            }
+        });
+
+        rightCaret.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ViewPager2 parentPager = parentView.getRootView().findViewById(R.id.calendar_pager);
+                int currentPosition = parentPager.getCurrentItem();
+                parentPager.setCurrentItem(currentPosition + 1);
+            }
+        });
+
         TextView monthTextView = new TextView(mContext);
 
         monthTextView.setLayoutParams(new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT));
         monthTextView.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
-//        monthTextView.setBackgroundColor(Color.parseColor("#AAFF8C00"));
+        monthTextView.setBackgroundColor(Color.parseColor("#FFFFFFFF"));
         monthTextView.setPadding(64,80,64,80);
         monthTextView.setText(months[position]);
-        monthTextView.setTextColor(Color.parseColor("#77FFFFFF"));
+        monthTextView.setTextColor(Color.parseColor("#33000000"));
         for(Map.Entry<Date,Integer> entry: CalendarUtils.dateMap.entrySet()){
             Calendar calendar = Calendar.getInstance();
             calendar.setTime(entry.getKey());
@@ -111,8 +138,9 @@ public class MonthGridAdapter extends BaseAdapter {
                                     CalendarPagerFragment.newInstance(MonthlyCalendarFragment.class.getSimpleName(),String.valueOf(position));
                             FragmentTransaction fragmentTransaction =
                                     MainActivity.shared().getSupportFragmentManager().beginTransaction();
-                            fragmentTransaction.replace(R.id.main_activity,
-                                    monthPager,"Monthly Calendar Fragment");
+                            fragmentTransaction.add(R.id.main_activity,
+                                    monthPager, YearlyCalendarFragment.class.getSimpleName());
+                            fragmentTransaction.addToBackStack(MonthGridAdapter.class.getSimpleName());
                             fragmentTransaction.commit();
                         }
                     });

@@ -27,6 +27,9 @@ public class MarkerData {
     @ColumnInfo(name = "note")
     public String note = "";
 
+    @ColumnInfo(name = "note_timestamp")
+    public long note_timestamp;
+
     @ColumnInfo(name = "lng")
     public float lng;
 

@@ -3,10 +3,13 @@ package com.decalthon.helmet.stability.Fragments;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
@@ -28,6 +31,7 @@ public class YearPagerFragment extends Fragment {
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
     private static final int NUM_PAGES = 10;
+    private static final String TAG = YearPagerFragment.class.getSimpleName();
 
 
     // TODO: Rename and change types of parameters
@@ -78,6 +82,13 @@ public class YearPagerFragment extends Fragment {
         yearNumberPagerAdapter = new YearNumberPagerAdapter(this,10,2018);
         viewPager.setAdapter(yearNumberPagerAdapter);
         return view;
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        Log.d(TAG,
+                "onViewCreated: parent frag of yearly pager" + this.getParentFragment());
     }
 
     // TODO: Rename method, update argument and hook method into UI event

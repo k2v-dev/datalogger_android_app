@@ -142,21 +142,22 @@
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:orientation="vertical"
-                    android:padding="8dp"
+                    android:padding="12dp"
                     android:gravity="center"
-                    android:layout_marginEnd="8dp"
                     android:id = "@+id/battery_level1">
+
                     <ImageView
-                        android:layout_width="wrap_content"
-                        android:layout_height="36dp"
-                        android:id = "@+id/battery_level1_icon"
-                        android:src="@drawable/ic_battery_unknown_black_32dp"/>
+                        android:id="@+id/battery_level1_icon"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:src="@drawable/ic_battery_unknown_black_32dp" />
+
                     <TextView
+                        android:id="@+id/battery_level1_percent_text"
                         android:layout_width="wrap_content"
-                        android:layout_height="20dp"
-                        android:textAlignment="center"
-                        android:id = "@+id/battery_level1_percent_text"
-                        android:text=""/>
+                        android:layout_height="10dp"
+                        android:text=""
+                        android:textAlignment="center" />
                 </LinearLayout>
             </LinearLayout>
         </LinearLayout>
@@ -264,17 +265,16 @@
                 android:layout_height="match_parent"
                 android:orientation="vertical"
                 android:gravity="center"
-                android:padding="8dp"
-                android:layout_marginEnd="8dp"
+                android:padding="12dp"
                 android:id = "@+id/battery_level2">
                 <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="36dp"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
                     android:id = "@+id/battery_level2_icon"
                     android:src="@drawable/ic_battery_unknown_black_32dp"/>
                 <TextView
                     android:layout_width="wrap_content"
-                    android:layout_height="20dp"
+                    android:layout_height="10dp"
                     android:textAlignment="center"
                     android:id = "@+id/battery_level2_percent_text"
                     android:text=""/>
@@ -388,16 +388,15 @@
                 android:orientation="vertical"
                 android:gravity="center"
                 android:padding="8dp"
-                android:layout_marginEnd="8dp"
                 android:id = "@+id/battery_level3">
                 <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="36dp"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
                     android:id = "@+id/battery_level3_icon"
                     android:src="@drawable/ic_battery_unknown_black_32dp"/>
                 <TextView
                     android:layout_width="wrap_content"
-                    android:layout_height="20dp"
+                    android:layout_height="10dp"
                     android:textAlignment="center"
                     android:id = "@+id/battery_level3_percent_text"
                     android:text=""/>

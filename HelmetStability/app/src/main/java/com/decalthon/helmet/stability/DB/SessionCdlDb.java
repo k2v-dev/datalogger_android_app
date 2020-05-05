@@ -10,6 +10,7 @@ import androidx.room.RoomDatabase;
 import androidx.room.migration.Migration;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 
+import com.decalthon.helmet.stability.Activities.MainActivity;
 import com.decalthon.helmet.stability.DB.Entities.ButtonBoxEntity;
 import com.decalthon.helmet.stability.DB.Entities.CsvFileStatus;
 import com.decalthon.helmet.stability.DB.Entities.GpsSpeed;
@@ -19,15 +20,15 @@ import com.decalthon.helmet.stability.DB.Entities.SessionSummary;
 
 //This annotation is used to create a RoomDatabase with one or more entities.
 @Database(entities = {GpsSpeed.class, MarkerData.class, SensorDataEntity.class, ButtonBoxEntity.class
-        ,SessionSummary.class, CsvFileStatus.class},  version = 30, exportSchema = false)
+        ,SessionSummary.class, CsvFileStatus.class},  version = 31, exportSchema = false)
 public abstract class SessionCdlDb extends RoomDatabase {
     private static SessionCdlDb sessionCdlDb;
     private static String TAG = "SessionCdlDb";
-    public static SessionCdlDb getInstance(Context context) {
+    public static SessionCdlDb getInstance() {
         if(sessionCdlDb == null){
-            sessionCdlDb = Room.databaseBuilder(context, SessionCdlDb.class,"Session_CDL_DB")
+            sessionCdlDb = Room.databaseBuilder(MainActivity.shared().getApplicationContext(), SessionCdlDb.class,"Session_CDL_DB")
                     //.fallbackToDestructiveMigration()
-                    .addMigrations(MIGRATION_24_25, MIGRATION_25_26, MIGRATION_26_27, MIGRATION_27_28, MIGRATION_29_30)
+                    .addMigrations(MIGRATION_24_25, MIGRATION_25_26, MIGRATION_26_27, MIGRATION_27_28, MIGRATION_29_30, MIGRATION_30_31)
                     .addCallback(callback)
                     .build();
         }
@@ -107,8 +108,19 @@ public abstract class SessionCdlDb extends RoomDatabase {
         @Override
         public void migrate(@NonNull SupportSQLiteDatabase database) {
             database.execSQL("CREATE TABLE IF NOT EXISTS `CsvFileStatus` (`is_uploaded` INTEGER NOT NULL DEFAULT 0, `filename` TEXT NOT NULL,  PRIMARY KEY(`filename`))"
-                   );
+            );
         }
     };
 
+    static final Migration MIGRATION_30_31 = new Migration(30, 31) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase database) {
+            database.execSQL("ALTER TABLE SessionSummary "
+                    + " ADD COLUMN note_timestamp INTEGER NOT NULL DEFAULT '0'");
+            database.execSQL("ALTER TABLE marker_data "
+                    + " ADD COLUMN note_timestamp INTEGER NOT NULL DEFAULT '0'");
+            database.execSQL("Update SessionSummary SET"
+                    + " activity_type = 52, name = 'Cycling_Outdoor'");
+        }
+    };
 }

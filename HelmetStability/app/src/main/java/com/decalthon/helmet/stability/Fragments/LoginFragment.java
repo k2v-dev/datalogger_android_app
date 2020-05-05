@@ -22,6 +22,7 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.chaos.view.PinView;
+import com.decalthon.helmet.stability.Activities.MainActivity;
 import com.decalthon.helmet.stability.R;
 import com.decalthon.helmet.stability.Utilities.Common;
 import com.decalthon.helmet.stability.Utilities.Constants;
@@ -371,7 +372,8 @@ public class LoginFragment extends Fragment implements View.OnClickListener{
                             });
                             FragmentManager fm = getActivity()
                                     .getSupportFragmentManager();
-                            fm.popBackStack(Constants.HOME_FRAGMENT, 0);
+                            fm.popBackStack();
+//                            MainActivity.shared().onBackPressed();
                             /*try{
                                 UserInfoService userInfoService = new UserInfoService();
                                 Request request = userInfoService.login(phone_number);
@@ -493,9 +495,11 @@ public class LoginFragment extends Fragment implements View.OnClickListener{
     public void navigateToRegistrationform(){
         Fragment fragment = new RegistrationFormFragment();
         FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
-        fragmentTransaction.add(R.id.fragment, fragment);
-        fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-        fragmentTransaction.addToBackStack(RegistrationFormFragment.class.getSimpleName());
+//        fragmentTransaction.replace(R.id.fragment, fragment);
+        fragmentTransaction.replace(R.id.fragment,
+                fragment,RegistrationFormFragment.class.getSimpleName());
+//        fragmentTransaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+        fragmentTransaction.addToBackStack(LoginFragment.class.getSimpleName());
         fragmentTransaction.commit();
     }
 

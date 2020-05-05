@@ -19,17 +19,17 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="0.20"
-                android:textSize="20sp"
+                android:textSize="30sp"
                 android:textStyle="bold"
                 android:textAlignment="center"
                 android:text="@string/left_caret"
-                android:textColor="@color/white"/>
+                android:textColor="@color/black"/>
             <TextView
                 android:id = "@+id/year_number_tv"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="0.60"
-                android:textSize="20sp"
+                android:textSize="30sp"
                 android:textAlignment="center"
                 android:text="@string/year_number_placeholder"
                 android:textColor="@color/black"/>
@@ -37,12 +37,12 @@
                 android:id="@+id/next_year_link_vp"
                 android:layout_width="0dp"
                 android:layout_weight="0.20"
-                android:textSize="20sp"
+                android:textSize="30sp"
                 android:layout_height="match_parent"
                 android:textAlignment="center"
                 android:text="@string/right_caret"
                 android:textStyle="bold"
-                android:textColor="@color/white"/>
+                android:textColor="@color/black"/>
         </LinearLayout>
         <!-- TODO: Update blank fragment layout -->
         <GridView

@@ -216,7 +216,7 @@ public class GPSSpeedFragment extends Fragment implements LocationListener  {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         registerAndCheck(this);
-        sessionCdlDb = SessionCdlDb.getInstance(getContext());
+        sessionCdlDb = SessionCdlDb.getInstance();
 //        sessionCdlDb = Room.databaseBuilder(getActivity().getApplicationContext(), SessionCdlDb.class,"Gps_Speed_DB")
 //                .fallbackToDestructiveMigration()
 //                .addCallback(callback)

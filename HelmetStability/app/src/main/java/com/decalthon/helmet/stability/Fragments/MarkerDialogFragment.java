@@ -1,11 +1,11 @@
 package com.decalthon.helmet.stability.Fragments;
 
-import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
-import android.content.Intent;
+import android.content.DialogInterface;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,16 +14,18 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.ActionBar;
+import androidx.core.text.HtmlCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 
-import com.decalthon.helmet.stability.Activities.MainActivity;
 import com.decalthon.helmet.stability.R;
+import com.decalthon.helmet.stability.model.MarkerNote;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+
+import de.greenrobot.event.EventBus;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -38,11 +40,15 @@ public class MarkerDialogFragment extends DialogFragment {
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
+    private static final String ARG_PARAM3 = "param3";
+    private static final String ARG_PARAM4 = "param4";
 
     // TODO: Rename and change types of parameters
-    private String noteParam1;
-    private String mParam2;
-    private final String timeFormat = "yyyy-mm-dd, HH:mm:ss";
+    private String marker_note;
+    private String note_type;
+    private Date marker_date;
+    private Date lst_edited_date;
+    private final String timeFormat = "yyyy-MMM-dd, HH:mm:ss";
 
     private OnFragmentInteractionListener mListener;
 
@@ -54,16 +60,19 @@ public class MarkerDialogFragment extends DialogFragment {
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
      *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
+     * @param marker_note Parameter 1.
+     * @param note_type Parameter 2.
+     * @param marker_timestamp Parameter 3
      * @return A new instance of fragment MarkerDialogFragment.
      */
     // TODO: Rename and change types and number of parameters
-    public static MarkerDialogFragment newInstance(String param1, String param2) {
+    public static MarkerDialogFragment newInstance(String marker_note, String note_type, long marker_timestamp, long note_timestamp) {
         MarkerDialogFragment fragment = new MarkerDialogFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
+        args.putString(ARG_PARAM1, marker_note);
+        args.putString(ARG_PARAM2, note_type);
+        args.putLong(ARG_PARAM3, marker_timestamp);
+        args.putLong(ARG_PARAM4, note_timestamp);
         fragment.setArguments(args);
         return fragment;
     }
@@ -72,8 +81,17 @@ public class MarkerDialogFragment extends DialogFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            noteParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+            marker_note = getArguments().getString(ARG_PARAM1);
+            note_type = getArguments().getString(ARG_PARAM2);
+            long ts = getArguments().getLong(ARG_PARAM3);
+            marker_date = new Date(ts);
+            ts = getArguments().getLong(ARG_PARAM4);
+            if(ts == 0){
+                lst_edited_date = null;
+            }else{
+                lst_edited_date = new Date(ts);
+            }
+
         }
     }
 
@@ -91,8 +109,23 @@ public class MarkerDialogFragment extends DialogFragment {
 
         View view = inflater.inflate(R.layout.fragment_marker_dialog, container, false);
         TextView dtTemp = view.findViewById(R.id.date_time_view) ;
-        dtTemp.setText(new SimpleDateFormat(timeFormat, Locale.getDefault()).format(new Date()));
+
+        dtTemp.setText(new SimpleDateFormat(timeFormat, Locale.getDefault()).format(marker_date));
+        if(note_type.equalsIgnoreCase("2")){
+            dtTemp.setVisibility(View.INVISIBLE);
+        }else{
+            dtTemp.setVisibility(View.VISIBLE);
+        }
         EditText textEditor = view.findViewById(R.id.text_editor_view);
+        TextView lstEditDt = view.findViewById(R.id.last_edit_tv) ;
+        if(lst_edited_date != null){
+            String dateStr = HtmlCompat.fromHtml("<i>Last edited:</i>", 0)+new SimpleDateFormat(timeFormat, Locale.getDefault()).format(lst_edited_date);
+            lstEditDt.setText(dateStr);
+        }else{
+            lstEditDt.setText("");
+        }
+
+        textEditor.setText(marker_note);
 //        TextEditor.setText(.toString());
 
         view.findViewById(R.id.close_marker_note_popup).setOnClickListener(new View.OnClickListener() {
@@ -101,34 +134,48 @@ public class MarkerDialogFragment extends DialogFragment {
                         MarkerDialogFragment.this.dismiss();
                     }
         });
-
-        view.findViewById(R.id.marker_data_save_button)
+        view.findViewById(R.id.cancelButton)
                 .setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        String check = textEditor.getText().toString();
-
+                        MarkerDialogFragment.this.dismiss();
+                    }
+                });
+        view.findViewById(R.id.deleteButton)
+                .setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        EventBus.getDefault().post(new MarkerNote(note_type, ""));
+                        dismiss();
                     }
                 });
 
         view.findViewById(R.id.marker_data_save_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent();
-                intent.putExtra("Note", noteParam1);
-                if(getTargetFragment() != null) {
-                    getTargetFragment().onActivityResult
-                            (getTargetRequestCode(), Activity.RESULT_OK, intent);
-                }
+                marker_note = textEditor.getText().toString();
+//                Intent intent = new Intent();
+//                intent.putExtra("Note", marker_note);
+//                if(getTargetFragment() != null) {
+//                    getTargetFragment().onActivityResult
+//                            (getTargetRequestCode(), Activity.RESULT_OK, intent);
+//                }
+                EventBus.getDefault().post(new MarkerNote(note_type, marker_note));
+                dismiss();
             }
         });
 
-        if(textEditor.getText().toString().isEmpty()) {
-            dtTemp.setText(new SimpleDateFormat(timeFormat, Locale.getDefault()).format(new Date()));
-        }else{
-            textEditor.setText(noteParam1);
-        }
+//        if(textEditor.getText().toString().isEmpty()) {
+//            dtTemp.setText(new SimpleDateFormat(timeFormat, Locale.getDefault()).format(marker_date));
+//        /*}else{
+//            textEditor.setText(noteParam1);*/
+//        }
         return view;
+    }
+
+    @Override
+    public void onDismiss(@NonNull DialogInterface dialog) {
+        super.onDismiss(dialog);
     }
 
     @NonNull

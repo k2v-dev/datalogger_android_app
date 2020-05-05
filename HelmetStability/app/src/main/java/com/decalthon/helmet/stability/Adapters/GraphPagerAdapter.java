@@ -6,6 +6,7 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 
 import com.decalthon.helmet.stability.Fragments.CustomGraphFragment;
+import com.decalthon.helmet.stability.Utilities.Constants;
 
 import static com.decalthon.helmet.stability.Utilities.Constants.FRAGMENT_NAME_DEVICE1_9_AXIS;
 import static com.decalthon.helmet.stability.Utilities.Constants.FRAGMENT_NAME_DEVICE1_3_AXIS;
@@ -41,6 +42,6 @@ public class GraphPagerAdapter extends FragmentStateAdapter {
     @Override
     public int getItemCount() {
         System.out.println("Get count is called");
-        return 6;
+        return Constants.GRAPH_COUNT;
     }
 }

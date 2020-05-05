@@ -1,6 +1,7 @@
 package com.decalthon.helmet.stability.Fragments;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -369,18 +370,34 @@ public class MonthlyCalendarFragment extends Fragment{
         RecyclerView monthView = view.findViewById(R.id.days_grid_view);
         TextView monthTextView = view.findViewById(R.id.month_view_tv);
 
-        TextView leftPager = view.findViewById(R.id.left_month_pager);
+        TextView leftCaretView =
+                view.findViewById(R.id.left_month_pager);
+        TextView rightCaretView =
+                view.findViewById(R.id.right_month_pager);
 
-        leftPager.setOnClickListener(new View.OnClickListener() {
-
+        leftCaretView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Log.d(TAG, "onClick: Parent Fragment is:" + getParentFragment());
-                ;
+                View viewroot = view.getRootView();
+                ViewPager2 viewPager2 =
+                        (ViewPager2) viewroot.findViewById(R.id.calendar_pager);
+                int currentPage =  viewPager2.getCurrentItem();
+                viewPager2.setCurrentItem( currentPage - 1 );
             }
         });
 
-        TextView rightPager = view.findViewById(R.id.right_month_pager);
+        rightCaretView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                View viewroot = view.getRootView();
+                ViewPager2 viewPager2 =
+                        (ViewPager2) viewroot.findViewById(R.id.calendar_pager);
+                int currentPage =  viewPager2.getCurrentItem();
+                viewPager2.setCurrentItem( currentPage + 1 );
+
+                Log.d(TAG, "onClick: Right caret press");
+            }
+        });
 
         Calendar displayedMonth = Calendar.getInstance();
 //        displayedMonth.set(Calendar.MONTH,
@@ -436,7 +453,8 @@ public class MonthlyCalendarFragment extends Fragment{
 
         CalendarGridAdapter calendarGridAdapter =
                 new CalendarGridAdapter(gridCells,
-                        (ArrayList<Integer>) mEventDays);
+                        (ArrayList<Integer>) mEventDays,
+                        displayedMonth.get(displayedMonth.get(Calendar.MONTH)));
         monthView.setAdapter(calendarGridAdapter);
     }
 
@@ -453,6 +471,7 @@ public class MonthlyCalendarFragment extends Fragment{
                         yearPager,
                         "Yearly" +
                                 " Calendar Fragment");
+                fragmentTransaction.addToBackStack(CalendarPagerFragment.class.getSimpleName());
                 fragmentTransaction.commit();
             }
         });

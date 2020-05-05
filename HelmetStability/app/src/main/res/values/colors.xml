@@ -24,7 +24,8 @@
     <color name="border_color">#99000000</color>
     <color name="red_color">#F44336</color>
     <color name="green_color">#4CAF50</color>
-    <color name="lightgray"> #f3f3f3 </color>
+    <color name="lightgray"> #fff3f3f3 </color>
+    <color name ="offgray">#d7d7d7</color>
     <color name="anonymous_background">#A7A7A7</color>
     <color name="logout_background">#A7A7A7</color>
     <color name="pause_background">#A7A7A7</color>

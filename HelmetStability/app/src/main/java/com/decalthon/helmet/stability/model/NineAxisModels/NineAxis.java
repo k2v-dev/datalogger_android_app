@@ -6,7 +6,14 @@ import android.graphics.Color;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.decalthon.helmet.stability.Activities.MainActivity;
+import com.decalthon.helmet.stability.AsyncTasks.ImuAsyncTasks.GetDevice1ThreeAxisSensorDataAsyncTask;
+import com.decalthon.helmet.stability.AsyncTasks.ImuAsyncTasks.GetDevice2AccNineAxisSensorDataAsyncTask;
+import com.decalthon.helmet.stability.AsyncTasks.ImuAsyncTasks.GetDevice2GyroNineAxisSensorDataAsyncTask;
+import com.decalthon.helmet.stability.AsyncTasks.ImuAsyncTasks.GetDevice2MagnetoNineAxisSensorDataAsyncTask;
+import com.decalthon.helmet.stability.AsyncTasks.ImuAsyncTasks.GetDevice2ThreeAxisSensorDataAsyncTask;
 import com.decalthon.helmet.stability.DB.SessionCdlDb;
+import com.decalthon.helmet.stability.R;
 import com.decalthon.helmet.stability.Utilities.Constants;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.Legend;
@@ -27,8 +34,7 @@ public class NineAxis {
 
     //Used to plot a point of each color in every millisecond time gap
     private static float milliSecondUpdater = Constants.UPDATER_STATIC;
-    private static SessionCdlDb sessionCdlDb;
-    private static Context mContext;
+
     private static Long mSessionId = (long)4;
     private static MagnetometerData magnetometerData;
     private static NineAxis nineAxisInstance = null;
@@ -41,10 +47,9 @@ public class NineAxis {
         mSessionId = session_id;
     }*/
 
-    public static NineAxis getInstance(Context context) {
+    public static NineAxis getInstance() {
         if(nineAxisInstance == null){
             nineAxisInstance = new NineAxis();
-            mContext = context;
         }
         return nineAxisInstance;
     }
@@ -58,26 +63,25 @@ public class NineAxis {
     }
 
     //Plot circles are removed for all plots to save screens space
-    public void formatPlotCircles(LineDataSet anyDataSet) {
+    public static void formatPlotCircles(LineDataSet anyDataSet) {
         anyDataSet.setDrawCircles(false);
         anyDataSet.setDrawFilled(false);
         anyDataSet.setDrawValues(false);
     }
 
-    public Long[] getCommonTimestamps() throws ExecutionException, InterruptedException {
-        Long[] sessionTimestamps = null;
-        sessionTimestamps = new GetSessionTimestampsAsyncTask().execute(mSessionId).get();
-        return sessionTimestamps;
-    }
 
+    public void drawGraph(String graphType, LineChart plottable,
+                          String device_id, String axes) throws ExecutionException,
+            InterruptedException {
 
-    public void drawGraph(String graphType, LineChart plottable) throws ExecutionException, InterruptedException {
         LineDataSet lineDataSetX = new LineDataSet(null, graphType.charAt(0)+"x");
         LineDataSet lineDataSetY = new LineDataSet(null, graphType.charAt(0)+"y");
         LineDataSet lineDataSetZ = new LineDataSet(null, graphType.charAt(0)+"z");
+
         LineData lineData = new LineData();
 
-        List<SensorDataEntry> sensorDataReadings = getReadings(graphType);
+        List<SensorDataEntry> sensorDataReadings = getReadings(graphType,axes
+                ,device_id);
         timeOfStart = sensorDataReadings.get(0).getTime();
         if(sensorDataReadings != null){
             for(SensorDataEntry sensorDataEntry : sensorDataReadings){
@@ -109,8 +113,7 @@ public class NineAxis {
     private void prepareChart(LineChart anyLineChart) {
 
         /*Chart specific settings*/
-        anyLineChart.setNoDataText("No data at the moment");
-        anyLineChart.setDragEnabled(true);
+        anyLineChart.setNoDataText("Loading");
         anyLineChart.setDragEnabled(true);
         anyLineChart.setDrawGridBackground(false);
         anyLineChart.setPinchZoom(true);
@@ -142,26 +145,60 @@ public class NineAxis {
     }
 
     private void prepareLegend(LineChart anyLineChart) {
+        Context mContext = MainActivity.shared().getApplicationContext();
         Legend legend = anyLineChart.getLegend();
         legend.setForm(Legend.LegendForm.CIRCLE);
-        anyLineChart.getDescription().setText("TIME(ms)");
+        anyLineChart.getDescription().setText(mContext.getString(R.string.time_measure));
         legend.setVerticalAlignment(Legend.LegendVerticalAlignment.TOP);
     }
 
-    private static List<SensorDataEntry> getReadings(String graphType) throws ExecutionException, InterruptedException {
+    private static List<SensorDataEntry> getReadings(String graphType,
+                                                     String axes,
+                                                     String device_id) throws ExecutionException, InterruptedException {
         List<SensorDataEntry> sensorDataReadings = new ArrayList<>();
-        if(graphType.equalsIgnoreCase("Acceleration")){
-            sensorDataReadings =
-                    new GetDevice1AccNineAxisSensorDataAsyncTask().execute((long)4).get();
-        }else if(graphType.equalsIgnoreCase("Gyroscope")){
-            sensorDataReadings =
-                    new GetDevice1GyroNineAxisSensorDataAsyncTask().execute((long)4).get();
-        }else if(graphType.equalsIgnoreCase(("Magnetometer"))){
-            sensorDataReadings =
-                    new GetDevice1MagnetoNineAxisSensorDataAsyncTask().execute((long)4).get();
+
+        Context mContext = MainActivity.shared().getApplicationContext();
+
+        String DEV_1 = mContext.getString(R.string.device1_tv);
+        String DEV_2 = mContext.getString(R.string.device2_tv);
+
+        if(axes.equalsIgnoreCase(mContext.getString(R.string.three_axis))){
+            if(device_id.equals(DEV_1)) {
+                sensorDataReadings =
+                        new GetDevice1ThreeAxisSensorDataAsyncTask().execute((long) 4).get();
+            }else{
+                sensorDataReadings =
+                        new GetDevice2ThreeAxisSensorDataAsyncTask().execute((long) 4).get();
+            }
+        }else if(axes.equalsIgnoreCase(mContext.getString(R.string.nine_axis))){
+            if(device_id.equals(DEV_1)) {
+                if(graphType.equalsIgnoreCase("Acceleration")){
+                    sensorDataReadings =
+                            new GetDevice1AccNineAxisSensorDataAsyncTask().execute((long)4).get();
+                }else if(graphType.equalsIgnoreCase("Gyroscope")){
+                    sensorDataReadings =
+                            new GetDevice1GyroNineAxisSensorDataAsyncTask().execute((long)4).get();
+                }else if(graphType.equalsIgnoreCase(("Magnetometer"))){
+                    sensorDataReadings =
+                            new GetDevice1MagnetoNineAxisSensorDataAsyncTask().execute((long)4).get();
+                }
+            }else{
+                if(graphType.equalsIgnoreCase("Acceleration")){
+                    sensorDataReadings =
+                            new GetDevice2AccNineAxisSensorDataAsyncTask().execute((long)4).get();
+                }else if(graphType.equalsIgnoreCase("Gyroscope")){
+                    sensorDataReadings =
+                            new GetDevice2GyroNineAxisSensorDataAsyncTask().execute((long)4).get();
+                }else if(graphType.equalsIgnoreCase(("Magnetometer"))){
+                    sensorDataReadings =
+                            new GetDevice2MagnetoNineAxisSensorDataAsyncTask().execute((long)4).get();
+                }
+            }
         }
         return sensorDataReadings;
     }
+
+
 
     //The accelerometer class
 //    public class Accelerometer {
@@ -437,7 +474,7 @@ public class NineAxis {
 
         @Override
         protected List<SensorDataEntry> doInBackground(Long... longs) {
-            return SessionCdlDb.getInstance(mContext).getSessionDataDAO().getHelmetAccelerometerData(longs);
+            return SessionCdlDb.getInstance().getSessionDataDAO().getHelmetAccelerometerData(longs);
         }
 
         @Override
@@ -471,7 +508,7 @@ public class NineAxis {
 
         @Override
         protected Long[] doInBackground(Long... longs) {
-            return  SessionCdlDb.getInstance(mContext).getSessionDataDAO().getTimestampsForSession(longs);
+            return  SessionCdlDb.getInstance().getSessionDataDAO().getTimestampsForSession(longs);
         }
     }
 
@@ -479,7 +516,7 @@ public class NineAxis {
 
         @Override
         protected List<SensorDataEntry> doInBackground(Long... longs) {
-            return SessionCdlDb.getInstance(mContext).getSessionDataDAO().getHelmetGyroscopeData(longs);
+            return SessionCdlDb.getInstance().getSessionDataDAO().getHelmetGyroscopeData(longs);
         }
     }
 
@@ -487,7 +524,7 @@ public class NineAxis {
 
         @Override
         protected List<SensorDataEntry> doInBackground(Long... longs) {
-            return SessionCdlDb.getInstance(mContext).getSessionDataDAO().getHelmetMagnetometerData(longs);
+            return SessionCdlDb.getInstance().getSessionDataDAO().getHelmetMagnetometerData(longs);
         }
     }
 }

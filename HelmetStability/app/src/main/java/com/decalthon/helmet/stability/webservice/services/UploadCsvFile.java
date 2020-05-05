@@ -54,7 +54,7 @@ public class UploadCsvFile {
 
     private UploadCsvFile(Context context) {
         //this.context = context;
-        sessionCdlDb = SessionCdlDb.getInstance(context);
+        sessionCdlDb = SessionCdlDb.getInstance();
         PATH = context.getPackageName() + File.separator + Constants.CSV_LOG_DIR;
     }
 

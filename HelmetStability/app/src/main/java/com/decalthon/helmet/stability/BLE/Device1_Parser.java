@@ -51,7 +51,7 @@ public class Device1_Parser extends Device_Parser{
         this.context = context;
 //        this.device_id = device_id;
 //        this.address = address;
-        sessionCdlDb = SessionCdlDb.getInstance(context);
+        sessionCdlDb = SessionCdlDb.getInstance();
         timestamps = new ArrayList<>();
 
     }
@@ -378,7 +378,9 @@ public class Device1_Parser extends Device_Parser{
 
         sessionHeader.setFirmwareType((short) (received_data[13] & 0xFF));
 
-        sessionHeader.setActivity_type(received_data[14] & 0xFF);
+        int act_code = received_data[14] & 0xFF;
+
+        sessionHeader.setActivity_type(act_code);
 
         int samp_freq = received_data[15] & 0xFF;
 
@@ -390,13 +392,24 @@ public class Device1_Parser extends Device_Parser{
         float duration = ((float) total_pkts)/((float)samp_freq);
 
         DeviceHelper.REC_SESSION_HDR = sessionHeader;
+
+        if(act_code < 10){
+            act_code = 52;
+            sessionHeader.setActivity_type(act_code);
+        }
+        String session_name = Constants.ActivityCodeMap.inverse().get(act_code);
+        SessionSummary sessionSummary = DeviceHelper.SESSION_SUMMARIES.get(session_num);
+        String date_str = dateFileFormat.format(sessionSummary.getDate());
+        session_name += "_"+date_str;
         DeviceHelper.SESSION_SUMMARIES.get(session_num).setActivity_type(sessionHeader.getActivity_type());
+        DeviceHelper.SESSION_SUMMARIES.get(session_num).setName(session_name);
         DeviceHelper.SESSION_SUMMARIES.get(session_num).setFirmware_type(sessionHeader.getFirmwareType());
         DeviceHelper.SESSION_SUMMARIES.get(session_num).setSampling_freq(sessionHeader.getSamp_freq());
+
         DeviceHelper.SESSION_SUMMARIES.get(session_num).setDuration(duration);
         String name = Constants.ActivityCodeMap.inverse().get(sessionHeader.getActivity_type());
-        if(name != null && name.length() > 0){
-            DeviceHelper.SESSION_SUMMARIES.get(session_num).setName(name);
+        if(name != null && name.length() >0){
+            DeviceHelper.SESSION_SUMMARIES.get(session_num).setName(session_name);
         }
         last_data = null;
         //DeviceHelper.SESSION_HDRS.put(session_num, sessionHeader);

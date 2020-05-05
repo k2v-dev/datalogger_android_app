@@ -3,22 +3,19 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:id = "@+id/year_pager_fragment"
+    android:id = "@+id/calendar_pager_fragment"
     android:orientation="vertical"
     android:background="@color/white"
     android:clickable="true"
     android:focusable="true"
     tools:context=".Fragments.CalendarPagerFragment">
 
-    <include layout="@layout/actionbar_page"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="0.10"/>
+    <include layout="@layout/actionbar_page" />
 
     <!-- TODO: Update blank fragment layout -->
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/calendar_pager"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="0.90"/>
+        android:layout_weight="1"/>
 </LinearLayout>

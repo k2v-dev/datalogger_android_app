@@ -23,6 +23,7 @@ import com.decalthon.helmet.stability.Adapters.SessionSummaryListAdapter;
 import com.decalthon.helmet.stability.DB.Entities.SessionSummary;
 import com.decalthon.helmet.stability.DB.SessionCdlDb;
 import com.decalthon.helmet.stability.R;
+import com.decalthon.helmet.stability.Utilities.Constants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -119,17 +120,18 @@ public class SevenSessionsSummaryFragment extends Fragment {
 
         sessionListView.setAdapter(new SessionSummaryListAdapter(mContext,
                 sessionSummaries));
+        List<SessionSummary> finalSessionSummaries = sessionSummaries;
         sessionListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Fragment mapFragment =
-                        MapFragment.newInstance(String.valueOf(4),
-                                "Display");
-//                    Fragment mapFragment = MapFragment.newInstance("SESSION"+position , "Display");
+                MapFragment.newInstance(Constants.ActivityCodeMap.inverse().get(finalSessionSummaries.get(position).getActivity_type()), (long)4, finalSessionSummaries.get(position).getDuration());
                 FragmentManager fragmentManager
                         = getFragmentManager();
                 FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-                fragmentTransaction.replace(R.id.session_summary_fragment,mapFragment,"Seven Session Summary");
+                fragmentTransaction.replace(SevenSessionsSummaryFragment.this.getId(),
+                        mapFragment,MapFragment.class.getSimpleName());
+                fragmentTransaction.addToBackStack(null);
                 fragmentTransaction.commit();
             }
         });
@@ -191,9 +193,18 @@ public class SevenSessionsSummaryFragment extends Fragment {
         @Override
         protected List<SessionSummary> doInBackground(Void... voids) {
             Log.d(TAG, "doInBackground: Entering checking the query");
-            return SessionCdlDb.getInstance(mContext).getSessionDataDAO().getLastSevenSessionSummaries();
+            return SessionCdlDb.getInstance().getSessionDataDAO().getLastSevenSessionSummaries();
         }
     }
+
+//    private class GetDaySessionSummariesAsyncTask extends AsyncTask<Void,Void,
+//            List<SessionSummary>>{
+//        @Override
+//        protected List<SessionSummary> doInBackground(Void... voids) {
+//            Log.d(TAG, "doInBackground: Entering checking the query");
+//            return SessionCdlDb.getInstance(mContext).getSessionDataDAO().getLastSevenSessionSummaries();
+//        }
+//    }
 }
 
 

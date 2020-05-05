@@ -449,10 +449,6 @@ public class DeviceFragment extends Fragment {
     public void onDetach() {
         Log.d(TAG,"OnDetach");
         super.onDetach();
-        /*ActionBar actionBar = ((MainActivity)getActivity()).getSupportActionBar();
-        if(actionBar != null){
-            actionBar.getCustomView().findViewById(R.id.disconnect_btn).setVisibility(View.GONE);
-        }*/
         mListener = null;
     }
 

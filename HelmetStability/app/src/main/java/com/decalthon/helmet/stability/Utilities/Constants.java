@@ -10,6 +10,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public class Constants {
@@ -38,7 +39,7 @@ public class Constants {
     public static final String LOGIN_FRAGMENT = "LoginFragment";
     public static final String REGISTRATION_FRAGMENT = "RegistrationFormFragment";
     public static final int MAX_SESSIONS_COUNT = 7;
-    public static final int MAX_SESSION_CARD_LINES = 10;
+    public static final int MAX_SESSION_CARD_LINES = 7;
 
 
 
@@ -111,8 +112,9 @@ public class Constants {
     public static BiMap<String, Integer> ActivityCodeMap = HashBiMap.create();
     public static final String INDOOR = "Indoor";
     public static final String OUTDOOR = "Outdoor";
-
+    public static final String dateFormatString = "MMM dd YYYY HH:MM:SS EEE";
     public static final int typesOfData = 38;
+    public static int INDOOR_REGULAR_TIMESTAMPS_INTERVAL = 50;
 //    static {
 //        DEVICE_MAPS.put(R.string.device1_tv, new DeviceDetails());
 //        DEVICE_MAPS.put("Device 2", new DeviceDetails());
@@ -174,21 +176,21 @@ public class Constants {
     public static final float ZOOM_STREET = 15;
     public static final float ZOOM_BUILDING = 20;
     public static final float ZOOM_EARTH = 0;
-    public static final double POLYLINE_DISTANCE = 100.0;
+    public static final double POLYLINE_DISTANCE = 350.0;
     public static final int DATA_LIST_SIZE = 60000;
     public static final int TEST_SAMPLE_SIZE = 60000;
     public static final int TAB_LAYOUT_SIZE = 10;
     public static final float POINTS_MAX = DATA_LIST_SIZE/1000;
     public static final float POINTS_PER_SCALE = DATA_LIST_SIZE/10000;
-    public static final int GRAPH_COUNT = 6;
+    public static final int GRAPH_COUNT = 5;
 
 
     public static final String MAP_NAME = "MAP";
     public static final String DEV1_NINE_AXES_NAME = "9-AXIS DEVICE 1";
     public static final String DEV1_THREE_AXES_NAME = "3-AXIS DEVICE 1";
     public static final String DEV2_NINE_AXES_NAME = "9-AXIS DEVICE 2";
-    public static final String DEV2_THREE_AXES_NAME = "9-AXIS DEVICE 2";
-    public static final String GPS_SPEED_NAME = "GPS speed";
+    public static final String DEV2_THREE_AXES_NAME = "3-AXIS DEVICE 2";
+    public static final String GPS_SPEED_NAME = "GPS SPEED";
     public static final String STEP_COUNT_NAME = "STEP COUNT";
     public static final String SAMPLE_CHART1_NAME = "SAMPLE CHART 1";
     public static final String SAMPLE_CHART2_NAME = "SAMPLE CHART 2";
@@ -205,18 +207,27 @@ public class Constants {
     public static final String FRAGMENT_NAME_GPS_SPEED = "FRAGMENT_GPS_SPEED";
     public static final String UPLOAD_API_KEY  = "AIzaSyD47XeJv-_Q31QHekEftRrEmd3Zu8xYrHE";
     public static final String CSV_LOG_DIR = "LOG_FILES";
+    public static final String CHART_LOG_DIR = "CHART_FILES";
 //    public static final String FRAGMENT_NAME_STEP_COUNT = "FRAGMENT_STEP_COUNT";
 //    public static final String FRAGMENT_NAME_CHART1 = "FRAGMENT_SAMPLE_CHART1";
 //    public static final String FRAGMENT_NAME_CHART2 = "FRAGMENT_SAMPLE_CHART2";
 //    public static final String AFTER_MAP_STATE = "AFTER MAP";
 
     public static Map<Integer,String> TAB_ID_MAPS = new HashMap<>();
-    {
+    static{
         TAB_ID_MAPS.put(0,FRAGMENT_NAME_DEVICE1_9_AXIS);
         TAB_ID_MAPS.put(1,FRAGMENT_NAME_DEVICE1_3_AXIS);
         TAB_ID_MAPS.put(2,FRAGMENT_NAME_DEVICE2_9_AXIS);
         TAB_ID_MAPS.put(3,FRAGMENT_NAME_DEVICE2_3_AXIS);
         TAB_ID_MAPS.put(4,FRAGMENT_NAME_GPS_SPEED);
+    }
+    public static Map<String, Boolean> TAB_MAP = new HashMap<>();
+    static {
+        TAB_MAP.put(FRAGMENT_NAME_DEVICE1_9_AXIS, false);
+        TAB_MAP.put(FRAGMENT_NAME_DEVICE1_3_AXIS, false);
+        TAB_MAP.put(FRAGMENT_NAME_DEVICE2_9_AXIS, false);
+        TAB_MAP.put(FRAGMENT_NAME_DEVICE2_3_AXIS, false);
+        TAB_MAP.put(FRAGMENT_NAME_GPS_SPEED, false);
     }
 
 //    public enum TAB_ID_MAPS {

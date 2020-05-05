@@ -5,7 +5,6 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
-import android.location.Location;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -26,6 +25,7 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import de.greenrobot.event.EventBus;
 
 import com.decalthon.helmet.stability.Activities.MainActivity;
 import com.decalthon.helmet.stability.DB.Entities.GpsSpeed;
@@ -35,7 +35,8 @@ import com.decalthon.helmet.stability.DB.SessionCdlDb;
 import com.decalthon.helmet.stability.R;
 import com.decalthon.helmet.stability.Utilities.Common;
 import com.decalthon.helmet.stability.Utilities.Constants;
-import com.decalthon.helmet.stability.model.IndoorTimestamp;
+import com.decalthon.helmet.stability.model.Generic.TimeFmt;
+import com.decalthon.helmet.stability.model.MarkerNote;
 import com.github.vipulasri.timelineview.TimelineView;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -57,9 +58,12 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import static com.decalthon.helmet.stability.Fragments.GPSSpeedFragment.sessionCdlDb;
 import static com.decalthon.helmet.stability.Utilities.Constants.FRAGMENT_NAME_DEVICE1_9_AXIS;
@@ -84,24 +88,34 @@ import static com.decalthon.helmet.stability.Utilities.Constants.INTER_MARKER_CO
 public class MapFragment extends Fragment implements OnMapReadyCallback {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String activityType = "outdoor";
-//    private static final String activityType = "indoor";
+    private static final String ARG_PARAM1 = "param1";
+
 //    private static final String activityType =
 //            Constants.ActivityCodeMap.inverse().get(52);
     private static final String ARG_PARAM2 = "param2";
+    private static final String ARG_PARAM3 = "param3";
+
+    private String activityType;
+    private float activityDuration;
+
     private GoogleMap mMap;
 //    private MapView mapView;
     private LatLngBounds.Builder builder = new LatLngBounds.Builder();
     private LatLngBounds bounds;
     // TODO: Rename and change types of parameters
-    private String noteparam1;
-    private String mParam2;
+    private String mParam1;
+    private Long mParam2;
 
+    private Marker outdoorMarkerCurrent;
+    private View indoorMarkerCurrent;
+    private CardView currentIndoorCard;
+    private MarkerData markerDataCurrent;
     private static String noteFromId;
 
     private static String TAG = MapFragment.class.getSimpleName();
 
     private static int currentMessageId;
+    private EventBus mBus = EventBus.getDefault();
 
     //Session specific variables
     private static MarkerData markerData;
@@ -109,10 +123,16 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     private OnFragmentInteractionListener mListener;
     /**ArrayList of LatLng Objects, added from project assets*/
     private List<MarkerData> markerDatas;
-    private List<GpsSpeed> gpsSpeeds;
-    private static ArrayList<LatLng> markerPosList = new ArrayList<>();
-    private static ArrayList<LatLng> gpsPosList = new ArrayList<>();
-    private int session_id = 4;
+//    ONLY FOR TESTING PURPOSE. DO NOT USE THIS;
+
+    public static List<GpsSpeed> gpsSpeeds;
+//    private List<GpsSpeed> gpsSpeeds;
+    private  ArrayList<LatLng> markerPosList = new ArrayList<>();
+
+    private  ArrayList<LatLng> gpsPosList = new ArrayList<>();
+    private long session_id = 4;
+    private SessionSummary curSessionSummary;
+
 
     /**Fragment specific local variables*/
     private Context mContext;
@@ -138,14 +158,16 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
      *
      * @param param1 Parameter 1.
      * @param param2 Parameter 2.
+     * @param param3
      * @return A new instance of fragment MapFragment.
      */
     // TODO: Rename and change types and number of parameters
-    public static MapFragment newInstance(String param1, String param2) {
+    public static MapFragment newInstance(String param1, long param2, float param3){
         MapFragment fragment = new MapFragment();
         Bundle args = new Bundle();
-        args.putString(activityType, param1);
-        args.putString(ARG_PARAM2, param2);
+        args.putString(ARG_PARAM1, param1);
+        args.putLong(ARG_PARAM2, param2);
+        args.putFloat(ARG_PARAM3,param3);
         fragment.setArguments(args);
         return fragment;
     }
@@ -158,8 +180,10 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            noteparam1 = getArguments().getString(activityType);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+//            activityType = getArguments().getString(ARG_PARAM1); // Cyclic_Outdoor
+            activityType = "indoor";
+            mParam2 = getArguments().getLong(ARG_PARAM2);
+            activityDuration = getArguments().getFloat(ARG_PARAM3);
         }
     }
 
@@ -178,7 +202,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 //        TODO just for now
         View view;
 
-        if(activityType.equalsIgnoreCase(getString(R.string.activity_outdoor))) {
+        if(activityType.toLowerCase().contains(getString(R.string.activity_outdoor).toLowerCase()))  {
             view =  inflater.inflate(R.layout.fragment_outdoor_map, container, false);
             SupportMapFragment mapFragment =
                     (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
@@ -187,40 +211,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             }
         }else{
             view =  inflater.inflate(R.layout.fragment_indoor_map, container, false);
-            TimeLineViewAdapter timeLineViewAdapter;
-            ArrayList<IndoorTimestamp> datalist = new ArrayList<>();
-            datalist.add(new IndoorTimestamp(
-                    (new SimpleDateFormat(timeFormat, Locale.getDefault()).format(new Date())),
-                    "HELLO"));
-            datalist.add(new IndoorTimestamp((new SimpleDateFormat(timeFormat, Locale.getDefault()).format(new Date())),
-                    ""));
-            datalist.add(new IndoorTimestamp((new SimpleDateFormat(timeFormat, Locale.getDefault()).format(new Date())),
-                    "BYE"));
-            datalist.add(new IndoorTimestamp((new SimpleDateFormat(timeFormat, Locale.getDefault()).format(new Date())),
-                    "HELLO"));
-            datalist.add(new IndoorTimestamp((new SimpleDateFormat(timeFormat, Locale.getDefault()).format(new Date())),
-                    "TEST"));
 
-            RecyclerView indoorRecyclerView = view.findViewById(R.id.indoor_recycler_view);
-            LinearLayoutManager linearLayoutManager = new LinearLayoutManager
-                    (getContext(),RecyclerView.VERTICAL,false);
-            timeLineViewAdapter = new TimeLineViewAdapter(datalist);
-            indoorRecyclerView.setLayoutManager(linearLayoutManager);
-            indoorRecyclerView.setAdapter(timeLineViewAdapter);
-            indoorRecyclerView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    CustomViewFragment customViewFragment = CustomViewFragment.newInstance
-                            (FRAGMENT_NAME_DEVICE1_9_AXIS,"plot");
-                    FragmentTransaction ftxn = getFragmentManager()
-                            .beginTransaction();
-                    ftxn.replace(MapFragment.this.getId(),
-                            customViewFragment,
-                            CustomViewFragment.class.getSimpleName());
-                    ftxn.addToBackStack(MapFragment.class.getSimpleName());
-                    ftxn.commit();
-                }
-            });
         }
 
         view.setClickable(true);
@@ -239,17 +230,16 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         });
          dateTv = view.findViewById(R.id.date_value_tv);
          timeTv = view.findViewById(R.id.time_value_tv);
-         sessionNameTv = view.findViewById(R.id.session_name_tv);
+         sessionNameTv = view.findViewById(R.id.session_name_value_tv);
          durationTv = view.findViewById(R.id.session_duration_value_tv);
          sessionDateSizeTv = view.findViewById(R.id.session_data_size_value_tv);
          sessionDataTypesTv =
                  view.findViewById(R.id.session_data_types_value_tv);
          sessionActivityTypeTv =  view.findViewById(R.id.activity_type_value);
-        sessionActivityTypeTv.setText(MapFragment.activityType);
+        sessionActivityTypeTv.setText(activityType);
         textNoteTv = view.findViewById(R.id.text_note_tv);
 
         new GetSessionDisplayHeaderAsyncTask().execute();
-
     }
 
     @Override
@@ -265,27 +255,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 //        Update
-        /*ActionBar mActionBar = ( (MainActivity) getActivity() ).getSupportActionBar();
-        View actionBarView = null;
-        if (mActionBar != null) {
-            actionBarView = mActionBar.getCustomView();
-        }
-
-        CircleImageView backButton = actionBarView.findViewById(R.id.back_link);
-        backButton.setVisibility(View.VISIBLE);
-
-        TextView title = actionBarView.findViewById(R.id.title_text);
-        title.setVisibility(View.GONE);
-        title.setText(R.string.map_fragment_title);
-
-        backButton.setOnClickListener(v -> MainActivity.shared().onBackPressed());
-
-
-        actionBarView.findViewById(R.id.gps_session_start_btn).setVisibility(View.GONE);
-        actionBarView.findViewById(R.id.profile_link).setVisibility(View.GONE);
-        actionBarView.findViewById(R.id.ble_device_connectivity).setVisibility(View.GONE);
-        actionBarView.findViewById(R.id.logout_link).setVisibility(View.GONE);*/
-        sessionCdlDb = SessionCdlDb.getInstance(getContext());
+        registerAndCheck(this);
+        sessionCdlDb = SessionCdlDb.getInstance();
 
         try{
             new LoadMarkerGpsData().execute().get();
@@ -293,6 +264,71 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             ex.printStackTrace();
         }
 
+        try {
+            acceptList();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        if(activityType.toLowerCase().contains(getString(R.string.activity_indoor).toLowerCase())){
+            TimeLineViewAdapter timeLineViewAdapter;
+            RecyclerView indoorRecyclerView =
+                    MapFragment.this.getView().findViewById(R.id
+                    .indoor_recycler_view);
+            LinearLayoutManager linearLayoutManager = new LinearLayoutManager
+                    (getContext(), RecyclerView.VERTICAL, false);
+            int timestamp_count = 0;
+            Long [] marker_relative_timestamps = new Long[markerDatas.size()];
+            long first_timestamp = markerDatas.get(0).getMarker_timestamp() ;
+            for(MarkerData markerData : markerDatas){
+                marker_relative_timestamps[timestamp_count++] =
+                        ( markerData.getMarker_timestamp() - first_timestamp ) / 1000;
+            }
+
+            long last_timestamp =
+                    markerDatas.get(markerDatas.size() - 1).getMarker_timestamp();
+            long range_of_schedule = ( last_timestamp - first_timestamp )/1000;
+            int regular_timestamps_count =
+                    (int) (range_of_schedule/Constants.INDOOR_REGULAR_TIMESTAMPS_INTERVAL) ;
+            Long [] absolute_timestamps =
+                    new Long[regular_timestamps_count];
+
+            int regular_counter = 0;
+            int interval = Constants.INDOOR_REGULAR_TIMESTAMPS_INTERVAL;
+            for(int reg_i = interval; reg_i <= range_of_schedule ; reg_i += interval ){
+                absolute_timestamps[regular_counter++] = (long)reg_i;
+            }
+
+            //Merge the marker and regular timestamp arrays here
+
+            List<Long> marker_timestamp_list =
+                    Arrays.asList(marker_relative_timestamps);
+            List<Long> absolute_timestamps_list =
+                    Arrays.asList(absolute_timestamps);
+            ArrayList<Long> full_Schedule_list = new ArrayList<>();
+            full_Schedule_list.addAll(marker_timestamp_list);
+            full_Schedule_list.addAll(absolute_timestamps_list);
+            Collections.sort(full_Schedule_list);
+
+            timeLineViewAdapter = new TimeLineViewAdapter(full_Schedule_list,first_timestamp);
+            indoorRecyclerView.setLayoutManager(linearLayoutManager);
+            indoorRecyclerView.setAdapter(timeLineViewAdapter);
+
+//            indoorRecyclerView.setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View view) {
+//                    CustomViewFragment customViewFragment = CustomViewFragment.newInstance
+//                            (FRAGMENT_NAME_DEVICE1_9_AXIS, "plot");
+//                    FragmentTransaction ftxn = getFragmentManager()
+//                            .beginTransaction();
+//                    ftxn.replace(MapFragment.this.getId(),
+//                            customViewFragment,
+//                            CustomViewFragment.class.getSimpleName());
+//                    ftxn.addToBackStack(MapFragment.class.getSimpleName());
+//                    ftxn.commit();
+//                }
+//            });
+        }
 //       Common.wait(2000);
     }
 
@@ -306,19 +342,26 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
         @Override
         protected Void doInBackground(Void... voids) {
+            markerPosList.clear();
+
             markerDatas = sessionCdlDb.getMarkerDataDAO().getMarkerData(session_id);
             if(markerDatas == null || markerDatas.size() == 0){
                 return null;
             }
-            gpsSpeeds = sessionCdlDb.gpsSpeedDAO().getGpsSpeed(markerDatas.get(0).marker_timestamp-100, markerDatas.get(markerDatas.size()-1).marker_timestamp+100);
-
             for(MarkerData markerData: markerDatas){
                 markerPosList.add(new LatLng(markerData.lat, markerData.lng));
             }
+            if(activityType.toLowerCase().contains(getString(R.string.activity_outdoor).toLowerCase())) {
+                gpsSpeeds = sessionCdlDb.gpsSpeedDAO().getGpsSpeed(markerDatas.get(0).marker_timestamp-1, markerDatas.get(markerDatas.size()-1).marker_timestamp+1);
 
-            for(GpsSpeed gpsSpeed: gpsSpeeds){
-                gpsPosList.add(new LatLng(gpsSpeed.latitude, gpsSpeed.longitude));
+                gpsPosList.clear();
+                for(GpsSpeed gpsSpeed: gpsSpeeds){
+                    gpsPosList.add(new LatLng(gpsSpeed.latitude, gpsSpeed.longitude));
+                }
+            }else{
+                //todo: coding for indoor activities
             }
+
             return null;
         }
     }
@@ -380,18 +423,70 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         /**
          * The callback plots evenly spaced markers in the activity area ( bounding box )
          */
-        mMap.setOnMapLoadedCallback(
-                new GoogleMap.OnMapLoadedCallback() {
-                    @Override
-                    public void onMapLoaded() {
-                        /**On every map load, hidden markers
-                         * (Except first and last) are plotted
-                         * on the map
-                         * */
-                        displayPositionMarkersOnMap();
+
+        if(activityType.toLowerCase().contains((getString(R.string.outdoor).toLowerCase()))){
+            mMap.setOnMapLoadedCallback(
+                    new GoogleMap.OnMapLoadedCallback() {
+                        @Override
+                        public void onMapLoaded() {
+                            /**On every map load, hidden markers
+                             * (Except first and last) are plotted
+                             * on the map
+                             * */
+                            displayPositionMarkersOnMap();
+                        }
                     }
-                }
-        );
+            );
+        }
+
+        if(activityType.toLowerCase().contains((getString(R.string.indoor).toLowerCase()))){
+           displayIndoorMarkersOnTimeline();
+        }
+    }
+
+    private void displayIndoorMarkersOnTimeline() {
+        TimeLineViewAdapter timeLineViewAdapter;
+        RecyclerView indoorRecyclerView =
+                MapFragment.this.getView().findViewById(R.id
+                        .indoor_recycler_view);
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager
+                (getContext(), RecyclerView.VERTICAL, false);
+        int timestamp_count = 0;
+        Long [] marker_relative_timestamps = new Long[markerDatas.size()];
+        long first_timestamp = markerDatas.get(0).getMarker_timestamp() ;
+        for(MarkerData markerData : markerDatas){
+            marker_relative_timestamps[timestamp_count++] =
+                    ( markerData.getMarker_timestamp() - first_timestamp ) / 1000;
+        }
+
+        long last_timestamp =
+                markerDatas.get(markerDatas.size() - 1).getMarker_timestamp();
+        long range_of_schedule = ( last_timestamp - first_timestamp )/1000;
+        int regular_timestamps_count =
+                (int) (range_of_schedule/Constants.INDOOR_REGULAR_TIMESTAMPS_INTERVAL) ;
+        Long [] absolute_timestamps =
+                new Long[regular_timestamps_count];
+
+        int regular_counter = 0;
+        int interval = Constants.INDOOR_REGULAR_TIMESTAMPS_INTERVAL;
+        for(int reg_i = interval; reg_i <= range_of_schedule ; reg_i += interval ){
+            absolute_timestamps[regular_counter++] = (long)reg_i;
+        }
+
+        //Merge the marker and regular timestamp arrays here
+
+        List<Long> marker_timestamp_list =
+                Arrays.asList(marker_relative_timestamps);
+        List<Long> absolute_timestamps_list =
+                Arrays.asList(absolute_timestamps);
+        ArrayList<Long> full_Schedule_list = new ArrayList<>();
+        full_Schedule_list.addAll(marker_timestamp_list);
+        full_Schedule_list.addAll(absolute_timestamps_list);
+        Collections.sort(full_Schedule_list);
+
+        timeLineViewAdapter = new TimeLineViewAdapter(full_Schedule_list,first_timestamp);
+        indoorRecyclerView.setLayoutManager(linearLayoutManager);
+        indoorRecyclerView.setAdapter(timeLineViewAdapter);
     }
 
     /**
@@ -420,10 +515,15 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         }
         MarkerOptions markerOptions =  new MarkerOptions();
         for(int marker_i = 1; marker_i < markerPosList.size()-1; marker_i=marker_i+INTER_MARKER_COUNT){
+            MarkerData markerData = markerDatas.get(marker_i);
+            BitmapDescriptor bitmapDescriptor = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW);
+            if(markerData.note.trim().length() > 0){
+                bitmapDescriptor = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE);
+            }
             mMap.addMarker( new MarkerOptions()
                     .position(markerPosList.get(marker_i))
-                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW))
-            ).setTag(markerDatas.get(marker_i));
+                    .icon(bitmapDescriptor)
+            ).setTag(markerData);
         }
 
 
@@ -471,12 +571,12 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
     }
 
-    public static void addRideMarkerOnMap(Location location){
-        markerPosList.add(new LatLng(location.getLatitude() , location.getLongitude()));
-        markerData = new MarkerData();
-        markerData.marker_timestamp = System.currentTimeMillis();
-//        addMarkerDataEntry(markerData);
-    }
+//    public static void addRideMarkerOnMap(Location location){
+//        markerPosList.add(new LatLng(location.getLatitude() , location.getLongitude()));
+//        markerData = new MarkerData();
+//        markerData.marker_timestamp = System.currentTimeMillis();
+////        addMarkerDataEntry(markerData);
+//    }
 
     /**
      * Based on the proximity to the polyline, as defined by {@link Constants#POLYLINE_DISTANCE}
@@ -555,7 +655,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 //        graphPromptDialog = new PopupWindow();
 //        graphPromptDialog.
 //        graphPromptDialog.setContentView(getLayoutInflater().inflate(R.layout.graph_list_options,));
-//        ListView graphListView = graphPromptDialog.getContentView().findViewById(R.id.graph_list_view);
+//        ListView graphListView =
+//        PromptDialog.getContentView().findViewById(R.id.graph_list_view);
 //        ListAdapter graphListAdapter = new GraphListAdapter();
 //        graphListView.setAdapter(graphListAdapter);
 //
@@ -669,11 +770,11 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         //Called after displaying position markers on map
 
         /**Change marker color to green*/
-        final BitmapDescriptor bitmapDescriptorOrange
-                = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE);
-
-        final BitmapDescriptor bitmapDescriptorYellow
-                = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW);
+//        final BitmapDescriptor bitmapDescriptorOrange
+//                = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE);
+//
+//        final BitmapDescriptor bitmapDescriptorYellow
+//                = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW);
         dialog = new Dialog(mContext);
 
         /**Approximation of 100m distance from polyline
@@ -687,20 +788,14 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             @Override
             public boolean onMarkerClick(final Marker marker) {
 
-                /**Dialog box to be used here*/
-                //TODO Done
-                final Dialog dialog = new Dialog(mContext);
-//
-//                //TODO Shift this to a common function
-//                dialog.setContentView(R.layout.dialog_layout);
-                final MarkerData markerDataCurrent = (MarkerData) marker.getTag();
-
-                if(markerDataCurrent!=null) {
-                    showDialog(markerDataCurrent.getNote());
+                outdoorMarkerCurrent = marker;
+                markerDataCurrent = (MarkerData) marker.getTag();
+                if(markerDataCurrent != null) {
+                    showDialog(markerDataCurrent.getNote(), markerDataCurrent.marker_timestamp, markerDataCurrent.note_timestamp);
                 }else{
-                    showDialog("");
+                    markerDataCurrent = new MarkerData();
+                    showDialog("", new Date().getTime(), 0);
                 }
-
 //                //TODO Shift this to a common function
 //                TextView dtTemp ;
 //                @SuppressLint("SimpleDateFormat") SimpleDateFormat parseformat =
@@ -844,40 +939,49 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if(requestCode == 0 && resultCode == Activity.RESULT_OK) {
             if(data != null) {
-                noteparam1 = data.getStringExtra("note");
-                if(noteparam1 != null) {
-                    Log.v(TAG, "Data passed from Child fragment = " + noteparam1);
+                mParam1 = data.getStringExtra("Note");
+                if(mParam1 != null) {
+                    Log.v(TAG, "Data passed from Child fragment = " + mParam1);;
                 }
             }
         }
     }
 
-    private void showDialog(String note) {
-        Fragment markerDialogFragment = MarkerDialogFragment.newInstance(note,null);
-        markerDialogFragment.setTargetFragment(this,0);
+    private void showDialog(String note, long marker_timestamp,
+                            long note_timestamp) {
+        Fragment markerDialogFragment = new Fragment();
+        if(activityType.toLowerCase().contains(getString(R.string.outdoor).toLowerCase())){
+            markerDialogFragment = MarkerDialogFragment.newInstance(note,"1", marker_timestamp, note_timestamp);
+        }
+        if(activityType.toLowerCase().contains(getString(R.string.indoor).toLowerCase())){
+            markerDialogFragment =
+                    MarkerDialogFragment.newInstance(note,"3", marker_timestamp, note_timestamp);
+        }
+//        markerDialogFragment.setTargetFragment(this,0);
         FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
 
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
 
-        transaction.add(this.getId(),markerDialogFragment,"Marker Dialog Fragment")
-                .addToBackStack(null).commit();
+        transaction.add(this.getId(),markerDialogFragment,"Marker Dialog " +
+                "Fragment")
+                .addToBackStack(MapFragment.class.getSimpleName()).commit();
     }
 
     private static void addMarkerDataEntry(MarkerData markerData) {
         new MapFragment.InsertMarkerDataAsyncTask().execute(markerData);
     }
 
-    private static void updateMarkerDataEntry(MarkerData markerData){
+    private static void updateMarkerDataEntrgraphy(MarkerData markerData){
         new MapFragment.UpdateNoteAsyncTask().execute(markerData);
     }
 
     private void getMarkerNote(int markerSelected){
         new MapFragment.RetrieveNoteAsyncTask().execute(markerSelected);
     }
-    private void removeMarkerData(MarkerData tag){
-        new MapFragment.RemoveNoteAsyncTask().execute(tag);
-    }
+//    private void removeMarkerData(MarkerData tag){
+//        new MapFragment.RemoveNoteAsyncTask().execute(tag);
+//    }
 
     /**
      * Utility function
@@ -983,6 +1087,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     public void onDetach() {
         super.onDetach();
         mListener = null;
+        gpsPosList.clear();
     }
 
     /**
@@ -1130,7 +1235,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         }
     }
 
-    private static class RemoveNoteAsyncTask extends  AsyncTask<MarkerData,Void,Void>{
+
+    private static class UpdateSessionSummary extends  AsyncTask<SessionSummary,Void,Void>{
         /**
          * Override this method to perform a computation on a background thread. The
          * specified parameters are the parameters passed to {@link #execute}
@@ -1143,25 +1249,60 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
          * This method can call {@link #publishProgress} to publish updates
          * on the UI thread.
          *
-         * @param markerData The parameters of the task.
+         * @param sessionSummaries The parameters of the task.
          * @return A result, defined by the subclass of this task.
          * @see #onPreExecute()
          * @see #onPostExecute
          * @see #publishProgress
          */
         @Override
-        protected Void doInBackground(MarkerData... markerData) {
-            sessionCdlDb.getMarkerDataDAO().removeMarkerData(markerData);
+        protected Void doInBackground(SessionSummary... sessionSummaries) {
+            sessionCdlDb.getSessionDataDAO().updateSessionSummary(sessionSummaries[0]);
             return null;
         }
     }
+//
+//    private static class RemoveNoteAsyncTask extends  AsyncTask<MarkerData,Void,Void>{
+//        /**
+//         * Override this method to perform a computation on a background thread. The
+//         * specified parameters are the parameters passed to {@link #execute}
+//         * by the caller of this task.
+//         * <p>
+//         * This will normally run on a background thread. But to better
+//         * support testing frameworks, it is recommended that this also tolerates
+//         * direct execution on the foreground thread, as part of the {@link #execute} call.
+//         * <p>
+//         * This method can call {@link #publishProgress} to publish updates
+//         * on the UI thread.
+//         *
+//         * @param markerData The parameters of the task.
+//         * @return A result, defined by the subclass of this task.
+//         * @see #onPreExecute()
+//         * @see #onPostExecute
+//         * @see #publishProgress
+//         */
+//        @Override
+//        protected Void doInBackground(MarkerData... markerData) {
+//            sessionCdlDb.getMarkerDataDAO().removeMarkerData(markerData);
+//            return null;
+//        }
+//    }
 
-    public static class TimeLineViewAdapter extends RecyclerView.Adapter{
-        ArrayList<IndoorTimestamp> indoorTimestampArrayList;
-        public TimeLineViewAdapter(ArrayList<IndoorTimestamp> datalist) {
-            indoorTimestampArrayList = datalist;
+    public class TimeLineViewAdapter extends RecyclerView.Adapter{
+        private final long firstTimestamp;
+        private Long [] all_marker_timestamps;
+        private int last_index;
+        long progress;
+        Date dateStart;
+        int marker_data_index = 0;
+
+        public TimeLineViewAdapter(ArrayList<Long> timestamps, long first_timestamp) {
+            this.all_marker_timestamps = timestamps.toArray(new Long[0]);
+            this.last_index = all_marker_timestamps.length - 1;
+            this.dateStart =  new Date(first_timestamp);
+            this.firstTimestamp = first_timestamp;
+            this.progress = first_timestamp;
         }
-
         @NonNull
         @Override
         public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -1171,38 +1312,81 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
         @Override
         public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-            IndoorTimestamp indoorTimestamp = indoorTimestampArrayList.get(position);
-            TimeLineViewHolder timeLineViewHolder = (TimeLineViewHolder) holder;
-            timeLineViewHolder.mdateTimeTv.setText(indoorTimestamp.getDate());
-            if(indoorTimestamp.hasMessage()){
-                timeLineViewHolder.mTimelineView.setMarkerColor(Color.parseColor("#FFA500"));
+
+            if(position == 0 || position == last_index){
+                ((TimeLineViewHolder) holder).mTimelineView.setMarkerColor(Color.RED);
+            }else if( (all_marker_timestamps[position] % Constants.INDOOR_REGULAR_TIMESTAMPS_INTERVAL) == 0 ){
+
+                // TODO Check use-case for  marker timestamp itself % NDOOR_REGULAR_TIMESTAMPS_INTERVAL
+                ((TimeLineViewHolder) holder).mTimelineView.setMarkerColor(getResources().getColor(R.color.offgray));
+                ((TimeLineViewHolder) holder).holderCard.setCardBackgroundColor(getResources().getColor(R.color.offgray));
+                ((TimeLineViewHolder) holder).mTimelineView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        //Add Graph Navigation here
+                        CustomViewFragment customViewFragment = CustomViewFragment.newInstance
+                                (FRAGMENT_NAME_DEVICE1_9_AXIS,"plot");
+                        FragmentTransaction ftxn = getFragmentManager()
+                                .beginTransaction();
+                        ftxn.replace(MapFragment.this.getId(),
+                                customViewFragment,
+                                CustomViewFragment.class.getSimpleName());
+                        ftxn.addToBackStack(MapFragment.class.getSimpleName());
+                        ftxn.commit();
+                    }
+                });
+
             }else{
-                timeLineViewHolder.mTimelineView.setMarkerColor(Color.YELLOW);
+                ((TimeLineViewHolder) holder).mTimelineView.setMarkerColor(Color.YELLOW);
+                        ((TimeLineViewHolder) holder).holderCard.setCardBackgroundColor(Color.YELLOW);
+                ((TimeLineViewHolder) holder).mTimelineView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        indoorMarkerCurrent = view;
+                        currentIndoorCard =
+                                ((TimeLineViewHolder) holder).holderCard;
+                        markerDataCurrent = (MarkerData) view.getTag();
+                        if(markerDataCurrent != null){
+                            markerDataCurrent.marker_timestamp =
+                                    new Date(progress + 1000*all_marker_timestamps[position]).getTime();
+                            showDialog( markerDataCurrent.getNote(),
+                                    markerDataCurrent.marker_timestamp,
+                                    markerDataCurrent.note_timestamp);
+                        }else{
+                            markerDataCurrent = new MarkerData();
+                            markerDataCurrent.marker_timestamp =
+                                    new Date(progress + 1000*all_marker_timestamps[position]).getTime();
+                            showDialog("", new Date().getTime(), 0);
+                        }
+                    }
+                });
             }
+
+            TextView indoorDateView  =
+                    ((TimeLineViewHolder) holder).holderCard.findViewById(R.id.indoor_text_timeline_date);
+            indoorDateView.setText(new SimpleDateFormat("HH:mm:ss",
+                    Locale.getDefault()).format(new Date(progress + 1000*all_marker_timestamps[position])));
         }
         @Override
         public int getItemCount() {
-
-            return indoorTimestampArrayList.size();
+            return  all_marker_timestamps.length;
         }
 
         @Override
         public int getItemViewType(int position) {
-            return TimelineView.getTimeLineViewType(position, getItemCount());
+                return TimelineView.getTimeLineViewType(position, getItemCount());
         }
-
-
-
     }
 
     public static class TimeLineViewHolder extends RecyclerView.ViewHolder {
         TimelineView mTimelineView;
         TextView mdateTimeTv;
         CardView holderCard;
+
         TimeLineViewHolder(View itemView, int viewType) {
             super(itemView);
             mTimelineView =  itemView.findViewById(R.id.timeline);
-            mdateTimeTv = itemView.findViewById(R.id.text_timeline_date);
+            mdateTimeTv = itemView.findViewById(R.id.indoor_text_timeline_date);
             holderCard = itemView.findViewById(R.id.info_card_view);
             mTimelineView.initLine(viewType);
         }
@@ -1238,49 +1422,157 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         }
     }
 
+    void registerAndCheck(Object helper) {
+        if (!mBus.isRegistered(helper)) {
+            mBus.register(helper);
+        }
+    }
+
     public class GetSessionDisplayHeaderAsyncTask extends  AsyncTask<Void,Void,
             SessionSummary> {
-
+//          String dateFilePattern = "yyyyMMdd_HHmmss";
+//         SimpleDateFormat dateFileFormat = new SimpleDateFormat(dateFilePattern);
         @Override
         protected SessionSummary doInBackground(Void... voids) {
-            return SessionCdlDb.getInstance(mContext).getSessionDataDAO().getSessionSummaryById(4);
+            return SessionCdlDb.getInstance().getSessionDataDAO().getSessionSummaryById(4);
         }
+
+
 
         @Override
         protected void onPostExecute(SessionSummary sessionSummary) {
+
             super.onPostExecute(sessionSummary);
+//            int act_code = curSessionSummary.getActivity_type();
+//            String session_name = Constants.ActivityCodeMap.inverse().get(act_code);
+//            String date_str = dateFileFormat.format(sessionSummary.getDate());
+//            session_name += "_"+date_str;
+            curSessionSummary = sessionSummary;
             Date date = new Date(sessionSummary.getDate());
             String dateStr = new SimpleDateFormat("dd/MM/YYYY",
                     Locale.getDefault()).format(date);
-            String timeStr = new SimpleDateFormat("hh:mm",
+            String timeStr = new SimpleDateFormat("hh:mm a",
                     Locale.getDefault()).format(date);
             String sessionNameStr = sessionSummary.getName();
-            String sessionDuration =
-                    String.valueOf(sessionSummary.getDuration());
+            String act_type_str = Constants.ActivityCodeMap.inverse().get(curSessionSummary.getActivity_type());
+            TimeFmt timeFmt = Common.convertToTimeFmt((long)(sessionSummary.getDuration()*1000));
+            String sessionDuration = String.format(Locale.getDefault(), "%02d:%02d:%02d", timeFmt.hr, timeFmt.min, timeFmt.sec);
+                    //String.format(Locale.getDefault(),"%.1f sec", sessionSummary.getDuration());
             dateTv.setText(dateStr);
             timeTv.setText(timeStr);
             sessionNameTv.setText(sessionNameStr);
+
             durationTv.setText(sessionDuration);
             String sessionDataSize =
                     String.valueOf(sessionSummary.getTotal_data()/1024) +"KB";
             sessionDateSizeTv.setText(sessionDataSize);
             String typesOfData = String.valueOf(Constants.typesOfData);
             sessionDataTypesTv.setText(typesOfData);
-            sessionActivityTypeTv.setText(MapFragment.activityType);
+            sessionActivityTypeTv.setText(act_type_str);
+
+
+            if(sessionSummary.getNote().trim().length() == 0){
+                textNoteTv.setText("");
+                textNoteTv.setHint(getString(R.string.hint_txt));
+            }else{
+                textNoteTv.setText(sessionSummary.getNote());
+            }
+
+
             textNoteTv.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     Fragment markerDialogFragment =
-                            MarkerDialogFragment.newInstance(String.valueOf(sessionSummary.getSession_id()),getString(R.string.notetype2));
+                            MarkerDialogFragment.newInstance(sessionSummary.getNote(), "2", sessionSummary.getDate(), sessionSummary.getNote_timestamp());
                     FragmentTransaction fragmentTransaction =
                             getFragmentManager().beginTransaction();
                     fragmentTransaction.add(MapFragment.this.getId(),
                             markerDialogFragment,MapFragment.class.getSimpleName());
-                    fragmentTransaction.addToBackStack(null);
+                    fragmentTransaction.addToBackStack(MapFragment.class.getSimpleName());
                     fragmentTransaction.commit();
+
+
+//                    Fragment mapFragment = MapFragment.newInstance(" SESSION 7", "Latest session");
+//                    FragmentTransaction fragmentTransaction = null;
+//                    if (getFragmentManager() != null) {
+//                        fragmentTransaction = getFragmentManager()
+//                                .beginTransaction();
+//                        fragmentTransaction.replace(HomeFragment.this.getId(),
+//                                mapFragment,
+//                                MapFragment.class.getSimpleName());
+//                        fragmentTransaction.addToBackStack(null);
+//                        fragmentTransaction.commit();
+//                    }
                 }
             });
         }
+    }
+
+    public void onEvent(final MarkerNote markerNote){
+//        try{
+            switch (markerNote.noteType){
+                case "1": // for update the MarkerData's note
+                    markerDataCurrent.note = markerNote.note;
+                    markerDataCurrent.note_timestamp = new Date().getTime();
+
+                    outdoorMarkerCurrent.setTag(markerDataCurrent);
+
+                    final BitmapDescriptor bitmapDescriptorOrange
+                            = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE);
+
+                    final BitmapDescriptor bitmapDescriptorYellow
+                            = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW);
+                    if (!markerDataCurrent.note.isEmpty()) {
+                        outdoorMarkerCurrent.setIcon(bitmapDescriptorOrange);
+                    } else {
+                        outdoorMarkerCurrent.setIcon(bitmapDescriptorYellow);
+                    }
+
+                    Log.d(TAG, "onEvent: Received a marker data note");
+                    new UpdateNoteAsyncTask().execute(markerDataCurrent);
+                break;
+
+                case "2": // for update the session summary's note
+                {
+                    curSessionSummary.setNote(markerNote.note);
+                    curSessionSummary.setNote_timestamp(new Date().getTime());
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            textNoteTv.setText(markerNote.note);
+                        }
+                    });
+                    new UpdateSessionSummary().execute(curSessionSummary);
+                }
+                break;
+
+                case "3": // for update the MarkerData's note
+                    markerDataCurrent.note = markerNote.note;
+                    markerDataCurrent.note_timestamp = new Date().getTime();
+                    Log.d(TAG,
+                            "onEvent: markerDataindoor" + markerDataCurrent.getMarker_timestamp());
+                    indoorMarkerCurrent.setTag(markerDataCurrent);
+
+                    if (!markerDataCurrent.note.isEmpty()) {
+                        ((TimelineView)indoorMarkerCurrent).setMarkerColor(getResources().getColor(R.color.orange));
+                        currentIndoorCard.setCardBackgroundColor(getResources().getColor(R.color.orange));
+                    } else {
+                        ((TimelineView)indoorMarkerCurrent).setMarkerColor(getResources().getColor(R.color.yellow));
+                        currentIndoorCard.setCardBackgroundColor(getResources().getColor(R.color.yellow));
+
+                    }
+
+
+                    new UpdateNoteAsyncTask().execute(markerDataCurrent);
+                break;
+
+                default:
+                    Log.d(TAG, "No option");
+            }
+//        }catch (Exception ex){
+//            Log.d(TAG, "OnEvent: error msg="+ex.getMessage());
+//        }
+
     }
 }
 

@@ -49,7 +49,7 @@ public class ButtonBox_Parser extends Device_Parser{
         this.context = context;
 //        this.device_id = device_id;
 //        this.address = address;
-        sessionCdlDb = SessionCdlDb.getInstance(context);
+        sessionCdlDb = SessionCdlDb.getInstance();
         timestamps = new ArrayList<>();
     }
 

@@ -24,8 +24,8 @@ public interface GpsSpeedDAO {
 
     @Query("select * from gps_speed order by ABS(gps_timestamp - (:ts)) limit 1")
     public List<GpsSpeed> getGpsSpeed(long ts);
-
-    @Query("Update gps_speed SET gps_speed = abs(random() % 20)*0.1 + 3, lat = lat -64.80 + 12.9, lon = lon +230.4 + 77.5, altitude = abs(random() % 10) + 895.0")
+//38.983733, -76.51667
+    @Query("Update gps_speed SET gps_speed = abs(random() % 25)*0.1 + 4, lat = lat -38.983733 + 12.9, lon = lon +76.51667 + 77.5, altitude = abs(random() % 10) + 895.0")
     public void updateSpeed();
 
     @Delete

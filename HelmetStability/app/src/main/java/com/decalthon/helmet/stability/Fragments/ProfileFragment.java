@@ -22,6 +22,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -190,6 +191,14 @@ public class ProfileFragment extends DialogFragment {
                 profileView.findViewById(R.id.edit_profile_name);
         editText.setText(name);
 
+        int storedAge = ProfilePreferences.getInstance(getContext()).getAge();
+        char storedGender =
+                ProfilePreferences.getInstance(getContext()).getGender();
+        int storedHeight =
+                (int) ProfilePreferences.getInstance(getContext()).getHeight();
+        int storedWeight =
+                (int) ProfilePreferences.getInstance(getContext()).getWeight();
+
         //Retain default anonymous photo, unless there is a user-preference photo
         if(defaultImagePath.equals("default")) {
             ;
@@ -197,9 +206,16 @@ public class ProfileFragment extends DialogFragment {
         else{
             photoEdit.setImageBitmap(BitmapFactory.decodeFile(defaultImagePath));
         }
+
         registerEditEvent(profileView);
 
         return  profileView;
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        registerEditEvent(view);
     }
 
     @Override
@@ -282,12 +298,19 @@ public class ProfileFragment extends DialogFragment {
         //2. Populate each spinner's recycler view using the template list item style
         ArrayAdapter adapter = ArrayAdapter.createFromResource(mContext,
                 R.array.ages_array, R.layout.list_item_view);
+        ageSpinner.setAdapter(adapter);
+        int current_age = ProfilePreferences.getInstance(mContext).getAge();
+        String [] allowedAges =
+                getResources().getStringArray(R.array.ages_array);
+        int startingAge = Integer.parseInt(allowedAges[1]);
+        int max_age = Integer.parseInt(allowedAges[allowedAges.length-1]);
+        int range = max_age - startingAge;
+        ageSpinner.setSelection( current_age - (max_age - range) );
 
         //3. Set the spinner adapter
-        ageSpinner.setAdapter(adapter);
 
         //4. Record the spinner value for the next time the popup loads
-        ageSpinner.setSelection(ageIndex);
+//        ageSpinner.setSelection(ageIndex);
 
         //Repeating steps 1 to 4 for all the spinners.
 
@@ -302,6 +325,12 @@ public class ProfileFragment extends DialogFragment {
         adapter = ArrayAdapter.createFromResource(getContext(),
                 R.array.gender_array, R.layout.list_item_view);
         genderSpinner.setAdapter(adapter);
+
+        char selected_gender =
+                ProfilePreferences.getInstance(mContext).getGender();
+        genderIndex = selected_gender == 'M'? 1 : selected_gender == 'F' ? 2
+                : 3;
+
         genderSpinner.setSelection(genderIndex);
 
 
@@ -315,7 +344,15 @@ public class ProfileFragment extends DialogFragment {
                 R.array.height_array, R.layout.list_item_view);
         heightSpinner.setAdapter(adapter);
 
-        heightSpinner.setSelection(heightIndex);
+
+        String [] allowedHeights =
+                getResources().getStringArray(R.array.height_array);
+        int current_height =
+                (int) ProfilePreferences.getInstance(mContext).getHeight();
+        int starting_height = Integer.parseInt(allowedHeights[1]);
+        int end_height = Integer.parseInt(allowedHeights[allowedHeights.length-1]);
+        int height_range = end_height - starting_height;
+        heightSpinner.setSelection(current_height - (end_height -  height_range));
 
         RecyclerView.LayoutManager weightLayoutManager =
                 new LinearLayoutManager(getContext());
@@ -327,8 +364,14 @@ public class ProfileFragment extends DialogFragment {
                 R.array.weight_array, R.layout.list_item_view);
         weightSpinner.setAdapter(adapter);
 
-        weightSpinner.setSelection(weightIndex);
-
+        String [] allowedWeights =
+                getResources().getStringArray(R.array.weight_array);
+        int current_weight =
+                (int) ProfilePreferences.getInstance(mContext).getWeight();
+        int starting_weight = Integer.parseInt(allowedWeights[1]);
+        int end_weight = Integer.parseInt(allowedWeights[allowedWeights.length-1]);
+        int weight_range = end_weight - starting_weight;
+        weightSpinner.setSelection(current_weight - (end_weight - weight_range));
         //Extract photo edit elements from the popup
 
         CircleImageView photoView = profileView

@@ -21,7 +21,7 @@
         android:layout_weight="0.1">
 
         <include layout="@layout/actionbar_page"
-            android:id="@+id/back_navigation"/>
+            />
 
     </LinearLayout>
     <RelativeLayout
@@ -29,6 +29,8 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="0.05"
+        android:paddingLeft="1dp"
+        android:paddingRight="1dp"
         android:visibility="visible">
         <TextView
             android:id = "@+id/date_header"
@@ -46,14 +48,15 @@
             android:layout_toRightOf="@id/date_header"
             android:padding="4dp"
             android:text="@string/date_value" />
+
         <TextView
-            android:id = "@+id/time_header"
-            android:layout_width="wrap_content"
+            android:id="@+id/time_header"
+            android:layout_width="1dp"
             android:layout_height="wrap_content"
             android:layout_toRightOf="@id/date_value_tv"
-            android:textStyle="bold"
-            android:padding="4dp"
-            android:text="@string/time_placeholder"/>
+            android:padding="1dp"
+            android:visibility="gone"
+            android:textStyle="bold" />
         <TextView
             android:id = "@+id/time_value_tv"
             android:layout_width="wrap_content"
@@ -65,16 +68,18 @@
             android:id = "@+id/session_name_tv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_toRightOf="@id/time_value_tv"
             android:layout_toLeftOf="@id/session_name_value_tv"
             android:textStyle="bold"
             android:padding="4dp"
             android:text="@string/session_name"/>
         <TextView
             android:id = "@+id/session_name_value_tv"
-            android:layout_width="wrap_content"
+            android:layout_width="120dp"
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"
             android:text="@string/session_name"
+            android:singleLine="true"
             android:padding="4dp"/>
     </RelativeLayout>
     <RelativeLayout
@@ -82,28 +87,38 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="0.05"
+        android:paddingLeft="1dp"
+        android:paddingRight="1dp"
         android:visibility="visible">
+
         <TextView
-            android:id = "@+id/session_duration_tv"
+            android:id="@+id/session_duration_tv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"
             android:padding="4dp"
-            android:text="@string/duration_placeholder"/>
+            android:text="@string/duration_placeholder"
+            android:textStyle="bold" />
         <TextView
             android:id = "@+id/session_duration_value_tv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_toRightOf="@id/session_duration_tv"
             android:text="@string/duration_placeholder"
-            android:padding="4dp"/>
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
+            android:paddingRight="6dp"/>
+
         <TextView
             android:id="@+id/activity_type_tv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_toLeftOf="@id/activity_type_value"
             android:textStyle="bold"
-            android:padding="4dp"
+            android:paddingTop="4dp"
+            android:paddingStart="6dp"
+            android:paddingEnd="2dp"
+            android:paddingBottom="4dp"
             android:text="@string/activity_type_name"/>
         <TextView
             android:id="@+id/activity_type_value"
@@ -129,8 +144,6 @@
         android:layout_weight="0.7"
         />
 
-
-
     <RelativeLayout
         android:id="@+id/data_received_bar"
         android:layout_width="match_parent"
@@ -138,6 +151,8 @@
         android:layout_weight="0.05"
         android:orientation="horizontal"
         android:visibility="visible"
+        android:paddingLeft="1dp"
+        android:paddingRight="1dp"
         android:layout_gravity="bottom">
         <TextView
             android:id ="@+id/session_data_type_tv"

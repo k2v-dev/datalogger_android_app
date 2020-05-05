@@ -121,8 +121,6 @@ public class CustomViewFragment extends Fragment {
                 MainActivity.shared().onBackPressed();
             }
         });
-        /*CircleImageView logoutMenuButton = actionBarView.findViewById(R.id.logout_link);
-        logoutMenuButton.setVisibility(View.GONE);*/
     }
 
     /**
@@ -180,7 +178,7 @@ public class CustomViewFragment extends Fragment {
                 return(GPS_SPEED_NAME);
                 //====Additional charts below====//
         }
-        return DEV1_NINE_AXES_NAME;
+        return "No page";
     }
 
 

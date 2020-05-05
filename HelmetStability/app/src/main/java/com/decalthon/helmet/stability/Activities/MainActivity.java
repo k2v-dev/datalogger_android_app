@@ -45,6 +45,7 @@ import com.decalthon.helmet.stability.DB.SessionCdlDb;
 import com.decalthon.helmet.stability.Fragments.CalendarPagerFragment;
 import com.decalthon.helmet.stability.Fragments.CustomGraphFragment;
 import com.decalthon.helmet.stability.Fragments.CustomViewFragment;
+import com.decalthon.helmet.stability.Fragments.DailySessionsFragment;
 import com.decalthon.helmet.stability.Fragments.DeviceFragment;
 import com.decalthon.helmet.stability.Fragments.GPSSpeedFragment;
 import com.decalthon.helmet.stability.Fragments.HomeFragment;
@@ -73,6 +74,7 @@ import com.google.common.collect.BiMap;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.Calendar;
+import java.util.List;
 import java.util.Map;
 
 import at.grabner.circleprogress.CircleProgressView;
@@ -95,9 +97,10 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        //setContentView(R.layout.activity_main);
         //getSupportActionBar().setCustomView(R.layout.actionbar);
         mainActivity = MainActivity.this;
+        setContentView(R.layout.activity_main);
 
 //        try{
 //            long t1 = System.currentTimeMillis();
@@ -134,7 +137,7 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
 
 //        DevicePreferences.getInstance(getApplicationContext()).clear();
 
-        initialization();
+//        initialization();
 
         final BluetoothManager bluetoothManager =
                 (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
@@ -155,13 +158,6 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
         mGattUpdateReceiver = new MyBroadcastReceiver();
         checkAndRequestPermission();
 
-        /*ActionBar mActionBar = getSupportActionBar();
-        mActionBar.setDisplayShowHomeEnabled(false);
-        mActionBar.setDisplayShowTitleEnabled(false);
-        LayoutInflater mInflater = LayoutInflater.from(getApplicationContext());
-        View mCustomView = mInflater.inflate(R.layout.actionbar, null);
-        mActionBar.setCustomView(mCustomView);
-        mActionBar.setDisplayShowCustomEnabled(true);*/
         getSupportFragmentManager().addOnBackStackChangedListener(getListener());
         LocalBroadcastManager.getInstance(this).registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
 
@@ -306,30 +302,30 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
 //        }
     }
 
-    public void initialization(){
-        DEVICE_MAPS.put(getResources().getString(R.string.device1_tv), new DeviceDetails());
-        DEVICE_MAPS.put(getResources().getString(R.string.device2_tv), new DeviceDetails());
-        DEVICE_MAPS.put(getResources().getString(R.string.device3_tv), new DeviceDetails());
-
-        String[] indoor = getResources().getStringArray(R.array.indoor_sports_array);
-        int[] indoor_code = getResources().getIntArray(R.array.indoor_sports_array_code);
-        String[] outdoor = getResources().getStringArray(R.array.outdoor_sports_array);
-        int[] outdoor_code = getResources().getIntArray(R.array.outdoor_sports_array_code);
-
-        for (int i = 0; i < indoor.length; i++) {
-            String key = indoor[i]+"_"+Constants.INDOOR;
-            Constants.ActivityCodeMap.put(key, indoor_code[i]);
-        }
-
-        for (int i = 0; i < outdoor.length; i++) {
-            String key = outdoor[i]+"_"+Constants.OUTDOOR;
-            Constants.ActivityCodeMap.put(key, outdoor_code[i]);
-        }
-
-//        SENSORS_MAPS.put(getResources().getString(R.string.device1_tv), HEL_SENSORS);
-//        SENSORS_MAPS.put(getResources().getString(R.string.device2_tv), WAT_SENSORS);
-//        SENSORS_MAPS.put(getResources().getString(R.string.device3_tv), BELT_SENSORS);
-    }
+//    public void initialization(){
+//        DEVICE_MAPS.put(getResources().getString(R.string.device1_tv), new DeviceDetails());
+//        DEVICE_MAPS.put(getResources().getString(R.string.device2_tv), new DeviceDetails());
+//        DEVICE_MAPS.put(getResources().getString(R.string.device3_tv), new DeviceDetails());
+//
+//        String[] indoor = getResources().getStringArray(R.array.indoor_sports_array);
+//        int[] indoor_code = getResources().getIntArray(R.array.indoor_sports_array_code);
+//        String[] outdoor = getResources().getStringArray(R.array.outdoor_sports_array);
+//        int[] outdoor_code = getResources().getIntArray(R.array.outdoor_sports_array_code);
+//
+//        for (int i = 0; i < indoor.length; i++) {
+//            String key = indoor[i]+"_"+Constants.INDOOR;
+//            Constants.ActivityCodeMap.put(key, indoor_code[i]);
+//        }
+//
+//        for (int i = 0; i < outdoor.length; i++) {
+//            String key = outdoor[i]+"_"+Constants.OUTDOOR;
+//            Constants.ActivityCodeMap.put(key, outdoor_code[i]);
+//        }
+//
+////        SENSORS_MAPS.put(getResources().getString(R.string.device1_tv), HEL_SENSORS);
+////        SENSORS_MAPS.put(getResources().getString(R.string.device2_tv), WAT_SENSORS);
+////        SENSORS_MAPS.put(getResources().getString(R.string.device3_tv), BELT_SENSORS);
+//    }
 
     static IntentFilter makeGattUpdateIntentFilter() {
         final IntentFilter intentFilter = new IntentFilter();
@@ -343,8 +339,9 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
     public void navigateToFragments(){
         Fragment fragment = new HomeFragment();
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-        fragmentTransaction.add(R.id.fragment, fragment);
-        fragmentTransaction.addToBackStack(HomeFragment.class.getSimpleName());
+        fragmentTransaction.replace(R.id.fragment, fragment,
+                HomeFragment.class.getSimpleName());
+        fragmentTransaction.addToBackStack(MainActivity.class.getSimpleName());
         fragmentTransaction.commit();
 
 //        Fragment fragment = new MonthlyCalendarFragment();
@@ -407,95 +404,131 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
 //        Fragment frag = getSupportFragmentManager().findFragmentById(R.id.fragment);
         FragmentManager fragmentManager = getSupportFragmentManager();
 
-        Fragment frag =
-                fragmentManager.findFragmentByTag(DeviceFragment.class.getSimpleName());
-        if(frag instanceof DeviceFragment){
-//            System.out.println("BACK PRESS::"+frag+"  Fragment");
-            ((DeviceFragment) frag).startByActivity();
-            fragmentManager.popBackStack();
-//            restoreHomeActionBar();
-            Log.d("DeviceFragment","popped");
-            return;
+//        Fragment frag =
+//                fragmentManager.findFragmentByTag(DeviceFragment.class.getSimpleName());
+//        if(frag instanceof DeviceFragment){
+////            System.out.println("BACK PRESS::"+frag+"  Fragment");
+//            ((DeviceFragment) frag).startByActivity();
+//            fragmentManager.popBackStack();
+////            restoreHomeActionBar();
+//            Log.d("DeviceFragment","popped");
+//            return;
+//        }
+//        frag = fragmentManager.findFragmentByTag(ProfileFragment.class.getSimpleName());
+//        if(frag instanceof  ProfileFragment){
+//            if (ProfilePreferences.getInstance(getApplicationContext()).isEmpty()) {
+//                Common.okAlertMessage(frag.getContext(), getString(R.string.enter_all_details));
+//            }else {
+//                System.out.println("Back button2");
+//                fragmentManager.popBackStack();
+////                restoreHomeActionBar();
+//            }
+//            return;
+//        }
+//
+//        frag = fragmentManager.findFragmentByTag(MapFragment.class.getSimpleName());
+//        if(frag instanceof  MapFragment){
+//            fragmentManager.popBackStack();
+//            return;
+//        }
+//
+//        frag = fragmentManager.findFragmentByTag(CustomViewFragment.class.getSimpleName());
+//        if(frag instanceof CustomViewFragment){
+//            fragmentManager.popBackStack();
+//            return;
+//        }
+//
+//        frag = fragmentManager.findFragmentByTag(GPSSpeedFragment.class.getSimpleName());
+//        if(frag instanceof GPSSpeedFragment){
+//            fragmentManager.popBackStack();
+//            return;
+//        }
+//
+//        frag = fragmentManager.findFragmentByTag(CalendarPagerFragment.class.getSimpleName());
+//        if(frag instanceof CalendarPagerFragment){
+//            fragmentManager.popBackStack();
+//            return;
+//        }
+//
+//        frag = fragmentManager.findFragmentByTag(SevenSessionsSummaryFragment.class.getSimpleName());
+//
+//        if(frag instanceof SevenSessionsSummaryFragment){
+//            fragmentManager.popBackStack();
+//            return;
+//        }
+//
+//        frag = fragmentManager.findFragmentByTag(MarkerDialogFragment.class.getSimpleName());
+//        if(frag instanceof MarkerDialogFragment){
+//            fragmentManager.popBackStack();
+//            return;
+//        }
+//
+//        frag =
+//                fragmentManager.findFragmentByTag(DailySessionsFragment.class.getSimpleName());
+//        if(frag instanceof DailySessionsFragment){
+//            fragmentManager.popBackStack(MonthlyCalendarFragment.class.getSimpleName(), FragmentManager.POP_BACK_STACK_INCLUSIVE);
+//            return;
+//        }
+
+        List<Fragment> frags = fragmentManager.getFragments();
+        Fragment fragment = frags.get(frags.size() -1);
+        if(frags.size() > 0){
+            fragment = frags.get(frags.size() -1);
         }
-        frag = fragmentManager.findFragmentByTag(ProfileFragment.class.getSimpleName());
-        if(frag instanceof  ProfileFragment){
-            if (ProfilePreferences.getInstance(getApplicationContext()).isEmpty()) {
-                Common.okAlertMessage(frag.getContext(), getString(R.string.enter_all_details));
-            }else {
-                System.out.println("Back button2");
+
+//        for (Fragment fragment: frags) {
+            if(fragment instanceof HomeFragment){
                 fragmentManager.popBackStack();
-//                restoreHomeActionBar();
+                finish();
+                return;
+            }else if(fragment instanceof ProfileFragment){
+                if (ProfilePreferences.getInstance(getApplicationContext()).isEmpty()) {
+                    Common.okAlertMessage(fragment.getContext(), getString(R.string.enter_all_details));
+                }else {
+                    System.out.println("Back button2");
+                    fragmentManager.popBackStack();
+                }
+                return;
+            }else if(fragment instanceof LoginFragment || fragment instanceof RegistrationFormFragment){
+                return;
             }
-            return;
-        }
+            if(fragment instanceof CalendarPagerFragment){
+                CalendarPagerFragment calendarPagerFragment = (CalendarPagerFragment) fragment;
+                if(calendarPagerFragment.getCalendarType().equalsIgnoreCase(MonthlyCalendarFragment.class.getSimpleName())){
+                    fragmentManager.popBackStack(HomeFragment.class.getSimpleName(), FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                    return;
+                }
+            }
+//        }
+        fragmentManager.popBackStack();
+//        frag =
+//                fragmentManager.findFragmentByTag(HomeFragment.class.getSimpleName());
+//        if(frag instanceof HomeFragment){
+//            fragmentManager.popBackStack();
+//            finish();
+//            return;
+//        }
 
-        frag = fragmentManager.findFragmentByTag(MapFragment.class.getSimpleName());
-        if(frag instanceof  MapFragment){
-            fragmentManager.popBackStack();
-            return;
-        }
 
-        frag = fragmentManager.findFragmentByTag(CustomViewFragment.class.getSimpleName());
-        if(frag instanceof CustomViewFragment){
-            fragmentManager.popBackStack();
-            return;
-        }
-
-        frag = fragmentManager.findFragmentByTag(GPSSpeedFragment.class.getSimpleName());
-        if(frag instanceof GPSSpeedFragment){
-            fragmentManager.popBackStack();
-            return;
-        }
-
-        frag = fragmentManager.findFragmentByTag(CalendarPagerFragment.class.getSimpleName());
-        if(frag instanceof CalendarPagerFragment){
-            fragmentManager.popBackStack();
-            return;
-        }
-
-        frag = fragmentManager.findFragmentByTag(SevenSessionsSummaryFragment.class.getSimpleName());
-
-        if(frag instanceof SevenSessionsSummaryFragment){
-            fragmentManager.popBackStack();
-            return;
-        }
-
-        frag = fragmentManager.findFragmentByTag(MarkerDialogFragment.class.getSimpleName());
-        if(frag instanceof MarkerDialogFragment){
-            fragmentManager.popBackStack();
-            return;
-        }
-
-        frag =
-                fragmentManager.findFragmentByTag(HomeFragment.class.getSimpleName());
-        if(frag instanceof HomeFragment){
-            fragmentManager.popBackStack();
-            finish();
-            return;
-        }
-
-        if(frag instanceof RegistrationFormFragment ){
-            super.onBackPressed();
-        }
     }
 
-    /*public void restoreHomeActionBar(){
-        System.out.println("Restore action bar called");
-        ActionBar mActionbar = getSupportActionBar();
-        showProgressCircle(Device_Parser.get_txf_status());
-        mActionbar.getCustomView().findViewById(R.id.logout_link)
-                .setVisibility(View.VISIBLE);
-        mActionbar.getCustomView().findViewById(R.id.profile_link)
-                .setVisibility(View.VISIBLE);
-        mActionbar.getCustomView().findViewById(R.id.gps_session_start_btn)
-                .setVisibility(View.VISIBLE);
-        mActionbar.getCustomView().findViewById(R.id.ble_device_connectivity)
-                .setVisibility(View.VISIBLE);
-        mActionbar.getCustomView().findViewById(R.id.title_text)
-                .setVisibility(View.GONE);
-        mActionbar.getCustomView().findViewById(R.id.back_link)
-                .setVisibility(View.GONE);
-    }*/
+//    public void restoreHomeActionBar(){
+//        System.out.println("Restore action bar called");
+//        ActionBar mActionbar = getSupportActionBar();
+//        showProgressCircle(getApplicationContext() , Device_Parser.get_txf_status() );
+//        mActionbar.getCustomView().findViewById(R.id.logout_link)
+//                .setVisibility(View.VISIBLE);
+//        mActionbar.getCustomView().findViewById(R.id.profile_link)
+//                .setVisibility(View.VISIBLE);
+//        mActionbar.getCustomView().findViewById(R.id.gps_session_start_btn)
+//                .setVisibility(View.VISIBLE);
+//        mActionbar.getCustomView().findViewById(R.id.ble_device_connectivity)
+//                .setVisibility(View.VISIBLE);
+//        mActionbar.getCustomView().findViewById(R.id.title_text)
+//                .setVisibility(View.GONE);
+//        mActionbar.getCustomView().findViewById(R.id.back_link)
+//                .setVisibility(View.GONE);
+//    }
 
     public void showProgressCircle(float increasePercent){
 

@@ -19,8 +19,9 @@
     <string name="enter_phone">Enter phone no.</string>
     <string name="enter_email">Enter email address</string>
     <string name="enter_otp">Enter the 6 digit OTP</string>
-    <string name="invalid_n_resent_otp">Didn\'t get the OTP? <font color="#C029B2">RESEND OTP.</font>></string>
+    <string name="invalid_n_resent_otp">Didn\'t get the OTP? <font color="#C029B2">RESEND OTP.</font></string>
     <string name="regiser_now">Don\’t have an account yet, <font color="#C029B2">Register Now</font></string>
+    <string name="login_now">Already have account, <font color="#C029B2">Login Now</font></string>
     <string name="server_error">Internal Server Error</string>
     <string name="name_prompt"><![CDATA[<Profile Name>]]></string>
     <string name="height_prompt">Height(cm)</string>
@@ -140,11 +141,12 @@
     <string name="table_tennis">Table Tennis</string>
     <string name="default_data_level">50%</string>
     <string name="date_placeholder">Date</string>
+    <string name="last_edit_tv">Last edited date</string>
     <string name="delete">DELETE</string>
     <string name="add_note">Add Note</string>
     <string name="save_edit">Edit/Save</string>
     <string name="time_placeholder">Time</string>
-    <string name="session_name">Session Name</string>
+    <string name="session_name">Name</string>
     <string name="duration_placeholder">Duration</string>
     <string name="type_of_data_placeholder">Types of Data</string>
     <string name="size_placeholder">Size</string>
@@ -191,6 +193,18 @@
     <string name="activity_type_desc">Activity Type : </string>
     <string name="duration_desc">Duration : </string>
     <string name="total_data_desc">Total Data (KB): </string>
-    <string name="sampling_frequency_desc">Sampling Frequency : </string>
+    <string name="sampling_frequency_desc">Sampling Frequency(Hz) : </string>
     <string name="note_desc">Note : </string>
+    <string name="hint_txt">Tap here to add note</string>
+    <string name="number_of_sessions_desc">Number of Sessions</string>
+    <string name="total_duration_desc">Total Duration : </string>
+    <string name="activity_types_desc"> Activity Types : </string>
+    <string name="nine_axis">nine_axis</string>
+    <string name="three_axis">three_axis</string>
+    <string name="single_measure">single_measure</string>
+    <string name="time_measure">TIME(s)</string>
+    <string name="types_of_data_desc">Types of Data : </string>
+    <string name="collective_summary_total_data">Total Data (KB) : </string>
+    <string name="n_sessions">Number of Sessions :</string>
+    <string name="activity_indoor">indoor</string>
 </resources>

@@ -11,18 +11,16 @@
     android:focusable="true"
     android:background="@color/white">
 
-    <include layout="@layout/actionbar_page"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="0.1"/>
+    <include layout="@layout/actionbar_page" />
 
     <ListView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="0.9"
+        android:layout_weight="1"
         android:layout_gravity="center"
+        android:layout_margin="1dp"
         android:id = "@+id/session_summary"
-        android:dividerHeight="@dimen/card_list_gap"
-        android:divider="@color/white" />
+        android:divider="@color/white"
+        android:dividerHeight="1dp"/>
 
 </LinearLayout>

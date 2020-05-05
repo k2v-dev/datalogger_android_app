@@ -90,8 +90,10 @@ public class YearlyCalendarFragment extends Fragment {
         yearTextView.setText(mParam1);
 
         GridView yearView = view.findViewById(R.id.month_only_grid);
-        MonthGridAdapter monthGridAdapter = new MonthGridAdapter(getContext(), Constants.monthsThreeLetter);
+        MonthGridAdapter monthGridAdapter =
+                new MonthGridAdapter(getContext(), Constants.monthsThreeLetter);
         yearView.setAdapter(monthGridAdapter);
+
 
 //        yearView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 //            @Override

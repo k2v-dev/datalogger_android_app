@@ -1,7 +1,6 @@
 package com.decalthon.helmet.stability.Activities;
 
 
-import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.ViewTreeObserver;
@@ -11,21 +10,11 @@ import androidx.annotation.RequiresApi;
 import androidx.fragment.app.FragmentActivity;
 
 import com.decalthon.helmet.stability.R;
-import com.decalthon.helmet.stability.model.NineAxisModels.AccelerometerData;
 import com.decalthon.helmet.stability.model.NineAxisModels.NineAxis;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.YAxis;
-import com.github.mikephil.charting.data.Entry;
-import com.github.mikephil.charting.data.LineData;
-import com.github.mikephil.charting.data.LineDataSet;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ThreadLocalRandom;
-
-import static com.decalthon.helmet.stability.Utilities.Constants.TEST_SAMPLE_SIZE;
 
 /**All fullscreen clicks lead to a sample graph - Under development*/
 
@@ -179,8 +168,10 @@ public class FullScreenActivity extends FragmentActivity {
 //    }
 //}
 
-    private void drawFullScreenGraph(String device_id, String graphType) throws ExecutionException, InterruptedException {
-        NineAxis.getInstance(getApplicationContext()).drawGraph(graphType,lineChart);
+    private void drawFullScreenGraph(String device_id, String graphType) throws ExecutionException,
+            InterruptedException {
+        NineAxis.getInstance().drawGraph(graphType,
+                lineChart, device_id,getString(R.string.three_axis));
     }
 }
 

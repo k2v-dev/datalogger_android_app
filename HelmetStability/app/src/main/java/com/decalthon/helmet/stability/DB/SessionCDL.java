@@ -13,7 +13,7 @@ public class SessionCDL {
     @Embedded
     public GpsSpeed gpsSpeed;
 
-    @Relation(parentColumn = "marker_id", entityColumn ="marker_num")
-    public MarkerData markerData;
+//    @Relation(parentColumn = "marker_id", entityColumn ="marker_num")
+//    public MarkerData markerData;
 
 }

@@ -45,7 +45,7 @@
 
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/gps_session_start_btn"
-            android:layout_weight="0.15"
+            android:layout_weight="0.135"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:src="@mipmap/start_session_round"
@@ -61,7 +61,7 @@
             android:id="@+id/profile_btn"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="0.15"
+            android:layout_weight="0.135"
             android:src="@mipmap/anonymous_round" />
 
         <Space
@@ -72,7 +72,7 @@
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="0.15"
+            android:layout_weight="0.135"
             android:orientation="horizontal">
                 <at.grabner.circleprogress.CircleProgressView
                     android:id="@+id/ble_device_btn"
@@ -101,7 +101,7 @@
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/logout_link"
             android:layout_width="0dp"
-            android:layout_weight="0.15"
+            android:layout_weight="0.135"
             android:layout_height="match_parent"
             android:src = "@mipmap/logout"
             />

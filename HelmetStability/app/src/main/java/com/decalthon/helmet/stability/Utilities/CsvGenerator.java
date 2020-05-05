@@ -12,6 +12,7 @@ import com.decalthon.helmet.stability.DB.Entities.SensorDataEntity;
 import com.decalthon.helmet.stability.DB.Entities.SessionSummary;
 import com.decalthon.helmet.stability.DB.SessionCdlDb;
 import com.decalthon.helmet.stability.MainApplication;
+import com.decalthon.helmet.stability.model.Generic.TimeFmt;
 import com.decalthon.helmet.stability.preferences.CsvPreference;
 import com.decalthon.helmet.stability.preferences.ProfilePreferences;
 import com.decalthon.helmet.stability.preferences.UserPreferences;
@@ -49,7 +50,7 @@ public class CsvGenerator {
     private Context context;
 
     public CsvGenerator(Context context) {
-        sessionCdlDb = SessionCdlDb.getInstance(context);
+        sessionCdlDb = SessionCdlDb.getInstance();
         userId = UserPreferences.getInstance(context).getUserID();
         profilePreferences = ProfilePreferences.getInstance(context);
         genderMap.put("M", "Male");
@@ -393,19 +394,22 @@ public class CsvGenerator {
     }
 
     private String getDurationInString(long duration){
-        long hours = TimeUnit.MILLISECONDS.toHours(duration) ;
-        long minute = TimeUnit.MILLISECONDS.toMinutes(duration) - (TimeUnit.MILLISECONDS.toHours(duration)* 60);
-        long second = TimeUnit.MILLISECONDS.toSeconds(duration) - (TimeUnit.MILLISECONDS.toMinutes(duration) *60);
-        long ms = TimeUnit.MILLISECONDS.toMillis(duration) - (TimeUnit.MILLISECONDS.toSeconds(duration) *1000);;
-        return hours+"hr_"+minute+"min_"+second+"sec_"+ms+"millisec";
+//        long hours = TimeUnit.MILLISECONDS.toHours(duration) ;
+//        long minute = TimeUnit.MILLISECONDS.toMinutes(duration) - (TimeUnit.MILLISECONDS.toHours(duration)* 60);
+//        long second = TimeUnit.MILLISECONDS.toSeconds(duration) - (TimeUnit.MILLISECONDS.toMinutes(duration) *60);
+//        long ms = TimeUnit.MILLISECONDS.toMillis(duration) - (TimeUnit.MILLISECONDS.toSeconds(duration) *1000);;
+        TimeFmt timeFmt = Common.convertToTimeFmt(duration);
+        return timeFmt.hr+"hr_"+timeFmt.min+"min_"+timeFmt.sec+"sec_"+timeFmt.milsec+"millisec";
     }
 
     private String getDurationHHMMSSMil(long duration){
-        long hours = TimeUnit.MILLISECONDS.toHours(duration) ;
-        long minute = TimeUnit.MILLISECONDS.toMinutes(duration) - (TimeUnit.MILLISECONDS.toHours(duration)* 60);
-        long second = TimeUnit.MILLISECONDS.toSeconds(duration) - (TimeUnit.MILLISECONDS.toMinutes(duration) *60);
-        long ms = TimeUnit.MILLISECONDS.toMillis(duration) - (TimeUnit.MILLISECONDS.toSeconds(duration) *1000);
-        return String.format(Locale.getDefault(), "%02d%02d%02d%03d", hours, minute, second, ms);
+//        long hours = TimeUnit.MILLISECONDS.toHours(duration) ;
+//        long minute = TimeUnit.MILLISECONDS.toMinutes(duration) - (TimeUnit.MILLISECONDS.toHours(duration)* 60);
+//        long second = TimeUnit.MILLISECONDS.toSeconds(duration) - (TimeUnit.MILLISECONDS.toMinutes(duration) *60);
+//        long ms = TimeUnit.MILLISECONDS.toMillis(duration) - (TimeUnit.MILLISECONDS.toSeconds(duration) *1000);
+        TimeFmt timeFmt = Common.convertToTimeFmt(duration);
+        return String.format(Locale.getDefault(), "%02d%02d%02d%03d", timeFmt.hr, timeFmt.min, timeFmt.sec, timeFmt.milsec);
+
     }
 
     public class InsertCsvFileStatusTask extends AsyncTask<String, Void, Void>{

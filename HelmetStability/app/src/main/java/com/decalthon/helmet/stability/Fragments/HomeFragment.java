@@ -11,7 +11,6 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.location.LocationManager;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -29,7 +28,6 @@ import android.widget.PopupWindow;
 import android.widget.RadioButton;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -40,47 +38,31 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.decalthon.helmet.stability.Activities.MainActivity;
+import com.decalthon.helmet.stability.AsyncTasks.SessionInfoAsyncTasks.GetLatestSessionSummaryAsyncTask;
+import com.decalthon.helmet.stability.AsyncTasks.ImuAsyncTasks.GetCollectiveSummaryDetailsAsyncTask;
 import com.decalthon.helmet.stability.BLE.ButtonBox_Parser;
 import com.decalthon.helmet.stability.BLE.Device1_Parser;
 import com.decalthon.helmet.stability.BLE.Device_Parser;
 import com.decalthon.helmet.stability.DB.Entities.SessionSummary;
-import com.decalthon.helmet.stability.DB.SessionCdlDb;
 import com.decalthon.helmet.stability.R;
 import com.decalthon.helmet.stability.Utilities.Common;
 import com.decalthon.helmet.stability.Utilities.Constants;
-import com.decalthon.helmet.stability.Utilities.Helper;
 import com.decalthon.helmet.stability.model.DeviceModels.DeviceDetails;
 import com.decalthon.helmet.stability.model.DeviceModels.MemoryUsage;
+import com.decalthon.helmet.stability.model.Generic.TimeFmt;
 import com.decalthon.helmet.stability.preferences.DevicePreferences;
 import com.decalthon.helmet.stability.preferences.ProfilePreferences;
 import com.decalthon.helmet.stability.preferences.UserPreferences;
-import com.decalthon.helmet.stability.webservice.responses.ErrorCodes;
-import com.decalthon.helmet.stability.webservice.responses.ErrorMessages;
-import com.decalthon.helmet.stability.webservice.services.AvatarService;
-import com.google.gson.GsonBuilder;
 
-import org.jetbrains.annotations.NotNull;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 
 import at.grabner.circleprogress.CircleProgressView;
 import de.greenrobot.event.EventBus;
 import de.hdodenhof.circleimageview.CircleImageView;
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
 
 import static androidx.core.content.ContextCompat.checkSelfPermission;
 import static com.decalthon.helmet.stability.Utilities.ViewDimUtils.applyDim;
@@ -108,7 +90,7 @@ public class HomeFragment extends Fragment  {
     private static boolean isDone = false;
     private View actionbarView;
     private String activityType = "";
-     private static SessionSummary latestSessionSummary;
+    private  SessionSummary latestSessionSummary;
     //A BLE device list adapter instance
     private BluetoothAdapter mBluetoothAdapter;
     //Event bus instance use for onEvent actions
@@ -136,6 +118,7 @@ public class HomeFragment extends Fragment  {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate");
+        Common.load_initialization(getContext());
     }
 
     @Override
@@ -158,10 +141,10 @@ public class HomeFragment extends Fragment  {
         //Restoration of profile photo from shared preferences
         UserPreferences userPreferences = UserPreferences.getInstance(getContext());
 
-        profileImageView.setImageBitmap(BitmapFactory.decodeFile
-                (userPreferences.getProfilePhoto()));
+//        profileImageView.setImageBitmap(BitmapFactory.decodeFile
+//                (userPreferences.getProfilePhoto()));
         if(userPreferences.getProfilePhoto().equals("default")){
-            ;
+            profileImageView.setImageResource(R.mipmap.anonymous_round);
         }
         else{
             profileImageView.setImageBitmap(BitmapFactory.decodeFile
@@ -174,15 +157,16 @@ public class HomeFragment extends Fragment  {
                 Fragment profileFragment = new ProfileFragment();
                 FragmentTransaction fragmentTransaction =
                         getFragmentManager().beginTransaction();
-                fragmentTransaction.add(HomeFragment.this.getId(), profileFragment);
-                fragmentTransaction.addToBackStack(null);
+                fragmentTransaction.replace(HomeFragment.this.getId(),
+                        profileFragment, ProfileFragment.class.getSimpleName());
+                fragmentTransaction.addToBackStack(HomeFragment.class.getSimpleName());
                 fragmentTransaction.commit();
             }
         });
 
-        CircleImageView sessionStartImageView =
-                actionbarView.findViewById(R.id.gps_session_start_btn);
-
+//        CircleImageView sessionStartImageView =
+//                actionbarView.findViewById(R.id.gps_session_start_btn);
+//
         CircleImageView gpsSpeedShortcut =
                 view.findViewById(R.id.gps_session_start_btn);
 //        gpsSpeedShortcut.setOnClickListener(new View.OnClickListener() {
@@ -197,33 +181,19 @@ public class HomeFragment extends Fragment  {
 //                });
 //            }
 //        });
-//        gpsSpeedShortcut.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//
-//                AlertDialog helmetDialog = new AlertDialog.Builder(getContext())
-//                        .setTitle("Alert")
-//                        .setMessage("Have you worn helmet properly?")
-//                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-//                            @Override
-//                            public void onClick(DialogInterface dialog, int which) {
-//                                inflatePopup(getContext());
-//                            }
-//                        })
-//                        .setNegativeButton("No", new DialogInterface.OnClickListener() {
-//                            @Override
-//                            public void onClick(DialogInterface dialog, int which) {
-//                                dialog.dismiss();
-//                            }
-//                        })
-//                        .create();
-//                helmetDialog.show();
-//                helmetDialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor
-//                        (Color.parseColor("#FF1B5AAC"));
-//                helmetDialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor
-//                        (Color.parseColor("#D3D3D3"));
-//            }
-//        });
+        gpsSpeedShortcut.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                DeviceDetails deviceDetails = Constants.DEVICE_MAPS.get(getContext().getResources().getString(R.string.device1_tv));
+                if(deviceDetails == null || deviceDetails.mac_address == null || !deviceDetails.connected) {
+                    Common.okAlertMessage(getContext(), getString(R.string.connect_helmet_dev));
+                    return;
+                }else{
+                    Device1_Parser.sendMemoryCmd(getContext());
+                    Common.show_wait_bar(getContext(),"Wait for acknowledgement\nfrom Helmet.");
+                }
+            }
+        });
 
 
 
@@ -236,7 +206,7 @@ public class HomeFragment extends Fragment  {
                 Fragment deviceFragment = new DeviceFragment();
                 FragmentTransaction fragmentTransaction =
                         getFragmentManager().beginTransaction();
-                fragmentTransaction.add(HomeFragment.this.getId(),
+                fragmentTransaction.replace(HomeFragment.this.getId(),
                         deviceFragment, DeviceFragment.class.getSimpleName());
                 fragmentTransaction.addToBackStack(null);
                 fragmentTransaction.commit();
@@ -259,28 +229,34 @@ public class HomeFragment extends Fragment  {
         //Setting card title as date and time in locale setting
         TextView title_text = latestSessionSummaryView.findViewById(R.id.card_title);
         Date date = new Date(latestSessionSummary.getDate());
-        String dateString = new SimpleDateFormat("MMM dd YYYY HH:MM:SS EEE",
+        String dateString =
+                new SimpleDateFormat(Constants.dateFormatString,
                 Locale.getDefault()).format(date);
         title_text.setText(dateString);
 
         //Setting session name as retrieved from the DB
-        TextView session_name = latestSessionSummaryView.findViewById(R.id.session_name_tv);
+        TextView session_name = latestSessionSummaryView.findViewById(R.id.session_name_card_tv);
         String sessionNameStr =
                 getString(R.string.session_name_desc) + latestSessionSummary.getName();
         session_name.setText(sessionNameStr);
 
 
-        TextView activity_type = latestSessionSummaryView.findViewById(R.id.activity_type_tv);
+        TextView activity_type = latestSessionSummaryView.findViewById(R.id.type_of_activity_tv);
 //        String activityTypeStr =
 //                "Activity Type : " + latestSessionSummary.getActivity_type() + "";
         String activityTypeStr =
                 getString(R.string.activity_type_desc) + Constants.ActivityCodeMap.inverse().get(52);
         activity_type.setText(activityTypeStr);
 
+
         TextView duration =
                 latestSessionSummaryView.findViewById(R.id.duration_tv);
+        TimeFmt timeFmt = Common.convertToTimeFmt((long)(latestSessionSummary.getDuration()*1000));
+        String total_duration =
+                 String.format(Locale.getDefault(), "%02d:%02d:%02d", timeFmt.hr, timeFmt.min, timeFmt.sec);//+collective_summary_info.get(1).toString();
+
         String durationStr =
-                getString(R.string.duration_desc) + latestSessionSummary.getDuration() + "";
+                getString(R.string.duration_desc) + total_duration;
         duration.setText(durationStr);
 
         TextView total_dataTV = latestSessionSummaryView.findViewById(R.id.total_data_tv);
@@ -294,10 +270,18 @@ public class HomeFragment extends Fragment  {
                 latestSessionSummaryView.findViewById(R.id.sampling_rate_tv);
         samplingFrequency.setText(samplingRate);
 
+        String typesOfData = getString(R.string.types_of_data_desc) +
+                String.valueOf(Constants.typesOfData);
+        TextView types_of_data_tv =
+                latestSessionSummaryView.findViewById(R.id.types_of_data_tv);
+        types_of_data_tv.setText(typesOfData);
+
         String oneLineNote =  getString(R.string.note_desc)  + latestSessionSummary.getNote();
         TextView note =
                 latestSessionSummaryView.findViewById(R.id.text_note_summary_line_tv);
-        note.setText(oneLineNote);
+        if(!oneLineNote.isEmpty()) {
+            note.setText(oneLineNote);
+        }
 //        if(note.get)
         //A click on the first card view navigates to tracker
         //(A) Outdoor tracker is the GPS map view
@@ -305,12 +289,14 @@ public class HomeFragment extends Fragment  {
         view.findViewById(R.id.latest_activity_summary).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Fragment mapFragment = MapFragment.newInstance(" SESSION 7", "Latest session");
+                Fragment mapFragment =
+                        MapFragment.newInstance(Constants.ActivityCodeMap.inverse().get(latestSessionSummary.getActivity_type()),latestSessionSummary.getSession_id(),latestSessionSummary.getDuration());
                 FragmentTransaction fragmentTransaction = null;
                 if (getFragmentManager() != null) {
                     fragmentTransaction = getFragmentManager()
                             .beginTransaction();
-                    fragmentTransaction.add(HomeFragment.this.getId(), mapFragment,
+                    fragmentTransaction.replace(HomeFragment.this.getId(),
+                            mapFragment,
                             MapFragment.class.getSimpleName());
                     fragmentTransaction.addToBackStack(null);
                     fragmentTransaction.commit();
@@ -322,35 +308,91 @@ public class HomeFragment extends Fragment  {
         View collective_summary_view =
                 view.findViewById(R.id.collective_summary);
         TextView summary_title =
-                collective_summary_view.findViewById(R.id.card_title);
+                collective_summary_view.findViewById(R.id.collective_summary_card_title);
         summary_title.setText(getString(R.string.collective_Summary_title_tv));
+
+        //TODO uncomment this when more collective session fields are finalized
+
+//        try {
+//            List<Float> collective_summary_info =
+//                    new GetCollectiveSummaryDetailsAsyncTask().execute().get();
+//
+//            collective_summary_view.findViewById(R.id.session_name_tv).setVisibility(View.GONE);
+//
+//            TextView nSessions_tv =
+//                    collective_summary_view.findViewById(R.id.number_sessions_tv);
+//            String nSessions =
+//                    String.valueOf(collective_summary_info.get(0));
+//
+//            TextView total_duration_tv =
+//                    collective_summary_view.findViewById(R.id.duration_tv);
+//            timeFmt = Common.convertToTimeFmt((long)(collective_summary_info.get(1)*1000));
+//            total_duration =
+//                    getString(R.string.total_duration_desc) + String.format(Locale.getDefault(), "%02d:%02d:%02d", timeFmt.hr, timeFmt.min, timeFmt.sec);
+//
+//
+//            String total_duration_all =
+//                    getString(R.string.total_duration_desc) + collective_summary_info.get(1).toString();
+//            total_duration_tv.setText();
+//
+//            TextView activities_tv =
+//                    collective_summary_view.findViewById(R.id.activity_type_tv);
+//            String activities =
+//                    getString(R.string.activity_types_desc) +
+// collective_summary_info.get(3).toString();
+////                    "Activity Types : " + Constants.ActivityCodeMap.inverse().get(52)
+////                    +(Constants.ActivityCodeMap.inverse().get(50));
+//            activities_tv.setText(activities);
+//
+//            TextView total_duration_tv =
+//                    collective_summary_view.findViewById(R.id.duration_tv);
+//            String total_duration =
+//                    getString(R.string.total_duration_desc) + collective_summary_info.get(1).toString();
+//            total_duration_tv.setText(total_duration);
+//
+//            TextView total_data_tv =
+//                    collective_summary_view.findViewById(R.id.total_data_tv);
+//            float total_data = (float)collective_summary_info.get(0);
+//            String total_data_str =
+//                    "Total Data (KB) : " + (int)total_data;
+//            total_data_tv.setText(total_data_str);
 
         try {
             List<Float> collective_summary_info =
                     new GetCollectiveSummaryDetailsAsyncTask().execute().get();
 
-            collective_summary_view.findViewById(R.id.session_name_tv).setVisibility(View.GONE);
+//            collective_summary_view.findViewById(R.id.session_name_tv).setVisibility(View.GONE);
 
-            TextView activities_tv =
-                    collective_summary_view.findViewById(R.id.activity_type_tv);
-            String activities =
-                    "Activity Types : " + collective_summary_info.get(3).toString();
-//                    "Activity Types : " + Constants.ActivityCodeMap.inverse().get(52)
-//                    +(Constants.ActivityCodeMap.inverse().get(50));
-            activities_tv.setText(activities);
+            TextView nSessions_tv =
+                    collective_summary_view.findViewById(R.id.number_sessions_tv);
+            Float nSessionCount = collective_summary_info.get(0);
+            int sessionCount = nSessionCount.intValue();
+            String nSessions =
+                    getString(R.string.n_sessions) + sessionCount;
+            nSessions_tv.setText(nSessions);
 
             TextView total_duration_tv =
-                    collective_summary_view.findViewById(R.id.duration_tv);
-            String total_duration =
-                    "Total Duration : " + collective_summary_info.get(1).toString();
+                    collective_summary_view.findViewById(R.id.total_duration_tv);
+             timeFmt = Common.convertToTimeFmt((long)(collective_summary_info.get(1)*1000));
+             total_duration =
+                    getString(R.string.total_duration_desc) + String.format(Locale.getDefault(), "%02d:%02d:%02d", timeFmt.hr, timeFmt.min, timeFmt.sec);
             total_duration_tv.setText(total_duration);
 
             TextView total_data_tv =
                     collective_summary_view.findViewById(R.id.total_data_tv);
-            float total_data = (float)collective_summary_info.get(0);
+            float total_data = (float)collective_summary_info.get(2);
             String total_data_str =
-                    "Total Data (KB):" + (int)total_data;
+                    getString(R.string.collective_summary_total_data) + (int)total_data;
             total_data_tv.setText(total_data_str);
+
+            TextView activities_tv =
+                    collective_summary_view.findViewById(R.id.types_of_activity_tv);
+            int activityTypeCOunt = (collective_summary_info.get(3)).intValue();
+            String activities =
+                    getString(R.string.activity_types_desc) + activityTypeCOunt;
+//                    "Activity Types : " + Constants.ActivityCodeMap.inverse().get(52)
+//                    +(Constants.ActivityCodeMap.inverse().get(50));
+            activities_tv.setText(activities);
 
         } catch (ExecutionException | InterruptedException e) {
             e.printStackTrace();
@@ -387,14 +429,13 @@ public class HomeFragment extends Fragment  {
                         Fragment calendarFragment =
                                 CalendarPagerFragment.newInstance
                                         (MonthlyCalendarFragment.class.getSimpleName(), null);
-                        FragmentTransaction fragmentTransaction =
-                                null;
+                        FragmentTransaction fragmentTransaction;
                         if (getFragmentManager() != null) {
                             fragmentTransaction = getFragmentManager().beginTransaction();
                             fragmentTransaction.add
                                     (HomeFragment.this.getId(), calendarFragment,
                                             CalendarPagerFragment.class.getSimpleName());
-                            fragmentTransaction.addToBackStack(null);
+                            fragmentTransaction.addToBackStack(HomeFragment.class.getSimpleName());
                             fragmentTransaction.commit();
                         }
                     }
@@ -419,15 +460,12 @@ public class HomeFragment extends Fragment  {
             CircleProgressView deviceStatusShortcut = (CircleProgressView)
                     actionBarView.findViewById(R.id.ble_device_btn);
 
-            CircleImageView gpsSpeedShortcut =
-                    actionBarView.findViewById(R.id.gps_session_start_btn);
+//            CircleImageView gpsSpeedShortcut =
+//                    actionBarView.findViewById(R.id.gps_session_start_btn);
 
             CircleImageView logoutMenuShorcut =
                     actionBarView.findViewById(R.id.logout_link);
 
-            /*CircleImageView backLink =
-                    actionBarView.findViewById(R.id.back_link);
-            backLink.setVisibility(View.GONE);*/
 
             ((MainActivity)getActivity()).showProgressCircle( Device_Parser.get_txf_status());
 
@@ -436,24 +474,26 @@ public class HomeFragment extends Fragment  {
             if(userPreferences.getProfilePhoto().equals("default")){
                 ;
             }
-            else{
+            else if(profileShortcut != null){
                 profileShortcut.setImageBitmap(BitmapFactory.decodeFile
                         (userPreferences.getProfilePhoto()));
             }
             //Profile can be edited on clicking the profileShortcut
+            if(profileShortcut != null){
+                profileShortcut.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Fragment profileFragment = new ProfileFragment();
+                        FragmentTransaction fragmentTransaction = getFragmentManager()
+                                .beginTransaction();
+                        fragmentTransaction.add(R.id.fragment,
+                                profileFragment,ProfileFragment.class.getSimpleName());
+                        fragmentTransaction.addToBackStack(null);
+                        fragmentTransaction.commit();
+                    }
+                });
+            }
 
-            profileShortcut.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Fragment profileFragment = new ProfileFragment();
-                    FragmentTransaction fragmentTransaction = getFragmentManager()
-                            .beginTransaction();
-                    fragmentTransaction.add(R.id.fragment,
-                            profileFragment,ProfileFragment.class.getSimpleName());
-                    fragmentTransaction.addToBackStack(null);
-                    fragmentTransaction.commit();
-                }
-            });
 
             //BLE connections can be seen and modified on clicking the device view
             deviceStatusShortcut.setOnClickListener(new View.OnClickListener() {
@@ -462,7 +502,7 @@ public class HomeFragment extends Fragment  {
                     Fragment deviceFragment = new DeviceFragment();
                     FragmentTransaction fragmentTransaction = getFragmentManager()
                             .beginTransaction();
-                    fragmentTransaction.add(R.id.fragment, deviceFragment,
+                    fragmentTransaction.replace(R.id.fragment, deviceFragment,
                             DeviceFragment.class.getSimpleName());
                     fragmentTransaction.addToBackStack(null);
                     fragmentTransaction.commit();
@@ -471,39 +511,39 @@ public class HomeFragment extends Fragment  {
 
             //Without any view, GPS speed can be logged for reference and recorded in the database
 
-            gpsSpeedShortcut.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    DeviceDetails deviceDetails = Constants.DEVICE_MAPS.get(getContext().getResources().getString(R.string.device1_tv));
-                    if(deviceDetails == null || deviceDetails.mac_address == null || !deviceDetails.connected) {
-                        Common.okAlertMessage(getContext(), getString(R.string.connect_helmet_dev));
-                        return;
-                    }else{
-                        Device1_Parser.sendMemoryCmd(getContext());
-                    }
-//                    AlertDialog helmetDialog = new AlertDialog.Builder(getContext())
-//                            .setTitle("Alert")
-//                            .setMessage("Have you worn helmet properly?")
-//                            .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-//                                @Override
-//                                public void onClick(DialogInterface dialog, int which) {
-//                                    inflatePopup(getContext());
-//                                }
-//                            })
-//                            .setNegativeButton("No", new DialogInterface.OnClickListener() {
-//                                @Override
-//                                public void onClick(DialogInterface dialog, int which) {
-//                                    dialog.dismiss();
-//                                }
-//                            })
-//                            .create();
-//                    helmetDialog.show();
-//                    helmetDialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor
-//                            (Color.parseColor("#FF1B5AAC"));
-//                    helmetDialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor
-//                            (Color.parseColor("#D3D3D3"));
-                }
-            });
+//            gpsSpeedShortcut.setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View v) {
+//                    DeviceDetails deviceDetails = Constants.DEVICE_MAPS.get(getContext().getResources().getString(R.string.device1_tv));
+//                    if(deviceDetails == null || deviceDetails.mac_address == null || !deviceDetails.connected) {
+//                        Common.okAlertMessage(getContext(), getString(R.string.connect_helmet_dev));
+//                        return;
+//                    }else{
+//                        Device1_Parser.sendMemoryCmd(getContext());
+//                    }
+////                    AlertDialog helmetDialog = new AlertDialog.Builder(getContext())
+////                            .setTitle("Alert")
+////                            .setMessage("Have you worn helmet properly?")
+////                            .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+////                                @Override
+////                                public void onClick(DialogInterface dialog, int which) {
+////                                    inflatePopup(getContext());
+////                                }
+////                            })
+////                            .setNegativeButton("No", new DialogInterface.OnClickListener() {
+////                                @Override
+////                                public void onClick(DialogInterface dialog, int which) {
+////                                    dialog.dismiss();
+////                                }
+////                            })
+////                            .create();
+////                    helmetDialog.show();
+////                    helmetDialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor
+////                            (Color.parseColor("#FF1B5AAC"));
+////                    helmetDialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor
+////                            (Color.parseColor("#D3D3D3"));
+//                }
+//            });
 
             //The last icon on the extreme right, provides a logout option
 
@@ -561,8 +601,9 @@ public class HomeFragment extends Fragment  {
 //        }
 //        if(!isDone){
 //            try{
-//                //new DatabaseHelper.UpdateSensorData().execute(4l);
-//                DatabaseHelper.insertGPS(4l);
+////                new DatabaseHelper.UpdateSensorData().execute(4l);
+////                DatabaseHelper.insertGPS(4l);
+//                new DatabaseHelper.DeleteButtonBox().execute(4l);
 //                isDone = true;
 //            }catch (Exception e){
 //                e.printStackTrace();
@@ -603,6 +644,7 @@ public class HomeFragment extends Fragment  {
 
 //       insertGPS();
 //        new DatabaseHelper.UpdateAndAddMarker().execute();
+//        new DatabaseHelper.UpdateMarkerData().execute(4l);
     }
 
     @Override
@@ -1179,7 +1221,7 @@ public class HomeFragment extends Fragment  {
                 FragmentTransaction fragmentTransaction = getActivity().
                         getSupportFragmentManager().beginTransaction();
                 fragmentTransaction.replace(R.id.fragment, fragment);
-                fragmentTransaction.addToBackStack(LoginFragment.class.getSimpleName());
+                fragmentTransaction.addToBackStack(HomeFragment.class.getSimpleName());
                 fragmentTransaction.commit();
             }else{
                 //ToDo: validate Profile details, if no information, the navigate to Profile page
@@ -1187,8 +1229,8 @@ public class HomeFragment extends Fragment  {
                     Fragment profileFragment = new ProfileFragment();
                     FragmentTransaction fragmentTransaction = getFragmentManager()
                             .beginTransaction();
-                    fragmentTransaction.replace(R.id.fragment, profileFragment,ProfileFragment.class.getSimpleName());
-                    fragmentTransaction.addToBackStack(null);
+                    fragmentTransaction.replace(R.id.fragment, profileFragment,"Profile Fragment");
+                    fragmentTransaction.addToBackStack(HomeFragment.class.getSimpleName());
                     fragmentTransaction.commit();
                 }
             }
@@ -1226,6 +1268,7 @@ public class HomeFragment extends Fragment  {
      * @param memoryUsage
      */
     public void onEvent(final MemoryUsage memoryUsage) {
+        Common.dismiss_wait_bar();
         Log.d(TAG, "Memory usage: ss="+memoryUsage.session_summaries+", pm="+memoryUsage.packet_memory);
         // If one of datapacket's memory or session summaries' memory usage is more than 90% , then no activity
             MainActivity.shared().runOnUiThread(new Runnable() {
@@ -1243,52 +1286,17 @@ public class HomeFragment extends Fragment  {
                     alert.setPositiveButton("OK",new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-//                            if(memoryUsage.packet_memory > 90 || memoryUsage.session_summaries > 90) {
-//                                Device1_Parser.sendNotificationCmd(getContext());
-//                            }else{
+                            if(memoryUsage.packet_memory > 90 || memoryUsage.session_summaries > 90) {
+                                Device1_Parser.sendNotificationCmd(getContext());
+                            }else{
                                 inflatePopup(getContext());
-//                            }
+                            }
                         }
                     });
                     alert.show();
 
                 }
             });
-    }
-
-private class GetLatestSessionSummaryAsyncTask extends AsyncTask<Void,
-            Void,SessionSummary>{
-
-        @Override
-        protected SessionSummary doInBackground(Void... voids) {
-            return SessionCdlDb.getInstance(mContext).getSessionDataDAO().getLatestSessionSummary();
-        }
-
-    }
-
-    private class GetCollectiveSummaryDetailsAsyncTask extends AsyncTask<Void,
-            Void,List<Float>>{
-        @Override
-        protected List<Float> doInBackground(Void... voids) {
-            int totalDataSize =
-                    SessionCdlDb.getInstance(mContext).getSessionDataDAO().getTotalDataInBytes() / 1024;
-            Float duration_total =
-                    SessionCdlDb.getInstance(mContext).getSessionDataDAO().getAllActivitiesTotalTime();
-            Integer [] activity_codes =
-                    SessionCdlDb.getInstance(mContext).getSessionDataDAO().getAllActivityTypes();
-            List<Float> summary_list = new ArrayList<>();
-            summary_list.add((float) totalDataSize);
-            summary_list.add(duration_total);
-            for(Integer activity : activity_codes){
-                summary_list.add(Float.valueOf(activity));
-            }
-            return  summary_list;
-        }
-
-        @Override
-        protected void onPostExecute(List<Float> floats) {
-
-        }
     }
 }
 

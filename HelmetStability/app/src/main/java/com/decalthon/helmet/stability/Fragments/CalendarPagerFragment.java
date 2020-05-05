@@ -49,7 +49,7 @@ public class CalendarPagerFragment extends Fragment {
     private OnFragmentInteractionListener mListener;
     private ViewPager2 viewPager;
     private FragmentStateAdapter calendarPagerAdapter;
-    private static Context mContext;
+    private Context mContext;
 
     public CalendarPagerFragment() {
         // Required empty public constructor
@@ -171,6 +171,10 @@ public class CalendarPagerFragment extends Fragment {
         }
     }
 
+    public String getCalendarType(){
+        return  mParam1;
+    }
+
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
@@ -208,7 +212,7 @@ public class CalendarPagerFragment extends Fragment {
             Void, List<Long>> {
         @Override
         protected List<Long> doInBackground(Void... voids) {
-            return SessionCdlDb.getInstance(mContext).getSessionDataDAO().getTimestampsFromSessionSummary();
+            return SessionCdlDb.getInstance().getSessionDataDAO().getTimestampsFromSessionSummary();
         }
     }
 }

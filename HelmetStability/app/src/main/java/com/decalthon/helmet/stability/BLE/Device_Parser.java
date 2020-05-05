@@ -8,13 +8,15 @@ import com.decalthon.helmet.stability.Utilities.ByteUtils;
 import com.decalthon.helmet.stability.Utilities.Constants;
 import com.decalthon.helmet.stability.model.DeviceModels.DeviceDetails;
 
+import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 public class Device_Parser {
     protected static SessionCdlDb sessionCdlDb;
-
+    protected  String dateFilePattern = "yyyyMMdd_HHmmss";
+    protected SimpleDateFormat dateFileFormat = new SimpleDateFormat(dateFilePattern);
     //    //01 pl1 pl2 pl3 pl4 pl5 pl6 cs1 cs2
 //    public static final String SESSION_CMD = "0x01 0x32 0x00 0x00 0x00 0x01 0x01 0x00 0x35";
     protected static byte[] request_session_data(int session_num, long packet_num){

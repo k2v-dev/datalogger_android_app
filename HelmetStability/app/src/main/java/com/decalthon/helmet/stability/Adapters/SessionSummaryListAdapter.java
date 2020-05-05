@@ -9,11 +9,14 @@ import android.widget.TextView;
 
 import com.decalthon.helmet.stability.DB.Entities.SessionSummary;
 import com.decalthon.helmet.stability.R;
+import com.decalthon.helmet.stability.Utilities.Common;
 import com.decalthon.helmet.stability.Utilities.Constants;
+import com.decalthon.helmet.stability.model.Generic.TimeFmt;
 
-import java.util.ArrayList;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * SessionListAdapter is used to make the listView interface compatible with
@@ -99,25 +102,39 @@ public class SessionSummaryListAdapter extends BaseAdapter {
         TextView cardTitle = convertView.findViewById(R.id.card_title);
         Date currentDate =
                 new Date(sessionSummary.getDate());
-
-        cardTitle.setText(currentDate.toString());
+        String dateString = new SimpleDateFormat("MMM dd YYYY HH:MM:SS EEE",
+                Locale.getDefault()).format(currentDate);
+        cardTitle.setText(dateString);
 
 //        convertView.findViewsWithText(textViewArrayList,card_text, -1);
 
         String [] textlines = new String[Constants.MAX_SESSION_CARD_LINES];
-        textlines[0] = "Session Name : " + sessionSummary.getName();
+        textlines[0] =
+                mContext.getString(R.string.session_name_desc) + sessionSummary.getName();
         textlines[1] =
-                "Activity Type : " + Constants.ActivityCodeMap.inverse().get(52);
-        textlines[2]  = "Duration : " + sessionSummary.getDuration();
+                mContext.getString(R.string.activity_type_desc) + Constants.ActivityCodeMap.inverse().get(52);
+
+        TimeFmt timeFmt = Common.convertToTimeFmt((long)(sessionSummary.getDuration()*1000));
+        String total_duration =
+                 String.format(Locale.getDefault(), "%02d:%02d:%02d", timeFmt.hr, timeFmt.min, timeFmt.sec);//+collective_summary_info.get(1).toString();
+
+        textlines[2]  = mContext.getString(R.string.total_duration_desc) + total_duration;
         textlines[3] =
-                "Total data (KB) : " + sessionSummary.getTotal_data()/1024;
+                mContext.getString(R.string.total_data_desc) + sessionSummary.getTotal_data()/1024;
+        textlines[4] =
+                mContext.getString(R.string.sampling_frequency_desc) + sessionSummary.getSampling_freq();
+        textlines[5] =
+                mContext.getString(R.string.types_of_data_desc) + Constants.typesOfData;
+        textlines[6] =
+                mContext.getString(R.string.note_desc) + sessionSummary.getNote();
+
 
         TextView session_name_tv =
-                convertView.findViewById(R.id.session_name_tv);
+                convertView.findViewById(R.id.session_name_card_tv);
         session_name_tv.setText(textlines[0]);
 
         TextView activity_type_tv =
-                convertView.findViewById(R.id.activity_type_tv);
+                convertView.findViewById(R.id.type_of_activity_tv);
         activity_type_tv.setText(textlines[1]);
 
         TextView duration_tv = convertView.findViewById(R.id.duration_tv);
@@ -126,9 +143,21 @@ public class SessionSummaryListAdapter extends BaseAdapter {
         TextView total_data_tv = convertView.findViewById(R.id.total_data_tv);
         total_data_tv.setText(textlines[3]);
 
+        TextView sample_frequency_tv =
+                convertView.findViewById(R.id.sampling_rate_tv);
+        sample_frequency_tv.setText(textlines[4]);
+
+        TextView types_of_data_tv =
+                convertView.findViewById(R.id.types_of_data_tv);
+        types_of_data_tv.setText(textlines[5]);
+
+        TextView note_tv =
+                convertView.findViewById(R.id.text_note_summary_line_tv);
+        note_tv.setText(textlines[6]);
+
         return convertView;
 
     }
-}
+};
 
 

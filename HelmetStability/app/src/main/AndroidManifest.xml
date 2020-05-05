@@ -22,7 +22,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".Activities.FullScreenActivity" />
+        <activity
+            android:name=".Activities.FullScreenActivity"
+            android:configChanges="orientation"
+            android:screenOrientation="portrait"
+            />
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
@@ -31,7 +35,9 @@
         <activity
             android:name=".Activities.MainActivity"
             android:configChanges="orientation"
-            android:screenOrientation="portrait">
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar"
+            >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

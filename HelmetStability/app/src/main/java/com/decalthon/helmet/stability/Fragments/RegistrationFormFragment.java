@@ -56,6 +56,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
+import static androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE;
+
 
 /**
  * A simple {@link Fragment} subclass.
@@ -72,7 +74,7 @@ public class RegistrationFormFragment extends Fragment implements View.OnClickLi
     private PinView pinView;
     private Button registerBtn;
     private TextView topText,textU;
-    private TextView resend_otp_tv;
+    private TextView resend_otp_tv, login_now_tv;
     private TextView error_msg_tv;
     private EditText userName, userPhone, userEmail;
     private ConstraintLayout first, second;
@@ -143,6 +145,7 @@ public class RegistrationFormFragment extends Fragment implements View.OnClickLi
         pb_bar = view.findViewById(R.id.pb_bar);
         resend_otp_tv = view.findViewById(R.id.resend_otp);
         error_msg_tv = view.findViewById(R.id.error_msg_tv);
+        login_now_tv = view.findViewById(R.id.login_tv);
 
         mAuth = FirebaseAuth.getInstance();
 
@@ -153,6 +156,16 @@ public class RegistrationFormFragment extends Fragment implements View.OnClickLi
         ccp.registerCarrierNumberEditText(userPhone);
 
         firestoreDb = FirebaseFirestore.getInstance();
+
+        login_now_tv.setOnClickListener(new View.OnClickListener() {
+                                               @Override
+                                               public void onClick(View v) {
+                                                   FragmentManager fragmentManager = getFragmentManager();
+                                                   if(fragmentManager != null)
+                                                        fragmentManager.popBackStack();
+                                               }
+                                           }
+        );
 
         resend_otp_tv.setOnClickListener(new View.OnClickListener() {
                                              @Override
@@ -461,9 +474,10 @@ public class RegistrationFormFragment extends Fragment implements View.OnClickLi
             public void onComplete(@NonNull Task<QuerySnapshot> task) {
                 if(Objects.requireNonNull(task.getResult()).size() > 0){
                     Toast.makeText(getContext(), "User phone already exist in the our records. ", Toast.LENGTH_SHORT).show();
-                    FragmentManager fm = getActivity()
-                                .getSupportFragmentManager();
-                        fm.popBackStack(Constants.LOGIN_FRAGMENT, 0);
+                    error_msg_tv.setText("User phone already exist in the our records. Please login now.");
+//                    FragmentManager fm = getActivity()
+//                                .getSupportFragmentManager();
+//                        fm.popBackStack(LoginFragment.class.getSimpleName(), 0);
                 }else{
                     doesUserExist(firestoreUserModel);
                 }
@@ -542,7 +556,7 @@ public class RegistrationFormFragment extends Fragment implements View.OnClickLi
 
                 FragmentManager fm = getActivity()
                         .getSupportFragmentManager();
-                fm.popBackStack(Constants.HOME_FRAGMENT, 0);
+                fm.popBackStack(HomeFragment.class.getSimpleName(), POP_BACK_STACK_INCLUSIVE);
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override

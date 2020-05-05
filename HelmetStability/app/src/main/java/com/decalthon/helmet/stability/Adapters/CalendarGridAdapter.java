@@ -8,6 +8,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -17,7 +18,11 @@ import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.decalthon.helmet.stability.Activities.MainActivity;
+import com.decalthon.helmet.stability.Fragments.CalendarPagerFragment;
+import com.decalthon.helmet.stability.Fragments.DailySessionsFragment;
 import com.decalthon.helmet.stability.Fragments.MapFragment;
+import com.decalthon.helmet.stability.MainApplication;
+import com.decalthon.helmet.stability.Fragments.MonthlyCalendarFragment;
 import com.decalthon.helmet.stability.R;
 import com.decalthon.helmet.stability.Utilities.CalendarUtils;
 import com.decalthon.helmet.stability.Utilities.Constants;
@@ -30,7 +35,10 @@ public class CalendarGridAdapter extends RecyclerView.Adapter<CalendarGridAdapte
 
     private ArrayList<String> mCalendarDataset;
     private Integer []  mEventDataset;
+    private Integer mCalendarMonth;
     private static String TAG = CalendarGridAdapter.class.getSimpleName();
+    private int[] icons_arr = {R.drawable.one_icon, R.drawable.one_icon, R.drawable.two_icons, R.drawable.three_icons,
+            R.drawable.four_icons, R.drawable.five_icons, R.drawable.six_icons, R.drawable.six_icons};
 
     public static class CalendarViewHolder extends RecyclerView.ViewHolder{
         public View cellView;
@@ -41,9 +49,11 @@ public class CalendarGridAdapter extends RecyclerView.Adapter<CalendarGridAdapte
     }
 
     public CalendarGridAdapter(ArrayList<String> calendarDataset,
-                               ArrayList<Integer> events) {
+                               ArrayList<Integer> events,
+                               Integer calendarMonth) {
         mCalendarDataset = calendarDataset;
         mEventDataset = events.toArray(new Integer[0]);
+        mCalendarMonth = calendarMonth;
     }
 
     @NonNull
@@ -59,6 +69,7 @@ public class CalendarGridAdapter extends RecyclerView.Adapter<CalendarGridAdapte
         int dotCounter = 0;
         char [] dots = new char[7];
         String dotString = null;
+
         TextView cellTextView = holder.cellView.findViewById(R.id.calendar_cell_tv);
         if(position < 7) {
             cellTextView.setTextColor(Color.parseColor("#FF000000"));
@@ -66,62 +77,74 @@ public class CalendarGridAdapter extends RecyclerView.Adapter<CalendarGridAdapte
             cellTextView.setTextColor(Color.parseColor("#33000000"));
         }
         cellTextView.setText(mCalendarDataset.get(position));
-        if(mEventDataset == null) {
+        ImageView cellImageView = holder.cellView.findViewById(R.id.calendar_cell_im);
+        if(mEventDataset == null || mEventDataset.length == 0) {
             return;
         }else{
-            for(Integer event : mEventDataset){
-                if(String.valueOf(event).contentEquals(cellTextView.getText())){
+            for(Integer eventDay : mEventDataset){
+                if(String.valueOf(eventDay).contentEquals(cellTextView.getText())){
                     cellTextView.setTextColor(Color.BLACK);
                     dotCounter++;
-                    if( dotCounter >= 1 ) {
-                        dots[dotCounter] = '.';
-                    }
-                    dotString = new String(dots);
-                    cellTextView.setOnClickListener(new View.OnClickListener() {
+//                    if( dotCounter >= 1 ) {
+//                        dots[dotCounter] = '.';
+//                    }
+//                    dotString = new String(dots);
+                    holder.cellView.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            Fragment sessionFragment =
-                                    MapFragment.newInstance(event.toString(),null);
+                            Fragment dailySessionFragment =
+                                    DailySessionsFragment.newInstance(eventDay.toString(),mCalendarMonth.toString());
                             FragmentTransaction fragmentTransaction =
                                     MainActivity.shared().getSupportFragmentManager().beginTransaction();
                             fragmentTransaction.replace(R.id.main_activity,
-                                    sessionFragment,"Monthly Calendar Fragment");
+                                    dailySessionFragment,
+                                    CalendarPagerFragment.class.getSimpleName());
                             fragmentTransaction.addToBackStack(null);
                             fragmentTransaction.commit();
                         }
                     });
                 }
             }
-            if(dotString == null) {
-                ;
-            }else{
 
-                final String eventCellContents =
-                        cellTextView.getText() + dotString;
-                SpannableString dotStringColored =
-                        new SpannableString(dotString);
-                dotStringColored.setSpan(new ForegroundColorSpan(Color.RED),0
-                        ,1,0);
-                dotStringColored.setSpan(new ForegroundColorSpan(Color.BLUE),1
-                        ,2,0);
-                dotStringColored.setSpan(new ForegroundColorSpan(Color.RED),2
-                        ,3,0);
-                dotStringColored.setSpan(new ForegroundColorSpan(Color.BLUE),3
-                        ,4,0);
-                dotStringColored.setSpan(new ForegroundColorSpan(Color.RED),4
-                        ,5,0);
-                dotStringColored.setSpan(new ForegroundColorSpan(Color.BLUE),5
-                        ,6,0);
-                dotStringColored.setSpan(new ForegroundColorSpan(Color.BLUE),5
-                        ,6,0);
-
-                final SpannableString cellContents = new SpannableString(
-                        eventCellContents);
-                cellContents.setSpan(new RelativeSizeSpan(1.0f),
-                        cellTextView.getText().toString().length() + 1,
-                        dotStringColored.length(),0 );
-                cellTextView.setText(cellContents);
+            if(dotCounter > 0){
+                cellImageView.setVisibility(View.VISIBLE);
+                if(dotCounter <= 3){
+                    cellImageView.getLayoutParams().height = 10;
+                }else{
+                    cellImageView.getLayoutParams().height = 20;
+                }
+                cellImageView.setImageDrawable(MainApplication.getAppContext().getDrawable(icons_arr[dotCounter]));
             }
+//            if(dotString == null) {
+//                ;
+//            }else{
+//
+//                final String eventCellContents =
+//                        cellTextView.getText() + dotString;
+//                SpannableString dotStringColored =
+//                        new SpannableString(dotString);
+//                dotStringColored.setSpan(new ForegroundColorSpan(Color.RED),0
+//                        ,1,0);
+//                dotStringColored.setSpan(new ForegroundColorSpan(Color.BLUE),1
+//                        ,2,0);
+//                dotStringColored.setSpan(new ForegroundColorSpan(Color.RED),2
+//                        ,3,0);
+//                dotStringColored.setSpan(new ForegroundColorSpan(Color.BLUE),3
+//                        ,4,0);
+//                dotStringColored.setSpan(new ForegroundColorSpan(Color.RED),4
+//                        ,5,0);
+//                dotStringColored.setSpan(new ForegroundColorSpan(Color.BLUE),5
+//                        ,6,0);
+//                dotStringColored.setSpan(new ForegroundColorSpan(Color.BLUE),5
+//                        ,6,0);
+//
+//                final SpannableString cellContents = new SpannableString(
+//                        eventCellContents);
+//                cellContents.setSpan(new RelativeSizeSpan(1.0f),
+//                        cellTextView.getText().toString().length() + 1,
+//                        dotStringColored.length(),0 );
+//                cellTextView.setText(cellContents);
+//            }
         }
 //        String cellTextString =
 //                mCalendarDataset.get(position) + new String(dots);

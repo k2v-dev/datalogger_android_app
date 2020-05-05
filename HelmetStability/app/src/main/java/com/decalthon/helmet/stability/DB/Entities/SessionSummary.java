@@ -39,6 +39,7 @@ public class SessionSummary {
     private float duration;
     private int activity_type;
     private String note="";
+    private long note_timestamp;
     private short firmware_type;
     private short sampling_freq;
 
@@ -197,6 +198,14 @@ public class SessionSummary {
 
     public void setNote(String note) {
         this.note = note;
+    }
+
+    public long getNote_timestamp() {
+        return note_timestamp;
+    }
+
+    public void setNote_timestamp(long note_timestamp) {
+        this.note_timestamp = note_timestamp;
     }
 
     public short getFirmware_type() {

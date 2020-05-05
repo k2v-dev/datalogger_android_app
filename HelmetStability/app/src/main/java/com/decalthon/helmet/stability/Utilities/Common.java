@@ -9,10 +9,14 @@ import android.location.Location;
 import com.decalthon.helmet.stability.Activities.MainActivity;
 import com.decalthon.helmet.stability.R;
 import com.decalthon.helmet.stability.model.DeviceModels.DeviceDetails;
+import com.decalthon.helmet.stability.model.Generic.TimeFmt;
 
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
+import static com.decalthon.helmet.stability.Utilities.Constants.DEVICE_MAPS;
 
 /*
 It has helper methods.
@@ -236,6 +240,49 @@ public class Common {
         }
     }
 
+    public static String toCamelCase(final String init) {
+        if (init == null)
+            return null;
+
+        final StringBuilder ret = new StringBuilder(init.length());
+
+        for (final String word : init.split(" ")) {
+            if (!word.isEmpty()) {
+                ret.append(Character.toUpperCase(word.charAt(0)));
+                ret.append(word.substring(1).toLowerCase());
+            }
+            if (!(ret.length() == init.length()))
+                ret.append(" ");
+        }
+
+        return ret.toString();
+    }
+
+    public static void load_initialization(Context context){
+        DEVICE_MAPS.put(context.getResources().getString(R.string.device1_tv), new DeviceDetails());
+        DEVICE_MAPS.put(context.getResources().getString(R.string.device2_tv), new DeviceDetails());
+        DEVICE_MAPS.put(context.getResources().getString(R.string.device3_tv), new DeviceDetails());
+
+        String[] indoor = context.getResources().getStringArray(R.array.indoor_sports_array);
+        int[] indoor_code = context.getResources().getIntArray(R.array.indoor_sports_array_code);
+        String[] outdoor = context.getResources().getStringArray(R.array.outdoor_sports_array);
+        int[] outdoor_code = context.getResources().getIntArray(R.array.outdoor_sports_array_code);
+
+        for (int i = 0; i < indoor.length; i++) {
+            String key = indoor[i]+"_"+Constants.INDOOR;
+            Constants.ActivityCodeMap.put(key, indoor_code[i]);
+        }
+
+        for (int i = 0; i < outdoor.length; i++) {
+            String key = outdoor[i]+"_"+Constants.OUTDOOR;
+            Constants.ActivityCodeMap.put(key, outdoor_code[i]);
+        }
+
+//        SENSORS_MAPS.put(getResources().getString(R.string.device1_tv), HEL_SENSORS);
+//        SENSORS_MAPS.put(getResources().getString(R.string.device2_tv), WAT_SENSORS);
+//        SENSORS_MAPS.put(getResources().getString(R.string.device3_tv), BELT_SENSORS);
+    }
+
 //    public static void lowStorageAlert(Context context){
 //        try{
 //            String path = context.getPackageName() + File.separator ;
@@ -249,6 +296,21 @@ public class Common {
 //            Log.d("Common","lowStorageAlert:"+ex.getMessage());
 //        }
 //    }
+
+    /**
+     * Convert duration in millsec to time format e.g. hr, min, sec and milli sec
+     * @param duration in milli seconds
+     * @return
+     */
+    public static TimeFmt convertToTimeFmt(long duration){
+        long hours = TimeUnit.MILLISECONDS.toHours(duration) ;
+        long minute = TimeUnit.MILLISECONDS.toMinutes(duration) - (TimeUnit.MILLISECONDS.toHours(duration)* 60);
+        long second = TimeUnit.MILLISECONDS.toSeconds(duration) - (TimeUnit.MILLISECONDS.toMinutes(duration) *60);
+        long ms = TimeUnit.MILLISECONDS.toMillis(duration) - (TimeUnit.MILLISECONDS.toSeconds(duration) *1000);
+        TimeFmt timeFmt = new TimeFmt();
+        timeFmt.hr = (int)hours;timeFmt.min = (int)minute;timeFmt.sec = (int)second;timeFmt.milsec = (int)ms;
+        return timeFmt;
+    }
 }
 
 

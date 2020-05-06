@@ -68,7 +68,6 @@
             android:id = "@+id/session_name_tv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_toRightOf="@id/time_value_tv"
             android:layout_toLeftOf="@id/session_name_value_tv"
             android:textStyle="bold"
             android:padding="4dp"
@@ -105,20 +104,14 @@
             android:layout_height="wrap_content"
             android:layout_toRightOf="@id/session_duration_tv"
             android:text="@string/duration_placeholder"
-            android:paddingTop="4dp"
-            android:paddingBottom="4dp"
-            android:paddingRight="6dp"/>
-
+            android:padding="4dp"/>
         <TextView
             android:id="@+id/activity_type_tv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_toLeftOf="@id/activity_type_value"
             android:textStyle="bold"
-            android:paddingTop="4dp"
-            android:paddingStart="6dp"
-            android:paddingEnd="2dp"
-            android:paddingBottom="4dp"
+            android:padding="4dp"
             android:text="@string/activity_type_name"/>
         <TextView
             android:id="@+id/activity_type_value"

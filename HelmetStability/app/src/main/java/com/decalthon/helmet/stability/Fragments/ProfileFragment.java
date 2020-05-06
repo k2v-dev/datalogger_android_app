@@ -89,6 +89,7 @@ public class ProfileFragment extends DialogFragment {
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
+    private boolean isUploadedPhoto = false;
 
     private static int ageIndex = 0,genderIndex = 0,heightIndex = 0,weightIndex = 0;
 
@@ -198,7 +199,7 @@ public class ProfileFragment extends DialogFragment {
                 (int) ProfilePreferences.getInstance(getContext()).getHeight();
         int storedWeight =
                 (int) ProfilePreferences.getInstance(getContext()).getWeight();
-
+        isUploadedPhoto = false;
         //Retain default anonymous photo, unless there is a user-preference photo
         if(defaultImagePath.equals("default")) {
             ;
@@ -554,15 +555,18 @@ public class ProfileFragment extends DialogFragment {
             * in a circular image view */
             try{
                 String filePath = userPreferences.getProfilePhoto();
-                BitmapFactory.Options bitmapOptions = new BitmapFactory.Options();
-                Bitmap bitmap = BitmapFactory.decodeFile(filePath, bitmapOptions);
-                photoEdit.setImageBitmap(bitmap);
-                FirebaseStorageManager.UploadBitmap(bitmap, user_id, new FirebaseStorageManager.UploadListener() {
-                    @Override
-                    public void onComplete(boolean isSuccess) {
-                        Log.d("fileupload",isSuccess +"");
-                    }
-                });
+                if(!filePath.equalsIgnoreCase("default") && isUploadedPhoto){
+                    BitmapFactory.Options bitmapOptions = new BitmapFactory.Options();
+                    Bitmap bitmap = BitmapFactory.decodeFile(filePath, bitmapOptions);
+                    photoEdit.setImageBitmap(bitmap);
+                    FirebaseStorageManager.UploadBitmap(bitmap, user_id, new FirebaseStorageManager.UploadListener() {
+                        @Override
+                        public void onComplete(boolean isSuccess) {
+                            Log.d("fileupload",isSuccess +"");
+                        }
+                    });
+                    isUploadedPhoto = false;
+                }
             }catch (Exception ex){
                 ex.printStackTrace();
             }
@@ -614,7 +618,7 @@ public class ProfileFragment extends DialogFragment {
 
         UserPreferences userPreferences = UserPreferences.getInstance(getContext());
         userPreferences.saveProfilePhoto(fileNameOnDevice.getAbsolutePath());
-
+        isUploadedPhoto = true;
         //Update the action bar with the currently chosen photo
 
 

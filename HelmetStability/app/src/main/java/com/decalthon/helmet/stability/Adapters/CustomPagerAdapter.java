@@ -23,18 +23,18 @@ public class CustomPagerAdapter extends FragmentStateAdapter {
     @NonNull
     @Override
     public Fragment createFragment(int position) {
-        switch(position){
-            case 0:
-                return new CustomGraphFragment(FRAGMENT_NAME_DEVICE1_9_AXIS);
-            case 1:
-                return new CustomGraphFragment(FRAGMENT_NAME_DEVICE1_3_AXIS);
-            case 2:
-                return new CustomGraphFragment(FRAGMENT_NAME_DEVICE2_9_AXIS);
-            case 3:
-                return new CustomGraphFragment(FRAGMENT_NAME_DEVICE2_3_AXIS);
-            case 4:
-                return new CustomGraphFragment(FRAGMENT_NAME_GPS_SPEED);
-        }
+//        switch(position){
+//            case 0:
+//                return new CustomGraphFragment(FRAGMENT_NAME_DEVICE1_9_AXIS);
+//            case 1:
+//                return new CustomGraphFragment(FRAGMENT_NAME_DEVICE1_3_AXIS);
+//            case 2:
+//                return new CustomGraphFragment(FRAGMENT_NAME_DEVICE2_9_AXIS);
+//            case 3:
+//                return new CustomGraphFragment(FRAGMENT_NAME_DEVICE2_3_AXIS);
+//            case 4:
+//                return new CustomGraphFragment(FRAGMENT_NAME_GPS_SPEED);
+//        }
         return new CustomGraphFragment();
     }
 

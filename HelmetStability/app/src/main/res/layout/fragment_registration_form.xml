@@ -336,7 +336,7 @@
             android:id="@+id/error_msg_tv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="223dp"
+            android:layout_marginTop="227dp"
             android:textColor="@color/red"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"

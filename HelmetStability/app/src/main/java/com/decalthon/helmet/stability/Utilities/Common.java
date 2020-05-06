@@ -5,12 +5,16 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.location.Location;
+import android.widget.Toast;
 
 import com.decalthon.helmet.stability.Activities.MainActivity;
+import com.decalthon.helmet.stability.MainApplication;
 import com.decalthon.helmet.stability.R;
 import com.decalthon.helmet.stability.model.DeviceModels.DeviceDetails;
 import com.decalthon.helmet.stability.model.Generic.TimeFmt;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
@@ -221,13 +225,20 @@ public class Common {
         alert.show();
     }
 
+    public static float round(float value, int places) {
+        if (places < 0) throw new IllegalArgumentException();
+
+        BigDecimal bd = BigDecimal.valueOf(value);
+        bd = bd.setScale(places, RoundingMode.HALF_UP);
+        return bd.floatValue();
+    }
 
     private static ProgressDialog wait_cursor;
     public static void show_wait_bar(Context context, String message){
         dismiss_wait_bar();
         wait_cursor = new ProgressDialog(context);
        // yourProgress.setTitle("Title");
-        wait_cursor.setMessage("Wait for a while");
+        wait_cursor.setMessage(message);
         wait_cursor.getProgress();
         wait_cursor.setCancelable(true);
         wait_cursor.show();
@@ -237,6 +248,30 @@ public class Common {
         if(wait_cursor != null){
             wait_cursor.dismiss();
             wait_cursor = null;
+        }
+    }
+    private static int wait_counter = 0;
+    private static long load_time = 0;
+    public static void show_wait_bar_count(Context context, String message, int count){
+        dismiss_wait_bar();
+        wait_cursor = new ProgressDialog(context);
+        // yourProgress.setTitle("Title");
+        wait_cursor.setMessage(message);
+        wait_cursor.getProgress();
+        wait_cursor.setCancelable(true);
+        wait_cursor.show();
+        wait_counter = count;
+        load_time = System.currentTimeMillis();
+    }
+
+    public static void  dismiss_wait_bar_count(){
+        synchronized(Common.class.getSimpleName()) {
+            wait_counter--;
+            if(wait_cursor != null && wait_counter <= 0){
+                wait_cursor.dismiss();
+                wait_cursor = null;
+                wait_counter = 0;
+            }
         }
     }
 

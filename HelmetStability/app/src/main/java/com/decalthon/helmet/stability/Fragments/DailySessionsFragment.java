@@ -116,7 +116,7 @@ public class DailySessionsFragment extends Fragment {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 SessionSummary sessionSummary = dailySessionSummaries_cp.get(position);
                 Fragment mapFragment =
-                        MapFragment.newInstance(Constants.ActivityCodeMap.inverse().get(sessionSummary.getActivity_type()), (long)4, sessionSummary.getDuration());
+                        MapFragment.newInstance(Constants.ActivityCodeMap.inverse().get(sessionSummary.getActivity_type()), sessionSummary.getSession_id(), sessionSummary.getDuration());
                 FragmentManager fragmentManager
                         = getFragmentManager();
                 FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();

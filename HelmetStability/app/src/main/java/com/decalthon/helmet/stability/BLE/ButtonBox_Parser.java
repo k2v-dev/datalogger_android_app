@@ -487,6 +487,17 @@ public class ButtonBox_Parser extends Device_Parser{
         }
     }
 
+    /**
+     * Update the total number of packets for device2
+     * @param read_pkt_read
+     */
+    public void update_read_pkt(long read_pkt_read){
+        DeviceDetails deviceDetails = Constants.DEVICE_MAPS.get(context.getResources().getString(R.string.device2_tv));
+        if(deviceDetails != null && deviceDetails.mac_address != null) {
+            deviceDetails.read_pkts = read_pkt_read;
+        }
+    }
+
     public static void sendStopCmd(Context context){
         DeviceDetails deviceDetails = Constants.DEVICE_MAPS.get(context.getResources().getString(R.string.device2_tv));
         if(deviceDetails != null && deviceDetails.mac_address != null) {
@@ -595,7 +606,7 @@ public class ButtonBox_Parser extends Device_Parser{
         }
     }
 
-    public static class GetLastPktNums extends AsyncTask<Void, Void, Void> {
+    public  class GetLastPktNums extends AsyncTask<Void, Void, Void> {
         public  GetLastPktNums() { }
 
         @Override
@@ -603,11 +614,14 @@ public class ButtonBox_Parser extends Device_Parser{
             if(DeviceHelper.SESSION_SUMMARIES_BB.size() == 0){
                 return null;
             }
+            long total_read_pkts=0;
             for (Map.Entry<Integer, SessionSummary> entry : DeviceHelper.SESSION_SUMMARIES_BB.entrySet()) {
                 long prev_pkt_num = sessionCdlDb.getSessionDataDAO().getLastPktNumBB(entry.getValue().getSession_id());
                 Log.d(TAG, "Session id="+entry.getValue().getSession_id()+", num_pkts="+prev_pkt_num);
                 NUM_PKTS_MAP.put(entry.getKey(), prev_pkt_num);
+                total_read_pkts += prev_pkt_num;
             }
+            update_read_pkt(total_read_pkts);
             return null;
         }
 

@@ -7,18 +7,30 @@
     tools:context=".Fragments.DailySessionsFragment"
     android:background="@color/white">
 
-    <include layout="@layout/actionbar_page"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="0.1"/>
+        android:layout_weight="0.1">
+
+        <include layout="@layout/actionbar_page" />
+
+    </LinearLayout>
+
+<!--    <ListView-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="0dp"-->
+<!--        android:layout_weight="0.9"-->
+<!--        android:layout_gravity="center"-->
+<!--        android:dividerHeight="@dimen/card_list_gap"-->
+<!--        android:divider="@color/white" />-->
 
     <ListView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="0.9"
         android:layout_gravity="center"
+        android:layout_margin="1dp"
         android:id = "@+id/daily_session_summary"
-        android:dividerHeight="@dimen/card_list_gap"
-        android:divider="@color/white" />
-
+        android:divider="@color/white"
+        android:dividerHeight="1dp"/>
 </LinearLayout>

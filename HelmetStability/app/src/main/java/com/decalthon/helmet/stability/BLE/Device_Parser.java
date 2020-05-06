@@ -121,14 +121,16 @@ public class Device_Parser {
         long total_pkts = 0;
         long cur_num_pkts = 0;
         for(Map.Entry<String, DeviceDetails> entry : Constants.DEVICE_MAPS.entrySet() ) {
-            if (entry.getValue() != null) {
-                total_pkts += entry.getValue().total_pkts;
-                cur_num_pkts += entry.getValue().num_pkts_rcvd;
+            DeviceDetails deviceDetails = entry.getValue();
+            if (deviceDetails != null) {
+                total_pkts += deviceDetails.total_pkts - deviceDetails.read_pkts-1;
+                cur_num_pkts += deviceDetails.num_pkts_rcvd - deviceDetails.read_pkts;
             }
         }
         if(total_pkts < 1){
             return  0.0f;
         }
+
         return ((float)cur_num_pkts)*100.0f/((float)total_pkts);
     }
 }

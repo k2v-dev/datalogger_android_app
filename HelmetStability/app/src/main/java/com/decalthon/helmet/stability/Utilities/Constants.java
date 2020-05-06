@@ -10,7 +10,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 public class Constants {
@@ -186,10 +185,10 @@ public class Constants {
 
 
     public static final String MAP_NAME = "MAP";
-    public static final String DEV1_NINE_AXES_NAME = "9-AXIS DEVICE 1";
-    public static final String DEV1_THREE_AXES_NAME = "3-AXIS DEVICE 1";
-    public static final String DEV2_NINE_AXES_NAME = "9-AXIS DEVICE 2";
-    public static final String DEV2_THREE_AXES_NAME = "3-AXIS DEVICE 2";
+    public static final String DEV1_NINE_AXES_NAME = "9-AXIS DEV1";
+    public static final String DEV1_THREE_AXES_NAME = "3-AXIS DEV1";
+    public static final String DEV2_NINE_AXES_NAME = "9-AXIS DEV2";
+    public static final String DEV2_THREE_AXES_NAME = "3-AXIS DEV2";
     public static final String GPS_SPEED_NAME = "GPS SPEED";
     public static final String STEP_COUNT_NAME = "STEP COUNT";
     public static final String SAMPLE_CHART1_NAME = "SAMPLE CHART 1";

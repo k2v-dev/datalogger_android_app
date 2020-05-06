@@ -135,7 +135,8 @@ public class CsvGenerator {
 //               }
                strBuilder.delete(0, strBuilder.length());
                SensorDataEntity sensorDataEntity = sensorDataEntities.get(i);
-               if(firstTime && (buttonBoxEntity.dateMillis < sensorDataEntity.dateMillis )){
+               if(firstTime && (buttonBoxEntity.dateMillis > sensorDataEntity.dateMillis )){
+                  // buttonBoxEntity = buttonBoxEntities.remove(0);
                    Log.d(TAG, "..continue");
                    continue;
                }
@@ -147,6 +148,9 @@ public class CsvGenerator {
                        //Log.d(TAG, "remove BBox = "+buttonBoxEntity.dateMillis);
                    }
                }
+//               else{
+//                   break;
+//               }
 
                strBuilder.append(userId).append(",").append(session_name).append(",");
 //               if(i%1000==0){
@@ -267,9 +271,11 @@ public class CsvGenerator {
             long session_id =  longs[0];
             sessionSummary = sessionCdlDb.getSessionDataDAO().getSessionSummaryById(session_id);
 
+            long t3 = System.currentTimeMillis();
             sensorDataEntities = sessionCdlDb.getSessionDataDAO().getSessionEntityPacket(session_id);
+            long t4 = System.currentTimeMillis();
             buttonBoxEntities = sessionCdlDb.getSessionDataDAO().getButtonBoxEntityPacket(session_id);
-
+            long t5 = System.currentTimeMillis();
             // For testing, remove later
             int samp_freq = sessionSummary.getSampling_freq();
             int total_pkts = sessionSummary.getTotal_pkts();
@@ -301,6 +307,7 @@ public class CsvGenerator {
             markerDatas = sessionCdlDb.getMarkerDataDAO().getMarkerData(session_id);
             long t2 = System.currentTimeMillis();
             Log.d(TAG, "Database loading time="+(t2-t1));
+            Log.d(TAG, "SensorData="+(t4-t3)+", BBData="+(t5-t4)+", Others="+(t2-t5));
             return null;
         }
 

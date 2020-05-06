@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "3920538077",
+    "firebase_url": "https://easyraw-test-ufag.firebaseio.com",
+    "project_id": "easyraw-test-ufag",
+    "storage_bucket": "easyraw-test-ufag.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:3920538077:android:4a797583649cb1a8ca6e34",
+        "android_client_info": {
+          "package_name": "com.decalthon.helmet.stability"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "3920538077-6nnc27pst6n6spmj6jtord9a9gan0f6u.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB4GFu1vEEBfNY1SkzfA_MB_fWXENgsAhI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "3920538077-6nnc27pst6n6spmj6jtord9a9gan0f6u.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

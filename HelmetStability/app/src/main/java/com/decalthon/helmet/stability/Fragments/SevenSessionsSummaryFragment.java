@@ -124,8 +124,9 @@ public class SevenSessionsSummaryFragment extends Fragment {
         sessionListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                SessionSummary sessionSummary = finalSessionSummaries.get(position);
                 Fragment mapFragment =
-                MapFragment.newInstance(Constants.ActivityCodeMap.inverse().get(finalSessionSummaries.get(position).getActivity_type()), (long)4, finalSessionSummaries.get(position).getDuration());
+                MapFragment.newInstance(Constants.ActivityCodeMap.inverse().get(sessionSummary.getActivity_type()), sessionSummary.getSession_id(), sessionSummary.getDuration());
                 FragmentManager fragmentManager
                         = getFragmentManager();
                 FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();

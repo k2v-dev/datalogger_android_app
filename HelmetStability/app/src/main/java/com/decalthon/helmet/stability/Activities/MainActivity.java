@@ -558,6 +558,7 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
             if(!anyDeviceConnected){
                 dataLoadProgressView.setFillCircleColor(getResources().getColor(R.color.red));
                 dataLoadProgressView.setValueAnimated(increasePercent,500);
+
                 return;
             }else{
                 switch(deviceConnectedCount){
@@ -566,14 +567,20 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
 //                        break;
                     case 1:
                         dataLoadProgressView.setFillCircleColor(getResources().getColor(R.color.orange));
+                        dataLoadProgressView.setBarColor(getResources().getColor(R.color.orange));
                         break;
                     case 2:
                         dataLoadProgressView.setFillCircleColor(getResources().getColor(R.color.green));
+                        dataLoadProgressView.setBarColor(getResources().getColor(R.color.green));
+
                         break;
                     default:
                         dataLoadProgressView.setFillCircleColor(getResources().getColor(R.color.red));
+                        dataLoadProgressView.setBarColor(getResources().getColor(R.color.gray));
                 }
                 dataLoadProgressView.setValueAnimated(increasePercent,500);
+
+                //dataLoadProgressView.setFillCircleColor(getResources().getColor(R.color.gray));
             }
         }
         invalidateOptionsMenu();

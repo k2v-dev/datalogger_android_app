@@ -157,7 +157,7 @@ public class CalendarPagerFragment extends Fragment {
             viewPager.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    viewPager.setCurrentItem(calendarPagerAdapter.getItemCount() - Integer.parseInt(mParam2)
+                    viewPager.setCurrentItem(calendarPagerAdapter.getItemCount() - 1 - Integer.parseInt(mParam2)
                             , true);
                 }
             }, 20);

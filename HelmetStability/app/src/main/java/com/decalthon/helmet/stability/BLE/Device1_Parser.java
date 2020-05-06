@@ -759,6 +759,17 @@ public class Device1_Parser extends Device_Parser{
         }
     }
 
+    /**
+     * Update the total number of packets for device2
+     * @param read_pkt_read
+     */
+    public void update_read_pkt(long read_pkt_read){
+        DeviceDetails deviceDetails = Constants.DEVICE_MAPS.get(context.getResources().getString(R.string.device1_tv));
+        if(deviceDetails != null && deviceDetails.mac_address != null) {
+            deviceDetails.read_pkts = read_pkt_read;
+        }
+    }
+
 //    private void insertSessionSummary(SessionSummary sessionSummary) {
 //        SessionSummary currentSessionSummary = null;
 //        try {
@@ -858,7 +869,7 @@ public class Device1_Parser extends Device_Parser{
         }
     }
 
-    public static class GetLastPktNums extends AsyncTask<Void, Void, Void> {
+    public class GetLastPktNums extends AsyncTask<Void, Void, Void> {
 
         public  GetLastPktNums() { }
 
@@ -867,11 +878,14 @@ public class Device1_Parser extends Device_Parser{
             if(DeviceHelper.SESSION_SUMMARIES.size() == 0){
                 return null;
             }
+            long total_read_pkts=0;
             for (Map.Entry<Integer, SessionSummary> entry : DeviceHelper.SESSION_SUMMARIES.entrySet()
                  ) {
                 long prev_pkt_num = sessionCdlDb.getSessionDataDAO().getLastPktNumSD(entry.getValue().getSession_id());
                 NUM_PKTS_MAP.put(entry.getKey(), prev_pkt_num);
+                total_read_pkts += prev_pkt_num;
             }
+            update_read_pkt(total_read_pkts);
 //            Map.Entry<Integer, SessionSummary> entry = DeviceHelper.SESSION_SUMMARIES.entrySet().iterator().next();
 //            prev_pkt_num = sessionCdlDb.getSessionDataDAO().getLastPktNumSD(entry.getValue().getSession_id());
 //            Log.d(TAG, "Prev Packet num = "+prev_pkt_num);

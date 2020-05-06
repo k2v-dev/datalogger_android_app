@@ -20,6 +20,7 @@ import java.util.List;
 
 @Dao
 public interface SessionDataDao {
+     final int NUM_DATA = 6000;
 
 //    @Insert
 //    public void insertSessionPacket(SensorDataEntity sensorDataEntity);
@@ -101,16 +102,110 @@ public interface SessionDataDao {
 //    @Query("select dateMillis as timestamp,  ax_9axis_dev1 as xval from SensorDataEntity where session_id in (:session_ids) ")
 //    List<SensorDataEntry> getHelmetAccelerometerData(Long[] session_ids);
 
-    @Query("select  dateMillis as timestamp, gx_9axis_dev1 as xval,gy_9axis_dev1 as yval, gz_9axis_dev1 as zval from SensorDataEntity where session_id in (:session_ids) ")
+    @Query("select  dateMillis as timestamp, gx_9axis_dev1 as xval,gy_9axis_dev1 as yval, gz_9axis_dev1 as zval from SensorDataEntity where session_id in (:session_ids) limit "+NUM_DATA)
     List<SensorDataEntry> getHelmetGyroscopeData(Long[] session_ids);
 
-    @Query("select  dateMillis as timestamp, mx_9axis_dev1 as xval, my_9axis_dev1 as yval ,mz_9axis_dev1 as zval  from SensorDataEntity where session_id in (:session_ids) ")
+    @Query("select  dateMillis as timestamp, mx_9axis_dev1 as xval, my_9axis_dev1 as yval ,mz_9axis_dev1 as zval  from SensorDataEntity where session_id in (:session_ids) limit "+NUM_DATA)
     List<SensorDataEntry> getHelmetMagnetometerData(Long[] session_ids);
 
-    @Query("select  dateMillis as timestamp, ax_9axis_dev1 as xval,ay_9axis_dev1 as yval ,az_9axis_dev1 as zval from SensorDataEntity where session_id in (:session_ids)")
+    @Query("select  dateMillis as timestamp, ax_9axis_dev1 as xval,ay_9axis_dev1 as yval ,az_9axis_dev1 as zval from SensorDataEntity where session_id in (:session_ids) limit "+NUM_DATA)
     List<SensorDataEntry> getHelmetAccelerometerData(Long[] session_ids);
 
-    @Query("select dateMillis from SensorDataEntity where session_id = (:session_id)")
+    /// Query for data clicked at particular timestamp ---- Start
+    @Query("select  dateMillis as timestamp, gx_9axis_dev1 as xval,gy_9axis_dev1 as yval, gz_9axis_dev1 as zval " +
+            "from SensorDataEntity where session_id = (:session_id) and dateMillis > (:start_ts) and dateMillis < (:end_ts)")
+    List<SensorDataEntry> getHelmetGyroscopeData(long session_id, long start_ts, long end_ts);
+
+    @Query("select  dateMillis as timestamp, mx_9axis_dev1 as xval, my_9axis_dev1 as yval ,mz_9axis_dev1 as zval" +
+            "  from SensorDataEntity where session_id = (:session_id) and dateMillis > (:start_ts) and dateMillis < (:end_ts)")
+    List<SensorDataEntry> getHelmetMagnetometerData(long session_id, long start_ts, long end_ts);
+
+    @Query("select  dateMillis as timestamp, ax_9axis_dev1 as xval,ay_9axis_dev1 as yval ,az_9axis_dev1 as zval " +
+            "from SensorDataEntity where session_id = (:session_id) and dateMillis > (:start_ts) and dateMillis < (:end_ts)")
+    List<SensorDataEntry> getHelmetAccelerometerData(long session_id, long start_ts, long end_ts);
+
+    @Query("select  dateMillis as timestamp, ax_3axis_dev1 as xval," +
+            "ay_3axis_dev1 as yval ,az_3axis_dev1 as zval from " +
+            "SensorDataEntity where session_id = (:session_id) and dateMillis > (:start_ts) and dateMillis < (:end_ts)")
+    List<SensorDataEntry> getThreeAxisDevice1(long session_id, long start_ts, long end_ts);
+
+
+    @Query("select  dateMillis as timestamp, ax_3axis_dev2 as xval," +
+            "ay_3axis_dev2 as yval ,az_3axis_dev2 as zval from " +
+            "SensorDataEntity where session_id = (:session_id) and dateMillis > (:start_ts) and dateMillis < (:end_ts)")
+    List<SensorDataEntry> getThreeAxisDevice2(long session_id, long start_ts, long end_ts);
+
+
+    @Query("select  dateMillis as timestamp, gx_9axis_dev2 as xval," +
+            "gy_9axis_dev2 as yval, gz_9axis_dev2 as zval from " +
+            "SensorDataEntity where session_id = (:session_id) and dateMillis > (:start_ts) and dateMillis < (:end_ts)")
+    List<SensorDataEntry> getDevice2GyroscopeData(long session_id, long start_ts, long end_ts);
+
+    @Query("select  dateMillis as timestamp, mx_9axis_dev2 as xval, " +
+            "my_9axis_dev2 as yval ,mz_9axis_dev2 as zval  from " +
+            "SensorDataEntity where session_id = (:session_id) and dateMillis > (:start_ts) and dateMillis < (:end_ts)")
+    List<SensorDataEntry> getDevice2MagnetometerData(long session_id, long start_ts, long end_ts);
+
+    @Query("select  dateMillis as timestamp, ax_9axis_dev2 as xval," +
+            "ay_9axis_dev2 as yval ,az_9axis_dev2 as zval from " +
+            "SensorDataEntity where session_id = (:session_id) and dateMillis > (:start_ts) and dateMillis < (:end_ts)")
+    List<SensorDataEntry> getDevice2AccelerometerData(long session_id, long start_ts, long end_ts);
+    /// Query for data clicked at particular timestamp ---- End
+
+
+    // Query to load more data -- Start
+    @Query("select  dateMillis as timestamp, gx_9axis_dev1 as xval,gy_9axis_dev1 as yval, gz_9axis_dev1 as zval " +
+            "from SensorDataEntity where session_id = (:session_id) and dateMillis > (:right_s) and dateMillis < (:right_e) " +
+            "and dateMillis > (:left_e) and dateMillis < (:left_s)")
+    List<SensorDataEntry> getHelmetGyroscopeData(long session_id, long left_s, long left_e, long right_s, long right_e);
+
+
+    @Query("select  dateMillis as timestamp, mx_9axis_dev1 as xval, my_9axis_dev1 as yval ,mz_9axis_dev1 as zval" +
+            " from SensorDataEntity where session_id = (:session_id) and dateMillis > (:right_s) and dateMillis < (:right_e) " +
+            "and dateMillis > (:left_e) and dateMillis < (:left_s)")
+    List<SensorDataEntry> getHelmetMagnetometerData(long session_id, long left_s, long left_e, long right_s, long right_e);
+
+    @Query("select  dateMillis as timestamp, ax_9axis_dev1 as xval,ay_9axis_dev1 as yval ,az_9axis_dev1 as zval " +
+            " from SensorDataEntity where session_id = (:session_id) and dateMillis > (:right_s) and dateMillis < (:right_e) " +
+            "and dateMillis > (:left_e) and dateMillis < (:left_s)")
+    List<SensorDataEntry> getHelmetAccelerometerData(long session_id, long left_s, long left_e, long right_s, long right_e);
+
+    @Query("select  dateMillis as timestamp, ax_3axis_dev1 as xval," +
+            "ay_3axis_dev1 as yval ,az_3axis_dev1 as zval" +
+            " from SensorDataEntity where session_id = (:session_id) and dateMillis > (:right_s) and dateMillis < (:right_e) " +
+            "and dateMillis > (:left_e) and dateMillis < (:left_s)")
+    List<SensorDataEntry> getThreeAxisDevice1(long session_id, long left_s, long left_e, long right_s, long right_e);
+
+
+    @Query("select  dateMillis as timestamp, ax_3axis_dev2 as xval," +
+            "ay_3axis_dev2 as yval ,az_3axis_dev2 as zval " +
+            " from SensorDataEntity where session_id = (:session_id) and dateMillis > (:right_s) and dateMillis < (:right_e) " +
+            "and dateMillis > (:left_e) and dateMillis < (:left_s)")
+    List<SensorDataEntry> getThreeAxisDevice2(long session_id, long left_s, long left_e, long right_s, long right_e);
+
+
+    @Query("select  dateMillis as timestamp, gx_9axis_dev2 as xval," +
+            "gy_9axis_dev2 as yval, gz_9axis_dev2 as zval " +
+            " from SensorDataEntity where session_id = (:session_id) and dateMillis > (:right_s) and dateMillis < (:right_e) " +
+            "and dateMillis > (:left_e) and dateMillis < (:left_s)")
+    List<SensorDataEntry> getDevice2GyroscopeData(long session_id, long left_s, long left_e, long right_s, long right_e);
+
+    @Query("select  dateMillis as timestamp, mx_9axis_dev2 as xval, " +
+            "my_9axis_dev2 as yval ,mz_9axis_dev2 as zval " +
+            " from SensorDataEntity where session_id = (:session_id) and dateMillis > (:right_s) and dateMillis < (:right_e) " +
+            "and dateMillis > (:left_e) and dateMillis < (:left_s)")
+    List<SensorDataEntry> getDevice2MagnetometerData(long session_id, long left_s, long left_e, long right_s, long right_e);
+
+    @Query("select  dateMillis as timestamp, ax_9axis_dev2 as xval," +
+            "ay_9axis_dev2 as yval ,az_9axis_dev2 as zval " +
+            " from SensorDataEntity where session_id = (:session_id) and dateMillis > (:right_s) and dateMillis < (:right_e) " +
+            "and dateMillis > (:left_e) and dateMillis < (:left_s)")
+    List<SensorDataEntry> getDevice2AccelerometerData(long session_id, long left_s, long left_e, long right_s, long right_e);
+    // Query to load more data -- End
+
+
+
+    @Query("select dateMillis from SensorDataEntity where session_id = (:session_id) limit "+NUM_DATA)
     Long[] getTimestampsForSession(Long[] session_id);
 
     // Delete all
@@ -155,29 +250,29 @@ public interface SessionDataDao {
 
     @Query("select  dateMillis as timestamp, ax_3axis_dev1 as xval," +
             "ay_3axis_dev1 as yval ,az_3axis_dev1 as zval from " +
-            "SensorDataEntity where session_id in (:ids)")
+            "SensorDataEntity where session_id in (:ids) limit "+NUM_DATA)
     List<SensorDataEntry> getThreeAxisDevice1(Long... ids);
 
 
     @Query("select  dateMillis as timestamp, ax_3axis_dev2 as xval," +
             "ay_3axis_dev2 as yval ,az_3axis_dev2 as zval from " +
-            "SensorDataEntity where session_id in (:ids)")
+            "SensorDataEntity where session_id in (:ids) limit "+NUM_DATA)
     List<SensorDataEntry> getThreeAxisDevice2(Long... ids);
 
 
     @Query("select  dateMillis as timestamp, gx_9axis_dev2 as xval," +
             "gy_9axis_dev2 as yval, gz_9axis_dev2 as zval from " +
-            "SensorDataEntity where session_id in (:session_ids) ")
+            "SensorDataEntity where session_id in (:session_ids) limit "+NUM_DATA)
     List<SensorDataEntry> getDevice2GyroscopeData(Long[] session_ids);
 
     @Query("select  dateMillis as timestamp, mx_9axis_dev2 as xval, " +
             "my_9axis_dev2 as yval ,mz_9axis_dev2 as zval  from " +
-            "SensorDataEntity where session_id in (:session_ids) ")
+            "SensorDataEntity where session_id in (:session_ids) limit "+NUM_DATA)
     List<SensorDataEntry> getDevice2MagnetometerData(Long[] session_ids);
 
     @Query("select  dateMillis as timestamp, ax_9axis_dev2 as xval," +
             "ay_9axis_dev2 as yval ,az_9axis_dev2 as zval from " +
-            "SensorDataEntity where session_id in (:session_ids)")
+            "SensorDataEntity where session_id in (:session_ids) limit "+NUM_DATA)
     List<SensorDataEntry> getDevice2AccelerometerData(Long[] session_ids);
 
 //    @Query("Select gps_speed from gps_speed where ")

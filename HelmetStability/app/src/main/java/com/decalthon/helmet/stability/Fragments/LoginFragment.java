@@ -238,14 +238,15 @@ public class LoginFragment extends Fragment implements View.OnClickListener{
         query.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
             public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                if(Objects.requireNonNull(task.getResult()).size() > 0){
-                    DocumentSnapshot documentSnapshot = task.getResult().getDocuments().get(0);
-                    userInfo = documentSnapshot.toObject(UserInfoReq.class);
-                    userId = documentSnapshot.getId();
+                try{
+                    if(Objects.requireNonNull(task.getResult()).size() > 0){
+                        DocumentSnapshot documentSnapshot = task.getResult().getDocuments().get(0);
+                        userInfo = documentSnapshot.toObject(UserInfoReq.class);
+                        userId = documentSnapshot.getId();
 
-                    //Toast.makeText(getContext(), "User phone already exist in the database ", Toast.LENGTH_SHORT).show();
-                    if(userInfo != null){
-                        sendVerificationCode(phone_num);
+                        //Toast.makeText(getContext(), "User phone already exist in the database ", Toast.LENGTH_SHORT).show();
+                        if(userInfo != null){
+                            sendVerificationCode(phone_num);
 //                        UserPreferences userPreferences = UserPreferences.getInstance(getContext());
 //                        userPreferences.savePhoneNo(phone_number);
 //                        userPreferences.saveName(userInfo.userName);
@@ -263,10 +264,14 @@ public class LoginFragment extends Fragment implements View.OnClickListener{
 //                        FragmentManager fm = getActivity()
 //                                .getSupportFragmentManager();
 //                        fm.popBackStack(Constants.HOME_FRAGMENT, 0);
+                        }
+                    }else{
+                        error_msg_tv.setText(getString(R.string.user_not_exists));
+                        // Toast.makeText(getContext(), "Phone number doesn't exists. Please register new login.", Toast.LENGTH_SHORT).show();
+                        showOriginalUI();
                     }
-                }else{
-                    error_msg_tv.setText(getString(R.string.user_not_exists));
-                   // Toast.makeText(getContext(), "Phone number doesn't exists. Please register new login.", Toast.LENGTH_SHORT).show();
+                }catch (Exception ex){
+                    error_msg_tv.setText("No permission");
                     showOriginalUI();
                 }
             }

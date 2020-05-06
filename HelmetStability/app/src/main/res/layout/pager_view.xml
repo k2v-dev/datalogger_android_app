@@ -1,33 +1,48 @@
-<ScrollView
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:fillViewport="true"
-    android:background="@color/white"
-    android:clickable="true"
-    android:focusable="true">
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_height="0dp"
+        android:layout_weight="0.1">
 
-	 <include
-                layout = "@layout/actionbar_page"/>
+        <include layout="@layout/actionbar_page" />
 
-        <com.google.android.material.tabs.TabLayout
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.9"
+        android:fillViewport="true"
+        android:background="@color/white"
+        android:clickable="true"
+        android:focusable="true">
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/lightgray"
-            app:tabMode="scrollable"
-            android:id="@+id/tab_layout"/>
+            android:orientation="vertical">
+
+            <com.google.android.material.tabs.TabLayout
+                android:layout_height="0dp"
+                android:layout_width="match_parent"
+                android:layout_weight="0.05"
+                android:background="@color/lightgray"
+                app:tabMode="scrollable"
+                android:id="@+id/tab_layout"/>
 
 
-        <androidx.viewpager2.widget.ViewPager2
-            android:layout_height="0dp"
-            android:layout_width="match_parent"
-            android:layout_weight="1"
-            android:id="@+id/pager"
-            />
-    </LinearLayout>
-</ScrollView>
+            <androidx.viewpager2.widget.ViewPager2
+                android:layout_height="0dp"
+                android:layout_width="match_parent"
+                android:layout_weight="0.85"
+                android:id="@+id/pager"
+                />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

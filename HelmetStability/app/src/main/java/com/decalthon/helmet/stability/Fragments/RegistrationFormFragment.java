@@ -472,15 +472,25 @@ public class RegistrationFormFragment extends Fragment implements View.OnClickLi
         query.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
             public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                if(Objects.requireNonNull(task.getResult()).size() > 0){
-                    Toast.makeText(getContext(), "User phone already exist in the our records. ", Toast.LENGTH_SHORT).show();
-                    error_msg_tv.setText("User phone already exist in the our records. Please login now.");
+                try{
+                    if(Objects.requireNonNull(task.getResult()).size() > 0){
+                        Toast.makeText(getContext(), "User phone already exist in the our records. ", Toast.LENGTH_SHORT).show();
+                        error_msg_tv.setText("Phone no. is already registered. Please login now.");
+                        pb_bar.setVisibility(View.INVISIBLE);
+
 //                    FragmentManager fm = getActivity()
 //                                .getSupportFragmentManager();
 //                        fm.popBackStack(LoginFragment.class.getSimpleName(), 0);
-                }else{
-                    doesUserExist(firestoreUserModel);
+                    }else{
+                        doesUserExist(firestoreUserModel);
+                    }
+                }catch (Exception ex){
+                    if(ex.getMessage().equalsIgnoreCase("PERMISSION_DENIED")){
+                        doesUserExist(firestoreUserModel);
+                        pb_bar.setVisibility(View.INVISIBLE);
+                    }
                 }
+
             }
         });
     }
@@ -498,6 +508,7 @@ public class RegistrationFormFragment extends Fragment implements View.OnClickLi
                     if(user != null){
 //                        Toast.makeText(getContext(), "It seems that email id is used by someone. Please use other email id.", Toast.LENGTH_SHORT).show();
                         error_msg_tv.setText(getString(R.string.use_other_email_id));
+                        pb_bar.setVisibility(View.INVISIBLE);
                     }else{
                         sendVerificationCode(firestoreUserModel.phone_no);
                         //addNewRegisteredUser(user_id, firestoreUserModel);

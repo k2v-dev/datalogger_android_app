@@ -47,12 +47,14 @@ import com.decalthon.helmet.stability.DB.Entities.SessionSummary;
 import com.decalthon.helmet.stability.R;
 import com.decalthon.helmet.stability.Utilities.Common;
 import com.decalthon.helmet.stability.Utilities.Constants;
+import com.decalthon.helmet.stability.Utilities.CsvGenerator;
 import com.decalthon.helmet.stability.model.DeviceModels.DeviceDetails;
 import com.decalthon.helmet.stability.model.DeviceModels.MemoryUsage;
 import com.decalthon.helmet.stability.model.Generic.TimeFmt;
 import com.decalthon.helmet.stability.preferences.DevicePreferences;
 import com.decalthon.helmet.stability.preferences.ProfilePreferences;
 import com.decalthon.helmet.stability.preferences.UserPreferences;
+import com.google.firebase.FirebaseApp;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -65,6 +67,7 @@ import de.greenrobot.event.EventBus;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 import static androidx.core.content.ContextCompat.checkSelfPermission;
+import static androidx.core.content.ContextCompat.getDrawable;
 import static com.decalthon.helmet.stability.Utilities.ViewDimUtils.applyDim;
 import static com.decalthon.helmet.stability.Utilities.ViewDimUtils.clearDim;
 
@@ -225,63 +228,66 @@ public class HomeFragment extends Fragment  {
                 e.printStackTrace();
             }
         }
+        TimeFmt timeFmt;
+        String total_duration;
+        if(latestSessionSummary != null){
+            //Setting card title as date and time in locale setting
+            TextView title_text = latestSessionSummaryView.findViewById(R.id.card_title);
+            Date date = new Date(latestSessionSummary.getDate());
+            String dateString = new SimpleDateFormat("MMM dd YYYY HH:MM:SS EEE",
+                    Locale.getDefault()).format(date);
+            title_text.setText(dateString);
 
-        //Setting card title as date and time in locale setting
-        TextView title_text = latestSessionSummaryView.findViewById(R.id.card_title);
-        Date date = new Date(latestSessionSummary.getDate());
-        String dateString =
-                new SimpleDateFormat(Constants.dateFormatString,
-                Locale.getDefault()).format(date);
-        title_text.setText(dateString);
-
-        //Setting session name as retrieved from the DB
-        TextView session_name = latestSessionSummaryView.findViewById(R.id.session_name_card_tv);
-        String sessionNameStr =
-                getString(R.string.session_name_desc) + latestSessionSummary.getName();
-        session_name.setText(sessionNameStr);
+            //Setting session name as retrieved from the DB
+            TextView session_name = latestSessionSummaryView.findViewById(R.id.session_name_card_tv);
+            String sessionNameStr =
+                    getString(R.string.session_name_desc) + latestSessionSummary.getName();
+            session_name.setText(sessionNameStr);
 
 
-        TextView activity_type = latestSessionSummaryView.findViewById(R.id.type_of_activity_tv);
+            TextView activity_type = latestSessionSummaryView.findViewById(R.id.type_of_activity_tv);
 //        String activityTypeStr =
 //                "Activity Type : " + latestSessionSummary.getActivity_type() + "";
-        String activityTypeStr =
-                getString(R.string.activity_type_desc) + Constants.ActivityCodeMap.inverse().get(52);
-        activity_type.setText(activityTypeStr);
+            String activityTypeStr =
+                    getString(R.string.activity_type_desc) + Constants.ActivityCodeMap.inverse().get(52);
+            activity_type.setText(activityTypeStr);
 
 
-        TextView duration =
-                latestSessionSummaryView.findViewById(R.id.duration_tv);
-        TimeFmt timeFmt = Common.convertToTimeFmt((long)(latestSessionSummary.getDuration()*1000));
-        String total_duration =
-                 String.format(Locale.getDefault(), "%02d:%02d:%02d", timeFmt.hr, timeFmt.min, timeFmt.sec);//+collective_summary_info.get(1).toString();
+            TextView duration =
+                    latestSessionSummaryView.findViewById(R.id.duration_tv);
+            timeFmt = Common.convertToTimeFmt((long)(latestSessionSummary.getDuration()*1000));
+            total_duration =
+                    String.format(Locale.getDefault(), "%02d:%02d:%02d", timeFmt.hr, timeFmt.min, timeFmt.sec);//+collective_summary_info.get(1).toString();
 
-        String durationStr =
-                getString(R.string.duration_desc) + total_duration;
-        duration.setText(durationStr);
+            String durationStr =
+                    getString(R.string.duration_desc) + total_duration;
+            duration.setText(durationStr);
 
-        TextView total_dataTV = latestSessionSummaryView.findViewById(R.id.total_data_tv);
-        String totalDataStr =
-                getString(R.string.total_data_desc) + (latestSessionSummary.getTotal_data() / 1024);
-        total_dataTV.setText(totalDataStr);
+            TextView total_dataTV = latestSessionSummaryView.findViewById(R.id.total_data_tv);
+            String totalDataStr =
+                    getString(R.string.total_data_desc) + (latestSessionSummary.getTotal_data() / 1024);
+            total_dataTV.setText(totalDataStr);
 
-        String samplingRate = getString(R.string.sampling_frequency_desc) +
-                String.valueOf(latestSessionSummary.getSampling_freq());
-        TextView samplingFrequency =
-                latestSessionSummaryView.findViewById(R.id.sampling_rate_tv);
-        samplingFrequency.setText(samplingRate);
+            String samplingRate = getString(R.string.sampling_frequency_desc) +
+                    String.valueOf(latestSessionSummary.getSampling_freq());
+            TextView samplingFrequency =
+                    latestSessionSummaryView.findViewById(R.id.sampling_rate_tv);
+            samplingFrequency.setText(samplingRate);
 
-        String typesOfData = getString(R.string.types_of_data_desc) +
-                String.valueOf(Constants.typesOfData);
-        TextView types_of_data_tv =
-                latestSessionSummaryView.findViewById(R.id.types_of_data_tv);
-        types_of_data_tv.setText(typesOfData);
+            String typesOfData = getString(R.string.types_of_data_desc) +
+                    String.valueOf(Constants.typesOfData);
+            TextView types_of_data_tv =
+                    latestSessionSummaryView.findViewById(R.id.types_of_data_tv);
+            types_of_data_tv.setText(typesOfData);
 
-        String oneLineNote =  getString(R.string.note_desc)  + latestSessionSummary.getNote();
-        TextView note =
-                latestSessionSummaryView.findViewById(R.id.text_note_summary_line_tv);
-        if(!oneLineNote.isEmpty()) {
-            note.setText(oneLineNote);
+            String oneLineNote =  getString(R.string.note_desc)  + latestSessionSummary.getNote();
+            TextView note =
+                    latestSessionSummaryView.findViewById(R.id.text_note_summary_line_tv);
+            if(!oneLineNote.isEmpty()) {
+                note.setText(oneLineNote);
+            }
         }
+
 //        if(note.get)
         //A click on the first card view navigates to tracker
         //(A) Outdoor tracker is the GPS map view
@@ -394,7 +400,7 @@ public class HomeFragment extends Fragment  {
 //                    +(Constants.ActivityCodeMap.inverse().get(50));
             activities_tv.setText(activities);
 
-        } catch (ExecutionException | InterruptedException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 

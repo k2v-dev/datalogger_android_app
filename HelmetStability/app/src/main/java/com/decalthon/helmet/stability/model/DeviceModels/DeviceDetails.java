@@ -32,6 +32,7 @@ public class DeviceDetails {
     public boolean noAutoconnect; // It will be use when no reconnection require e.g. disconnectted the device by user
     public long total_pkts;
     public long num_pkts_rcvd;
+    public long read_pkts;
 
 
     /**
@@ -237,11 +238,14 @@ public class DeviceDetails {
     }
 
     public float readData(){
-        if(total_pkts <= 0 ){
+
+        long num_pkts = num_pkts_rcvd - read_pkts;
+        long total = total_pkts - read_pkts-1;
+        if(total < 1 ){
             return 0;
         }
         Log.d(TAG, "num_pkts_rcvd="+num_pkts_rcvd+", total_pkts="+total_pkts);
-        return (((float)num_pkts_rcvd)*100.0f/((float)total_pkts));
+        return (((float)num_pkts)*100.0f/((float)total));
     }
 
     public void refresh(){

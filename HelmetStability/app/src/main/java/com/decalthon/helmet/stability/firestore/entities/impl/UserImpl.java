@@ -4,9 +4,8 @@ import android.content.Context;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.decalthon.helmet.stability.Utilities.Constants;
-import com.decalthon.helmet.stability.Utilities.UniqueKeyGen;
-import com.decalthon.helmet.stability.firestore.FirestoreProfileModel;
+import com.decalthon.helmet.stability.utilities.Constants;
+import com.decalthon.helmet.stability.utilities.UniqueKeyGen;
 import com.decalthon.helmet.stability.firestore.FirestoreUserModel;
 import com.decalthon.helmet.stability.firestore.entities.IUserInterface;
 import com.decalthon.helmet.stability.webservice.requests.ProfileReq;
@@ -94,8 +93,8 @@ public class UserImpl implements IUserInterface {
         firestoreProfileModel.name = firestoreUserModel.userName;
         Map<String, Object> profile = new HashMap<>();
         profile.put(Constants.ProfileFields.USERNAME, firestoreProfileModel.name);
-        profile.put(Constants.ProfileFields.WEIGHT, firestoreProfileModel.weight);
-        profile.put(Constants.ProfileFields.HEIGHT, firestoreProfileModel.height);
+        profile.put(Constants.ProfileFields.WEIGHT, firestoreProfileModel.wt);
+        profile.put(Constants.ProfileFields.HEIGHT, firestoreProfileModel.ht);
         profile.put(Constants.ProfileFields.DOB, firestoreProfileModel.dob);
         profile.put(Constants.ProfileFields.GENDER, firestoreProfileModel.gender);
 

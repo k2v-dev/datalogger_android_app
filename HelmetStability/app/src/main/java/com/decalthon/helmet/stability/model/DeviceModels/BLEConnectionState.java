@@ -1,4 +1,4 @@
-package com.decalthon.helmet.stability.model.DeviceModels;
+package com.decalthon.helmet.stability.model.devicemodels;
 
 
 // Use for passing connection state info between broadcast receiver to Home page via EventBus api

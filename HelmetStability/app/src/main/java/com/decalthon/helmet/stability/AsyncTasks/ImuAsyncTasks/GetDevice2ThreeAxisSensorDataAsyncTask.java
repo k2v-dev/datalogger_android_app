@@ -1,10 +1,10 @@
-package com.decalthon.helmet.stability.AsyncTasks.ImuAsyncTasks;
+package com.decalthon.helmet.stability.asynctasks.imuasynctasks;
 
 import android.os.AsyncTask;
 
-import com.decalthon.helmet.stability.DB.SessionCdlDb;
-import com.decalthon.helmet.stability.model.NineAxisModels.QueryParameters;
-import com.decalthon.helmet.stability.model.NineAxisModels.SensorDataEntry;
+import com.decalthon.helmet.stability.database.SessionCdlDb;
+import com.decalthon.helmet.stability.model.nineaxismodels.QueryParameters;
+import com.decalthon.helmet.stability.model.nineaxismodels.SensorDataEntry;
 
 import java.util.List;
 

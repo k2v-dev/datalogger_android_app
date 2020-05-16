@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context=".Fragments.DailySessionsFragment"
+    tools:context=".fragments.DailySessionsFragment"
     android:background="@color/white">
 
     <LinearLayout
@@ -25,12 +25,13 @@
 <!--        android:divider="@color/white" />-->
 
     <ListView
+        android:id="@+id/daily_session_summary"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="0.9"
         android:layout_gravity="center"
-        android:layout_margin="1dp"
-        android:id = "@+id/daily_session_summary"
+        android:layout_margin="@dimen/card_margin"
+        android:layout_weight="0.9"
+        android:background="@color/white"
         android:divider="@color/white"
-        android:dividerHeight="1dp"/>
+        android:dividerHeight="@dimen/card_margin" />
 </LinearLayout>

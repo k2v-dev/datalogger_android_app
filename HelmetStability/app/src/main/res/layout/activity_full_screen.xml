@@ -3,14 +3,31 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.decalthon.helmet.stability.Activities.FullScreenActivity">
-
+    tools:context="com.decalthon.helmet.stability.activities.FullScreenActivity">
 
     <com.github.mikephil.charting.charts.LineChart
         android:id="@+id/activity_multiple_line_chart_test_line_chart"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/white"
+        android:background="@color/black"
         android:rotation="90" />
+
+    <TextView
+        android:id="@+id/graph1_tv_fs"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right|center"
+        android:text="@string/ACCDATA"
+        android:textColor="@color/white"
+        android:textSize="20sp"
+        android:rotation="90"/>
+
+    <ImageView
+        android:id="@+id/fullscreen_back_navigation"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:rotation="90"
+        android:layout_gravity="bottom|right"
+        android:src="@drawable/back_button_foreground"/>
 
 </FrameLayout>

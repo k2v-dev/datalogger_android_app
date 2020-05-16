@@ -1,4 +1,4 @@
-package com.decalthon.helmet.stability.Utilities;
+package com.decalthon.helmet.stability.utilities;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;

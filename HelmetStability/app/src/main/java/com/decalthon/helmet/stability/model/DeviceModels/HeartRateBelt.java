@@ -1,4 +1,4 @@
-package com.decalthon.helmet.stability.model.DeviceModels;
+package com.decalthon.helmet.stability.model.devicemodels;
 
 // Pojo class for Heart Rate Belt info
 public class HeartRateBelt {

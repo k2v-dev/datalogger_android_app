@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+android:layout_width="match_parent"
+android:layout_height="wrap_content"
+android:background="@color/white"
+android:layout_margin="1dp">
+<TableRow
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/colorPrimary"
+    >
+
+    <TextView
+        android:id="@+id/row_01"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_column="1"
+        android:layout_weight="1"
+        android:padding="2dp"
+        android:text="@string/algorithm_output2"
+        android:textAlignment="center"
+        android:fontFamily="sans-serif"
+        android:textSize="15sp"
+        android:textStyle="bold" />
+    <TextView
+        android:id="@+id/row_02"
+        android:text = "@string/algorithm_output2"
+        android:textSize="15sp"
+        android:fontFamily="sans-serif"
+        android:textAlignment="center"
+        android:padding="2dp"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_column="2"
+        android:layout_weight="1"
+        android:textStyle="bold"/>
+    <TextView
+        android:id="@+id/row_03"
+        android:text = "@string/algorithm_output2"
+        android:textSize="15sp"
+        android:fontFamily="sans-serif"
+        android:textAlignment="center"
+        android:padding="2dp"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_column="3"
+        android:layout_weight="1"
+        android:textStyle="bold"/>
+    <TextView
+        android:id="@+id/row_04"
+        android:text = "@string/algorithm_output2"
+        android:textSize="15sp"
+        android:fontFamily="sans-serif"
+        android:textAlignment="center"
+        android:padding="2dp"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_column="4"
+        android:layout_weight="1"
+        android:textStyle="bold"/>
+</TableRow>
+    <TableRow
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/colorPrimary"
+        >
+    <TextView
+        android:id="@+id/row_11"
+        android:text = "@string/algorithm_output1"
+        android:textSize="15sp"
+        android:fontFamily="sans-serif"
+        android:textAlignment="center"
+        android:padding="2dp"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_column="1"
+        android:layout_weight="1"/>
+    <TextView
+        android:id="@+id/row_12"
+        android:text = "@string/algorithm_output1"
+        android:textSize="15sp"
+        android:fontFamily="sans-serif"
+        android:textAlignment="center"
+        android:padding="2dp"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_column="2"
+        android:layout_weight="1"/>
+    <TextView
+        android:id="@+id/row_13"
+        android:text = "@string/algorithm_output1"
+        android:textSize="15sp"
+        android:fontFamily="sans-serif"
+        android:textAlignment="center"
+        android:padding="2dp"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_column="3"
+        android:layout_weight="1"/>
+    <TextView
+        android:id="@+id/row_14"
+        android:text = "@string/algorithm_output1"
+        android:textSize="15sp"
+        android:fontFamily="sans-serif"
+        android:textAlignment="center"
+        android:padding="2dp"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_column="4"
+        android:layout_weight="1"/>
+</TableRow>
+</TableLayout>

@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:clickable="true"
     android:focusable="true"
-    tools:context=".Fragments.LoginFragment">
+    tools:context=".fragments.LoginFragment">
 
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -35,6 +35,7 @@
             android:layout_marginEnd="25dp"
             android:fontFamily="@font/baloo"
             android:text="@string/welcome_msg"
+            android:textAlignment="center"
             android:textColor="@android:color/black"
             android:textSize="30sp"
             app:layout_constraintEnd_toEndOf="parent"
@@ -110,13 +111,14 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:layout_marginBottom="15dp"
-                android:text="@string/enter_otp"
+                android:text=""
                 android:textAlignment="center"
                 android:textStyle="bold"
                 app:layout_constraintBottom_toTopOf="@+id/pinView"
                 app:layout_constraintEnd_toEndOf="@+id/pinView"
                 app:layout_constraintStart_toStartOf="@+id/pinView"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="parent"
+                tools:visibility="invisible" />
 
             <com.chaos.view.PinView
                 android:id="@+id/pinView"
@@ -143,7 +145,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/invalid_n_resent_otp"
-                android:textColor="@color/orange"
+                android:textColor="@color/colorTextPrimary"
                 android:textSize="15sp"
                 android:textStyle="bold"
                 app:layout_constraintEnd_toEndOf="@+id/pinView"
@@ -169,27 +171,28 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
+            android:progressTint="@color/colorPrimary"
             app:layout_constraintEnd_toEndOf="@+id/button"
             app:layout_constraintStart_toStartOf="@+id/button"
             app:layout_constraintTop_toBottomOf="@+id/registration_tv" />
 
         <Button
             android:id="@+id/button"
-            android:layout_width="250dp"
+            android:layout_width="180dp"
             android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
             android:layout_marginStart="8dp"
             android:layout_marginTop="10dp"
-            android:layout_marginEnd="8dp"
-            android:layout_marginBottom="40dp"
-            android:background="@drawable/button_background"
+            android:background="@drawable/general_round_rectangle"
+            android:backgroundTint="@color/colorPrimaryDark"
             android:foreground="?android:attr/selectableItemBackground"
             android:text="@string/login"
             android:textAllCaps="false"
             android:textColor="@android:color/white"
-            android:textSize="17sp"
+            android:textSize="20sp"
             app:layout_constraintBottom_toBottomOf="@+id/registration_tv"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.496"
+            app:layout_constraintHorizontal_bias="0.497"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/error_msg_tv" />
 
@@ -199,7 +202,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:text="@string/regiser_now"
-            android:textColor="@color/orange"
+            android:textColor="@color/colorTextPrimary"
             android:textSize="15sp"
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="@+id/button"
@@ -210,8 +213,10 @@
             android:id="@+id/error_msg_tv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="150dp"
+            android:layout_marginBottom="300dp"
+            android:layout_marginTop="170dp"
             android:textColor="@color/red"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/topText" />

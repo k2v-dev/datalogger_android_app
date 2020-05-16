@@ -1,18 +1,17 @@
-package com.decalthon.helmet.stability.model.DeviceModels;
+package com.decalthon.helmet.stability.model.devicemodels;
 
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.util.Log;
 
-import com.decalthon.helmet.stability.Activities.MainActivity;
-import com.decalthon.helmet.stability.BLE.SampleGattAttributes;
-import com.decalthon.helmet.stability.Utilities.Common;
-import com.decalthon.helmet.stability.Utilities.Constants;
+import com.decalthon.helmet.stability.activities.MainActivity;
+import com.decalthon.helmet.stability.ble.SampleGattAttributes;
+import com.decalthon.helmet.stability.utilities.Common;
+import com.decalthon.helmet.stability.utilities.Constants;
 
 import java.lang.reflect.Method;
 import java.util.List;
-import java.util.UUID;
 
 /*
    DeviceDetails which contains device's details, bluetooth's properties and method for enable notification

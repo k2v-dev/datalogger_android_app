@@ -1,8 +1,8 @@
-package com.decalthon.helmet.stability.AsyncTasks.SessionInfoAsyncTasks;
+package com.decalthon.helmet.stability.asynctasks.sessioninfoasynctasks;
 
 import android.os.AsyncTask;
 
-import com.decalthon.helmet.stability.DB.SessionCdlDb;
+import com.decalthon.helmet.stability.database.SessionCdlDb;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,16 +1,18 @@
-package com.decalthon.helmet.stability.model.NineAxisModels;
+package com.decalthon.helmet.stability.model.nineaxismodels;
 
 
 import android.content.Context;
 import android.graphics.Color;
 import android.os.AsyncTask;
+import android.os.SystemClock;
 import android.util.Log;
+import android.view.MotionEvent;
 
-import com.decalthon.helmet.stability.Activities.MainActivity;
-import com.decalthon.helmet.stability.DB.SessionCdlDb;
-import com.decalthon.helmet.stability.Fragments.CustomGraphFragment;
+import com.decalthon.helmet.stability.activities.MainActivity;
+import com.decalthon.helmet.stability.database.SessionCdlDb;
+import com.decalthon.helmet.stability.fragments.CustomGraphFragment;
 import com.decalthon.helmet.stability.R;
-import com.decalthon.helmet.stability.Utilities.Constants;
+import com.decalthon.helmet.stability.utilities.Constants;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.components.XAxis;
@@ -54,11 +56,10 @@ public class NineAxis {
     }
 
     //Color codes are associated with axes for each dataset
-    public void registerColorCodes(LineDataSet xAxis,
-                                   LineDataSet yAxis, LineDataSet zAxis) {
-        xAxis.setColor(Color.RED);
-        yAxis.setColor(Color.GREEN);
-        zAxis.setColor(Color.BLUE);
+    public static void registerColorCodes(LineDataSet... axes) {
+        axes[0].setColor(Color.BLUE);
+        axes[1].setColor(Color.GREEN);
+        axes[2].setColor(Color.RED);
     }
 
     //Plot circles are removed for all plots to save screens space
@@ -78,7 +79,7 @@ public class NineAxis {
         Map<Integer, SensorDataEntry> maps = null;
         if(queryParameters.chartType == ChartType.ACC){
             maps = CustomGraphFragment.SAVE_TAB_DATA.get(queryParameters.fragmentType).accChartData;
-        }else if(queryParameters.chartType == ChartType.GYRO){
+        }else if(queryParameters.chartType == ChartType.GYR){
             maps = CustomGraphFragment.SAVE_TAB_DATA.get(queryParameters.fragmentType).gyrChartData;
         }else if(queryParameters.chartType == ChartType.MAG){
             maps = CustomGraphFragment.SAVE_TAB_DATA.get(queryParameters.fragmentType).magChartData;
@@ -103,15 +104,23 @@ public class NineAxis {
         }
 //        long t2 = System.currentTimeMillis();
 //        System.out.println("Loading data "+queryParameters.graphType+", time="+(t2-t1));
-        formatPlotCircles(lineDataSetX);
-        formatPlotCircles(lineDataSetY);
-        formatPlotCircles(lineDataSetZ);
 
-        registerColorCodes(lineDataSetX,lineDataSetY, lineDataSetZ);
 
-        lineData.addDataSet(lineDataSetX);
-        lineData.addDataSet(lineDataSetY);
-        lineData.addDataSet(lineDataSetZ);
+        if(queryParameters.chartType == ChartType.GPS_SPEED) {
+            formatPlotCircles(lineDataSetX);
+            lineDataSetX.setColor(Color.BLUE);
+            lineData.addDataSet(lineDataSetX);
+        }else{
+            formatPlotCircles(lineDataSetX);
+            formatPlotCircles(lineDataSetY);
+            formatPlotCircles(lineDataSetZ);
+
+            registerColorCodes(lineDataSetX,lineDataSetY, lineDataSetZ);
+
+            lineData.addDataSet(lineDataSetX);
+            lineData.addDataSet(lineDataSetY);
+            lineData.addDataSet(lineDataSetZ);
+        }
 
         //CustomGraphFragment.SaveLineData.put(graphType+device_id+axes, lineData);
 
@@ -143,10 +152,9 @@ public class NineAxis {
         LineDataSet lineDataSetY = new LineDataSet(null, graphType.charAt(0)+"y");
         LineDataSet lineDataSetZ = new LineDataSet(null, graphType.charAt(0)+"z");
 
-        if(frag_type.equalsIgnoreCase(Constants.FRAGMENT_NAME_GPS_SPEED)){
-            lineDataSetX = new LineDataSet(null, "gps_speed");
+        if(chartType == ChartType.GPS_SPEED){
+            lineDataSetX.setLabel("speed(km/h)");
         }
-
         LineData lineData = new LineData();
 
         //Todo: query the db
@@ -166,20 +174,22 @@ public class NineAxis {
                         sensorDataEntry.getZval()));
             }
         }
-        formatPlotCircles(lineDataSetX);
-        formatPlotCircles(lineDataSetY);
-        formatPlotCircles(lineDataSetZ);
 
-        registerColorCodes(lineDataSetX,lineDataSetY, lineDataSetZ);
-
-        if(frag_type.equalsIgnoreCase(Constants.FRAGMENT_NAME_GPS_SPEED)){
+        if(chartType == ChartType.GPS_SPEED) {
+            formatPlotCircles(lineDataSetX);
+            lineDataSetX.setColor(Color.BLUE);
             lineData.addDataSet(lineDataSetX);
         }else{
+            formatPlotCircles(lineDataSetX);
+            formatPlotCircles(lineDataSetY);
+            formatPlotCircles(lineDataSetZ);
+
+            registerColorCodes(lineDataSetX,lineDataSetY, lineDataSetZ);
+
             lineData.addDataSet(lineDataSetX);
             lineData.addDataSet(lineDataSetY);
             lineData.addDataSet(lineDataSetZ);
         }
-
 
         //CustomGraphFragment.SaveLineData.put(graphType+device_id+axes, lineData);
 
@@ -318,13 +328,16 @@ public class NineAxis {
         /*Chart specific settings*/
         anyLineChart.setNoDataText("Loading");
         anyLineChart.setDragEnabled(true);
+        anyLineChart.setPinchZoom(false);
         anyLineChart.setDrawGridBackground(false);
         anyLineChart.setScaleXEnabled(true);
         anyLineChart.setScaleYEnabled(true);
-        anyLineChart.setPinchZoom(false);
         anyLineChart.getLegend().setEnabled(true);
         anyLineChart.getXAxis().setDrawGridLines(true);
         anyLineChart.getXAxis().setDrawAxisLine(true);
+        anyLineChart.getAxisLeft().setTextColor(Color.WHITE);
+        anyLineChart.getXAxis().setTextColor(Color.WHITE);
+        anyLineChart.getLegend().setTextColor(Color.WHITE);
 
 
         /*Legend-specific settings*/
@@ -354,7 +367,9 @@ public class NineAxis {
         Context mContext = MainActivity.shared().getApplicationContext();
         Legend legend = anyLineChart.getLegend();
         legend.setForm(Legend.LegendForm.CIRCLE);
+        legend.setTextColor(Color.WHITE);
         anyLineChart.getDescription().setText(mContext.getString(R.string.time_measure));
+        anyLineChart.getDescription().setTextColor(Color.WHITE);
         legend.setVerticalAlignment(Legend.LegendVerticalAlignment.TOP);
     }
 

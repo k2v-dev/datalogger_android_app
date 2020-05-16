@@ -1,4 +1,4 @@
-package com.decalthon.helmet.stability.Fragments;
+package com.decalthon.helmet.stability.fragments;
 
 import android.content.Context;
 import android.net.Uri;
@@ -13,17 +13,17 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.viewpager2.widget.ViewPager2;
 
-import com.decalthon.helmet.stability.Activities.MainActivity;
+import com.decalthon.helmet.stability.activities.MainActivity;
 import com.decalthon.helmet.stability.R;
-import com.decalthon.helmet.stability.Adapters.GraphPagerAdapter;
+import com.decalthon.helmet.stability.adapters.GraphPagerAdapter;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
-import static com.decalthon.helmet.stability.Utilities.Constants.DEV2_NINE_AXES_NAME;
-import static com.decalthon.helmet.stability.Utilities.Constants.DEV2_THREE_AXES_NAME;
-import static com.decalthon.helmet.stability.Utilities.Constants.GPS_SPEED_NAME;
-import static com.decalthon.helmet.stability.Utilities.Constants.DEV1_NINE_AXES_NAME;
-import static com.decalthon.helmet.stability.Utilities.Constants.DEV1_THREE_AXES_NAME;
+import static com.decalthon.helmet.stability.utilities.Constants.DEV2_NINE_AXES_NAME;
+import static com.decalthon.helmet.stability.utilities.Constants.DEV2_THREE_AXES_NAME;
+import static com.decalthon.helmet.stability.utilities.Constants.GPS_SPEED_NAME;
+import static com.decalthon.helmet.stability.utilities.Constants.DEV1_NINE_AXES_NAME;
+import static com.decalthon.helmet.stability.utilities.Constants.DEV1_THREE_AXES_NAME;
 
 /**
  * A simple {@link Fragment} subclass.

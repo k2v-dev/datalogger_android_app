@@ -1,10 +1,10 @@
-package com.decalthon.helmet.stability.model.DeviceModels.session;
+package com.decalthon.helmet.stability.model.devicemodels.session;
 
 import android.content.Context;
 
-import com.decalthon.helmet.stability.DB.Entities.SessionSummary;
-import com.decalthon.helmet.stability.Utilities.Common;
-import com.decalthon.helmet.stability.model.DeviceModels.DeviceHelper;
+import com.decalthon.helmet.stability.database.entities.SessionSummary;
+import com.decalthon.helmet.stability.utilities.Common;
+import com.decalthon.helmet.stability.model.devicemodels.DeviceHelper;
 import com.decalthon.helmet.stability.preferences.UserPreferences;
 
 import java.io.File;
@@ -13,7 +13,7 @@ import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.decalthon.helmet.stability.Utilities.FileUtilities.createDirIfNotExists;
+import static com.decalthon.helmet.stability.utilities.FileUtilities.createDirIfNotExists;
 
 public class SessionFile {
     private static final String LOG_DIR = "HEX_FILES";

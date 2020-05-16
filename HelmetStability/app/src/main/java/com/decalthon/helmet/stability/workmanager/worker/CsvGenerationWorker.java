@@ -3,8 +3,7 @@ package com.decalthon.helmet.stability.workmanager.worker;
 
 import android.content.Context;
 
-import com.decalthon.helmet.stability.MainApplication;
-import com.decalthon.helmet.stability.Utilities.CsvGenerator;
+import com.decalthon.helmet.stability.utilities.CsvGenerator;
 import com.decalthon.helmet.stability.preferences.CsvPreference;
 
 import java.util.Set;
@@ -32,7 +31,7 @@ public class CsvGenerationWorker extends Worker {
         Context context = getApplicationContext();
 
         Set<Long> session_ids = CsvPreference.getInstance(getApplicationContext()).getSessionIds();
-        session_ids.clear();session_ids.add(4l);
+        //session_ids.clear();//session_ids.add(4l);
 
         //Executor service instance
         ExecutorService executor = Executors.newFixedThreadPool(2);

@@ -1,17 +1,28 @@
-package com.decalthon.helmet.stability.Utilities;
+package com.decalthon.helmet.stability.utilities;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.IntentSender;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.location.Location;
-import android.widget.Toast;
+import android.location.LocationManager;
 
-import com.decalthon.helmet.stability.Activities.MainActivity;
-import com.decalthon.helmet.stability.MainApplication;
+import com.decalthon.helmet.stability.activities.MainActivity;
 import com.decalthon.helmet.stability.R;
-import com.decalthon.helmet.stability.model.DeviceModels.DeviceDetails;
-import com.decalthon.helmet.stability.model.Generic.TimeFmt;
+import com.decalthon.helmet.stability.model.devicemodels.DeviceDetails;
+import com.decalthon.helmet.stability.model.generic.TimeFmt;
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.common.api.ResolvableApiException;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResponse;
+import com.google.android.gms.location.LocationSettingsStatusCodes;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -20,7 +31,12 @@ import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static com.decalthon.helmet.stability.Utilities.Constants.DEVICE_MAPS;
+import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.FragmentActivity;
+
+import static com.decalthon.helmet.stability.utilities.Constants.DEVICE_MAPS;
+import static com.decalthon.helmet.stability.utilities.Constants.FirmwareTypeMap;
 
 /*
 It has helper methods.
@@ -204,11 +220,12 @@ public class Common {
      * @param context
      */
     public static void noInternetAlert(Context context) {
-        AlertDialog.Builder alert = new AlertDialog.Builder(context);
-        alert.setTitle("Alert");
-        alert.setMessage(context.getResources().getString(R.string.NO_INTERNET));
-        alert.setPositiveButton("OK",null);
-        alert.show();
+        AlertDialog dialog = new AlertDialog.Builder(context)
+                .setTitle("Alert")
+                .setMessage(context.getResources().getString(R.string.NO_INTERNET))
+                .setPositiveButton("OK", null).create();
+        dialog.show();
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(ContextCompat.getColor(context, R.color.black)); // Set text color to blue color
 
     }
 
@@ -218,11 +235,17 @@ public class Common {
      * @param message
      */
     public static void okAlertMessage(Context context, String message) {
-        AlertDialog.Builder alert = new AlertDialog.Builder(context);
-        alert.setTitle("Alert");
-        alert.setMessage(message);
-        alert.setPositiveButton("OK",null);
-        alert.show();
+//        AlertDialog.Builder alert = new AlertDialog.Builder(context);
+//        alert.setTitle("Alert");
+//        alert.setMessage(message);
+//        alert.setPositiveButton("OK",null);
+//        alert.show();
+        AlertDialog dialog = new AlertDialog.Builder(context)
+                .setTitle("Alert")
+                .setMessage(message)
+                .setPositiveButton("OK", null).create();
+        dialog.show();
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(ContextCompat.getColor(context, R.color.black)); // Set text color to blue color
     }
 
     public static float round(float value, int places) {
@@ -302,7 +325,7 @@ public class Common {
         int[] indoor_code = context.getResources().getIntArray(R.array.indoor_sports_array_code);
         String[] outdoor = context.getResources().getStringArray(R.array.outdoor_sports_array);
         int[] outdoor_code = context.getResources().getIntArray(R.array.outdoor_sports_array_code);
-
+        Constants.ActivityCodeMap.put("-", 0);
         for (int i = 0; i < indoor.length; i++) {
             String key = indoor[i]+"_"+Constants.INDOOR;
             Constants.ActivityCodeMap.put(key, indoor_code[i]);
@@ -313,6 +336,11 @@ public class Common {
             Constants.ActivityCodeMap.put(key, outdoor_code[i]);
         }
 
+        String[] firmware_names = context.getResources().getStringArray(R.array.fireware_name_array);
+        int[] firmware_types = context.getResources().getIntArray(R.array.firmware_type_array);
+        for (int i = 0; i < firmware_names.length; i++) {
+            FirmwareTypeMap.put(firmware_types[i], firmware_names[i]);
+        }
 //        SENSORS_MAPS.put(getResources().getString(R.string.device1_tv), HEL_SENSORS);
 //        SENSORS_MAPS.put(getResources().getString(R.string.device2_tv), WAT_SENSORS);
 //        SENSORS_MAPS.put(getResources().getString(R.string.device3_tv), BELT_SENSORS);
@@ -345,6 +373,80 @@ public class Common {
         TimeFmt timeFmt = new TimeFmt();
         timeFmt.hr = (int)hours;timeFmt.min = (int)minute;timeFmt.sec = (int)second;timeFmt.milsec = (int)ms;
         return timeFmt;
+    }
+
+    /**
+     * check the GPS location services whether it is disable or not. If it's disabled then prompt for enable location service.
+     * @return
+     */
+    public static boolean isGpsEnable(FragmentActivity fragmentActivity){
+
+        final LocationManager manager = (LocationManager) fragmentActivity.getSystemService( Context.LOCATION_SERVICE );
+        //Check whether location service is on or off
+        if ( manager.isProviderEnabled( LocationManager.GPS_PROVIDER ) ) {
+            return true;
+        }
+        // if GPS is disable, then prepare the prompt for enable GPS
+        //Create the type of location request you want, we want high accuracy for GPS
+        LocationRequest locationRequest = LocationRequest.create();
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
+                .addLocationRequest(locationRequest);
+
+        //check current state of GPS
+        Task<LocationSettingsResponse> result =
+                LocationServices.getSettingsClient(fragmentActivity).checkLocationSettings(builder.build());
+
+        result.addOnCompleteListener(new OnCompleteListener<LocationSettingsResponse>() {
+            @Override
+            public void onComplete(@NonNull Task<LocationSettingsResponse> task) {
+                try {
+                    LocationSettingsResponse response = task.getResult(ApiException.class);
+                    // All location settings are satisfied. The client can initialize location
+                    // requests here.
+                } catch (ApiException exception) {
+                    switch (exception.getStatusCode()) {
+                        case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                            // Location settings are not satisfied. But could be fixed by showing the
+                            // user a dialog.
+                            try {
+                                // Cast to a resolvable exception.
+                                ResolvableApiException resolvable = (ResolvableApiException) exception;
+                                // Show the dialog by calling startResolutionForResult(),
+                                // and check the result in onActivityResult().
+                                resolvable.startResolutionForResult(
+                                        fragmentActivity,
+                                        LocationRequest.PRIORITY_HIGH_ACCURACY);
+                            } catch (IntentSender.SendIntentException e) {
+                                // Ignore the error.
+                            } catch (ClassCastException e) {
+                                // Ignore, should be an impossible error.
+                            }
+                            break;
+                        case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                            // Location settings are not satisfied. However, we have no way to fix the
+                            // settings so we won't show the dialog.
+                            break;
+                    }
+                }
+            }
+        });
+        return false;
+    }
+
+    /**
+     * Convert byte to float. Byte has two hexvalues, first hext value will integral part and
+     * other hexvalue will fraction part
+     * @param byteVal
+     * @return version in float
+     */
+    public static float getVersion(Byte byteVal) {
+        float version = 0.0f;
+        char[] chars = String.format("%02X ", byteVal).toCharArray();
+        int integer_part = Integer.parseInt(chars[0]+"", 16);
+        int fraction_part = Integer.parseInt(chars[1]+"", 16);
+        version = (float)integer_part + fraction_part/100.0f;
+        return version;
     }
 }
 

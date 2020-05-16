@@ -4,8 +4,7 @@ import android.content.Context;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.decalthon.helmet.stability.Utilities.Constants;
-import com.decalthon.helmet.stability.firestore.FirestoreProfileModel;
+import com.decalthon.helmet.stability.utilities.Constants;
 import com.decalthon.helmet.stability.firestore.entities.IProfileInterface;
 import com.decalthon.helmet.stability.preferences.ProfilePreferences;
 import com.decalthon.helmet.stability.preferences.UserPreferences;
@@ -17,8 +16,6 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.Query;
-import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -42,8 +39,8 @@ public class ProfileImpl implements IProfileInterface {
     public void updateProfile(String user_id, ProfileReq firestoreProfileModel) {
         Map<String, Object> profile = new HashMap<>();
         profile.put(Constants.ProfileFields.USERNAME, firestoreProfileModel.name);
-        profile.put(Constants.ProfileFields.WEIGHT, firestoreProfileModel.weight);
-        profile.put(Constants.ProfileFields.HEIGHT, firestoreProfileModel.height);
+        profile.put(Constants.ProfileFields.WEIGHT, firestoreProfileModel.wt);
+        profile.put(Constants.ProfileFields.HEIGHT, firestoreProfileModel.ht);
         profile.put(Constants.ProfileFields.DOB, firestoreProfileModel.dob);
         profile.put(Constants.ProfileFields.GENDER, firestoreProfileModel.gender);
 
@@ -78,8 +75,8 @@ public class ProfileImpl implements IProfileInterface {
                         UserPreferences.getInstance(context).saveName(profile.name);
                         profilePreferences.saveDob(profile.dob);
                         profilePreferences.saveGender(profile.gender);
-                        profilePreferences.saveHeight(profile.height);
-                        profilePreferences.saveWeight(profile.weight);
+                        profilePreferences.saveHeight((float)profile.ht);
+                        profilePreferences.saveWeight((float)profile.wt);
                     }else{
                         Toast.makeText(context, "Profile does not exists ", Toast.LENGTH_SHORT).show();
                     }

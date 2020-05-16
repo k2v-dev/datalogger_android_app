@@ -1,8 +1,8 @@
-package com.decalthon.helmet.stability.model.DeviceModels;
+package com.decalthon.helmet.stability.model.devicemodels;
 
 
-import com.decalthon.helmet.stability.model.DeviceModels.session.SessionHeader;
-import com.decalthon.helmet.stability.DB.Entities.SessionSummary;
+import com.decalthon.helmet.stability.model.devicemodels.session.SessionHeader;
+import com.decalthon.helmet.stability.database.entities.SessionSummary;
 
 
 import java.util.Map;

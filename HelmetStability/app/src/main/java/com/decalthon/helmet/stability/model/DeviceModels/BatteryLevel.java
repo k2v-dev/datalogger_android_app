@@ -1,4 +1,4 @@
-package com.decalthon.helmet.stability.model.DeviceModels;
+package com.decalthon.helmet.stability.model.devicemodels;
 
 public class BatteryLevel {
     public final int level;

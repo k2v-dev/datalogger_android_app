@@ -1,6 +1,6 @@
-package com.decalthon.helmet.stability.model.DeviceModels.session;
+package com.decalthon.helmet.stability.model.devicemodels.session;
 
-import com.decalthon.helmet.stability.DB.Entities.SessionSummary;
+import com.decalthon.helmet.stability.database.entities.SessionSummary;
 
 import java.util.ArrayList;
 import java.util.List;

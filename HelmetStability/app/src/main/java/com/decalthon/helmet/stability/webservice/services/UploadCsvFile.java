@@ -2,27 +2,18 @@ package com.decalthon.helmet.stability.webservice.services;
 
 import android.content.Context;
 import android.util.Log;
-import android.widget.Toast;
 
-import com.decalthon.helmet.stability.DB.Entities.CsvFileStatus;
-import com.decalthon.helmet.stability.DB.SessionCdlDb;
-import com.decalthon.helmet.stability.Utilities.Constants;
-import com.decalthon.helmet.stability.Utilities.FileUtilities;
+import com.decalthon.helmet.stability.database.entities.CsvFileStatus;
+import com.decalthon.helmet.stability.database.SessionCdlDb;
+import com.decalthon.helmet.stability.utilities.Constants;
+import com.decalthon.helmet.stability.utilities.FileUtilities;
 import com.decalthon.helmet.stability.model.InternetCheck;
-import com.decalthon.helmet.stability.preferences.ProfilePreferences;
-import com.decalthon.helmet.stability.preferences.UserPreferences;
-import com.decalthon.helmet.stability.webservice.responses.ErrorCodes;
-import com.decalthon.helmet.stability.webservice.responses.ErrorMessages;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;

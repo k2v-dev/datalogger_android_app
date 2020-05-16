@@ -3,7 +3,7 @@ package com.decalthon.helmet.stability;
 import android.app.Application;
 import android.content.Context;
 
-import com.decalthon.helmet.stability.Activities.MainActivity;
+import com.decalthon.helmet.stability.activities.MainActivity;
 
 public class MainApplication extends Application {
     private static Context appContext;

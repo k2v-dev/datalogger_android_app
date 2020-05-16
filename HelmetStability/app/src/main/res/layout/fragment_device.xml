@@ -9,7 +9,7 @@
     android:orientation="vertical"
     android:clickable="true"
     android:focusable="true"
-    tools:context=".Fragments.DeviceFragment">
+    tools:context=".fragments.DeviceFragment">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -74,7 +74,7 @@
 
                 android:orientation="horizontal">
 
-                <com.decalthon.helmet.stability.model.UIModels.ConnectionSquareButton
+                <com.decalthon.helmet.stability.model.uimodels.ConnectionSquareButton
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:layout_gravity="center"
@@ -89,7 +89,7 @@
                         android:scaleType="centerInside"
                         />
 
-                </com.decalthon.helmet.stability.model.UIModels.ConnectionSquareButton>
+                </com.decalthon.helmet.stability.model.uimodels.ConnectionSquareButton>
 
                 <LinearLayout
                     android:layout_width="10dp"
@@ -195,7 +195,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/view4">
 
-            <com.decalthon.helmet.stability.model.UIModels.ConnectionSquareButton
+            <com.decalthon.helmet.stability.model.uimodels.ConnectionSquareButton
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:layout_gravity="center"
@@ -211,7 +211,7 @@
 
                     />
 
-            </com.decalthon.helmet.stability.model.UIModels.ConnectionSquareButton>
+            </com.decalthon.helmet.stability.model.uimodels.ConnectionSquareButton>
 
             <LinearLayout
                 android:layout_width="10dp"
@@ -315,7 +315,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/view5">
 
-            <com.decalthon.helmet.stability.model.UIModels.ConnectionSquareButton
+            <com.decalthon.helmet.stability.model.uimodels.ConnectionSquareButton
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:layout_gravity="center"
@@ -331,7 +331,7 @@
 
                     />
 
-            </com.decalthon.helmet.stability.model.UIModels.ConnectionSquareButton>
+            </com.decalthon.helmet.stability.model.uimodels.ConnectionSquareButton>
 
             <LinearLayout
                 android:layout_width="10dp"

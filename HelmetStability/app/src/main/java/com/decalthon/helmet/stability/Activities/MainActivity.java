@@ -1,4 +1,4 @@
-package com.decalthon.helmet.stability.Activities;
+package com.decalthon.helmet.stability.activities;
 
 import android.Manifest;
 import android.app.AlertDialog;
@@ -19,69 +19,53 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-import androidx.room.Room;
-import androidx.room.RoomDatabase;
-import androidx.sqlite.db.SupportSQLiteDatabase;
 
-import com.decalthon.helmet.stability.BLE.BluetoothLeService;
-import com.decalthon.helmet.stability.BLE.Device_Parser;
-import com.decalthon.helmet.stability.BLE.MyBroadcastReceiver;
-import com.decalthon.helmet.stability.BLE.gatt_server.BluetoothLeGattServer;
-import com.decalthon.helmet.stability.DB.DatabaseHelper;
-import com.decalthon.helmet.stability.DB.SessionCdlDb;
-import com.decalthon.helmet.stability.Fragments.CalendarPagerFragment;
-import com.decalthon.helmet.stability.Fragments.CustomGraphFragment;
-import com.decalthon.helmet.stability.Fragments.CustomViewFragment;
-import com.decalthon.helmet.stability.Fragments.DailySessionsFragment;
-import com.decalthon.helmet.stability.Fragments.DeviceFragment;
-import com.decalthon.helmet.stability.Fragments.GPSSpeedFragment;
-import com.decalthon.helmet.stability.Fragments.HomeFragment;
-import com.decalthon.helmet.stability.Fragments.LoginFragment;
-import com.decalthon.helmet.stability.Fragments.MapFragment;
-import com.decalthon.helmet.stability.Fragments.MarkerDialogFragment;
-import com.decalthon.helmet.stability.Fragments.MonthlyCalendarFragment;
-import com.decalthon.helmet.stability.Fragments.ProfileFragment;
-import com.decalthon.helmet.stability.Fragments.RegistrationFormFragment;
-import com.decalthon.helmet.stability.Fragments.SevenSessionsSummaryFragment;
-import com.decalthon.helmet.stability.Fragments.YearPagerFragment;
-import com.decalthon.helmet.stability.Fragments.YearlyCalendarFragment;
+import com.decalthon.helmet.stability.ble.BluetoothLeService;
+import com.decalthon.helmet.stability.ble.Device_Parser;
+import com.decalthon.helmet.stability.ble.MyBroadcastReceiver;
+import com.decalthon.helmet.stability.ble.gatt_server.BluetoothLeGattServer;
+import com.decalthon.helmet.stability.database.SessionCdlDb;
+import com.decalthon.helmet.stability.fragments.CalendarPagerFragment;
+import com.decalthon.helmet.stability.fragments.CustomGraphFragment;
+import com.decalthon.helmet.stability.fragments.CustomViewFragment;
+import com.decalthon.helmet.stability.fragments.DeviceFragment;
+import com.decalthon.helmet.stability.fragments.GPSSpeedFragment;
+import com.decalthon.helmet.stability.fragments.HomeFragment;
+import com.decalthon.helmet.stability.fragments.LoginFragment;
+import com.decalthon.helmet.stability.fragments.MapFragment;
+import com.decalthon.helmet.stability.fragments.MarkerDialogFragment;
+import com.decalthon.helmet.stability.fragments.MonthlyCalendarFragment;
+import com.decalthon.helmet.stability.fragments.ProfileFragment;
+import com.decalthon.helmet.stability.fragments.RegistrationFormFragment;
+import com.decalthon.helmet.stability.fragments.SevenSessionsSummaryFragment;
+import com.decalthon.helmet.stability.fragments.YearPagerFragment;
+import com.decalthon.helmet.stability.fragments.YearlyCalendarFragment;
 import com.decalthon.helmet.stability.MainApplication;
 import com.decalthon.helmet.stability.R;
-import com.decalthon.helmet.stability.Utilities.Common;
-import com.decalthon.helmet.stability.Utilities.Constants;
-import com.decalthon.helmet.stability.firestore.FirebaseStorageManager;
-import com.decalthon.helmet.stability.firestore.FirestoreUserModel;
-import com.decalthon.helmet.stability.firestore.entities.impl.UserImpl;
-import com.decalthon.helmet.stability.model.DeviceModels.DeviceDetails;
-import com.decalthon.helmet.stability.model.InternetCheck;
+import com.decalthon.helmet.stability.utilities.Common;
+import com.decalthon.helmet.stability.utilities.Constants;
+import com.decalthon.helmet.stability.model.devicemodels.DeviceDetails;
 import com.decalthon.helmet.stability.preferences.DevicePreferences;
 import com.decalthon.helmet.stability.preferences.ProfilePreferences;
 import com.decalthon.helmet.stability.preferences.UserPreferences;
-import com.google.common.collect.BiMap;
-import com.google.firebase.auth.FirebaseAuth;
 
-import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 
 import at.grabner.circleprogress.CircleProgressView;
 import de.hdodenhof.circleimageview.CircleImageView;
 
-import static com.decalthon.helmet.stability.Utilities.Constants.DEVICE_MAPS;
-import static com.decalthon.helmet.stability.Utilities.Constants.DevPREFERENCES;
+import static com.decalthon.helmet.stability.utilities.Constants.DEVICE_MAPS;
 
 public class MainActivity extends AppCompatActivity implements HomeFragment.OnFragmentInteractionListener, LoginFragment.OnFragmentInteractionListener, RegistrationFormFragment.OnFragmentInteractionListener, MonthlyCalendarFragment.OnFragmentInteractionListener,  ProfileFragment.OnFragmentInteractionListener , DeviceFragment.OnFragmentInteractionListener , MapFragment.OnFragmentInteractionListener, CustomViewFragment.OnFragmentInteractionListener, CustomGraphFragment.OnFragmentInteractionListener, GPSSpeedFragment.OnFragmentInteractionListener , SevenSessionsSummaryFragment.OnFragmentInteractionListener , MarkerDialogFragment.OnFragmentInteractionListener , YearlyCalendarFragment.OnFragmentInteractionListener, YearPagerFragment.OnFragmentInteractionListener , CalendarPagerFragment.OnFragmentInteractionListener{
 
@@ -162,30 +146,30 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
         LocalBroadcastManager.getInstance(this).registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
 
 
-        CircleImageView logoutMenuButton =
-                findViewById(R.id.logout_link);
-        logoutMenuButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                AlertDialog dialog = new AlertDialog.Builder(mainActivity)
-                        .setTitle("Alert")
-                        .setMessage(getResources().getString(R.string.log_out_msg))
-                        .setNegativeButton("No", null)
-                        .setPositiveButton("Yes",new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                UserPreferences.getInstance(getApplicationContext()).clear();
-                                ProfilePreferences.getInstance(getApplicationContext()).clear();
-                                DevicePreferences.getInstance(getApplicationContext()).clear();
-                                navigateToFragments();
-                            }
-                        })
-                        .create();
-                dialog.show();
-                dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.parseColor("#FF1B5AAC")); // Set text color to blue color
-                dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(Color.parseColor("#D3D3D3"));  // Set text color to ligh gray color
-            }
-        });
+//        CircleImageView logoutMenuButton =
+//                findViewById(R.id.logout_link);
+//        logoutMenuButton.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                AlertDialog dialog = new AlertDialog.Builder(mainActivity)
+//                        .setTitle("Alert")
+//                        .setMessage(getResources().getString(R.string.log_out_msg))
+//                        .setNegativeButton("No", null)
+//                        .setPositiveButton("Yes",new DialogInterface.OnClickListener() {
+//                            @Override
+//                            public void onClick(DialogInterface dialog, int which) {
+//                                UserPreferences.getInstance(getApplicationContext()).clear();
+//                                ProfilePreferences.getInstance(getApplicationContext()).clear();
+//                                DevicePreferences.getInstance(getApplicationContext()).clear();
+//                                navigateToFragments();
+//                            }
+//                        })
+//                        .create();
+//                dialog.show();
+//                dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.parseColor("#FF1B5AAC")); // Set text color to blue color
+//                dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(Color.parseColor("#D3D3D3"));  // Set text color to ligh gray color
+//            }
+//        });
 //        sessionCdlDb = Room.databaseBuilder(getApplicationContext(),SessionCdlDb.class,"Gps_Speed_DB")
 //                .addCallback(callback).build();
 
@@ -370,6 +354,11 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
         {
             public void onBackStackChanged()
             {
+                FragmentManager manager = getSupportFragmentManager();
+                Fragment fragment = manager.findFragmentById(R.id.fragment);
+                if (fragment instanceof  HomeFragment){
+                    ((HomeFragment)fragment).refresh_cards();
+                }
                 invalidateOptionsMenu();
             }
         };
@@ -479,7 +468,7 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
 //        for (Fragment fragment: frags) {
             if(fragment instanceof HomeFragment){
                 fragmentManager.popBackStack();
-                finish();
+                //finish();
                 return;
             }else if(fragment instanceof ProfileFragment){
                 if (ProfilePreferences.getInstance(getApplicationContext()).isEmpty()) {
@@ -489,18 +478,23 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
                     fragmentManager.popBackStack();
                 }
                 return;
-            }else if(fragment instanceof LoginFragment || fragment instanceof RegistrationFormFragment){
+            }else if(fragment instanceof  YearlyCalendarFragment){
+                fragmentManager.popBackStack();
+                fragmentManager.popBackStack();
                 return;
-            }
-            if(fragment instanceof CalendarPagerFragment){
+            }else if(fragment instanceof CalendarPagerFragment){
+                Log.d(TAG, "onBackPressed: checked");
                 CalendarPagerFragment calendarPagerFragment = (CalendarPagerFragment) fragment;
                 if(calendarPagerFragment.getCalendarType().equalsIgnoreCase(MonthlyCalendarFragment.class.getSimpleName())){
                     fragmentManager.popBackStack(HomeFragment.class.getSimpleName(), FragmentManager.POP_BACK_STACK_INCLUSIVE);
                     return;
                 }
             }
+
 //        }
+//        super.onBackPressed();
         fragmentManager.popBackStack();
+//            super.onBackPressed();
 //        frag =
 //                fragmentManager.findFragmentByTag(HomeFragment.class.getSimpleName());
 //        if(frag instanceof HomeFragment){
@@ -630,6 +624,21 @@ public class MainActivity extends AppCompatActivity implements HomeFragment.OnFr
                 }
                 break;
         }
+    }
+
+    /**
+     * Referesh the actibivity with delay
+     * @param delay in millisecond
+     */
+    public void refresh(int delay){
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Common.wait(delay);
+                finish();
+                startActivity(getIntent());
+            }
+        }).start();
     }
 
 }

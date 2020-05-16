@@ -1,41 +1,34 @@
-package com.decalthon.helmet.stability.Adapters;
+package com.decalthon.helmet.stability.adapters;
 
+import android.content.Context;
 import android.graphics.Color;
-import android.text.SpannableString;
-import android.text.style.ForegroundColorSpan;
-import android.text.style.RelativeSizeSpan;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.decalthon.helmet.stability.Activities.MainActivity;
-import com.decalthon.helmet.stability.Fragments.CalendarPagerFragment;
-import com.decalthon.helmet.stability.Fragments.DailySessionsFragment;
-import com.decalthon.helmet.stability.Fragments.MapFragment;
+import com.decalthon.helmet.stability.activities.MainActivity;
+import com.decalthon.helmet.stability.fragments.CalendarPagerFragment;
+import com.decalthon.helmet.stability.fragments.DailySessionsFragment;
 import com.decalthon.helmet.stability.MainApplication;
-import com.decalthon.helmet.stability.Fragments.MonthlyCalendarFragment;
 import com.decalthon.helmet.stability.R;
-import com.decalthon.helmet.stability.Utilities.CalendarUtils;
-import com.decalthon.helmet.stability.Utilities.Constants;
+import com.decalthon.helmet.stability.utilities.Common;
 
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.Map;
 
 public class CalendarGridAdapter extends RecyclerView.Adapter<CalendarGridAdapter.CalendarViewHolder>{
 
     private ArrayList<String> mCalendarDataset;
     private Integer []  mEventDataset;
     private Integer mCalendarMonth;
+    private Context mContext;
     private static String TAG = CalendarGridAdapter.class.getSimpleName();
     private int[] icons_arr = {R.drawable.one_icon, R.drawable.one_icon, R.drawable.two_icons, R.drawable.three_icons,
             R.drawable.four_icons, R.drawable.five_icons, R.drawable.six_icons, R.drawable.six_icons};
@@ -50,10 +43,11 @@ public class CalendarGridAdapter extends RecyclerView.Adapter<CalendarGridAdapte
 
     public CalendarGridAdapter(ArrayList<String> calendarDataset,
                                ArrayList<Integer> events,
-                               Integer calendarMonth) {
+                               Integer calendarMonth, Context context) {
         mCalendarDataset = calendarDataset;
         mEventDataset = events.toArray(new Integer[0]);
         mCalendarMonth = calendarMonth;
+        mContext = context;
     }
 
     @NonNull
@@ -77,6 +71,7 @@ public class CalendarGridAdapter extends RecyclerView.Adapter<CalendarGridAdapte
             cellTextView.setTextColor(Color.parseColor("#33000000"));
         }
         cellTextView.setText(mCalendarDataset.get(position));
+        View calendar_cell = holder.cellView.findViewById(R.id.calendar_cell_view);
         ImageView cellImageView = holder.cellView.findViewById(R.id.calendar_cell_im);
         if(mEventDataset == null || mEventDataset.length == 0) {
             return;
@@ -89,9 +84,11 @@ public class CalendarGridAdapter extends RecyclerView.Adapter<CalendarGridAdapte
 //                        dots[dotCounter] = '.';
 //                    }
 //                    dotString = new String(dots);
+//                    calendar_cell.setOnClickListener(new View.OnClickListener() {
                     holder.cellView.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
+//                            Toast.makeText(mContext, "Wait for a momemt", Toast.LENGTH_SHORT).show();
                             Fragment dailySessionFragment =
                                     DailySessionsFragment.newInstance(eventDay.toString(),mCalendarMonth.toString());
                             FragmentTransaction fragmentTransaction =
@@ -101,6 +98,7 @@ public class CalendarGridAdapter extends RecyclerView.Adapter<CalendarGridAdapte
                                     CalendarPagerFragment.class.getSimpleName());
                             fragmentTransaction.addToBackStack(null);
                             fragmentTransaction.commit();
+
                         }
                     });
                 }

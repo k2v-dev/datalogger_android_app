@@ -1,9 +1,10 @@
-package com.decalthon.helmet.stability.Fragments;
+package com.decalthon.helmet.stability.fragments;
 
 import android.content.Context;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,12 +12,13 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
 
-import com.decalthon.helmet.stability.Activities.MainActivity;
-import com.decalthon.helmet.stability.Adapters.CalendarPagerAdapter;
-import com.decalthon.helmet.stability.DB.SessionCdlDb;
+import com.decalthon.helmet.stability.activities.MainActivity;
+import com.decalthon.helmet.stability.adapters.CalendarPagerAdapter;
+import com.decalthon.helmet.stability.database.SessionCdlDb;
 import com.decalthon.helmet.stability.R;
 
 import java.text.SimpleDateFormat;
@@ -24,7 +26,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.SimpleTimeZone;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -41,15 +42,19 @@ public class CalendarPagerFragment extends Fragment {
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
     private static final int NUM_PAGES = 10;
+    private static final String ARG_PARAM3 = "param3";
 
     // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    private String calendarType;
+    private int calendarValue;
+    private int clickedYear;
 
     private OnFragmentInteractionListener mListener;
     private ViewPager2 viewPager;
     private FragmentStateAdapter calendarPagerAdapter;
     private Context mContext;
+    private View leftNavigationView;
+    private View rightNavigationView;
 
     public CalendarPagerFragment() {
         // Required empty public constructor
@@ -64,11 +69,12 @@ public class CalendarPagerFragment extends Fragment {
      * @return A new instance of fragment YearPagerFragment.
      */
     // TODO: Rename and change types and number of parameters
-    public static CalendarPagerFragment newInstance(String param1, String param2) {
+    public static CalendarPagerFragment newInstance(String param1, int param2, int mYearPassed) {
         CalendarPagerFragment fragment = new CalendarPagerFragment();
         Bundle args = new Bundle();
         args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
+        args.putInt(ARG_PARAM2, param2);
+        args.putInt(ARG_PARAM3,mYearPassed);
         fragment.setArguments(args);
         return fragment;
     }
@@ -77,8 +83,9 @@ public class CalendarPagerFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+            calendarType = getArguments().getString(ARG_PARAM1);
+            calendarValue = getArguments().getInt(ARG_PARAM2);
+            clickedYear = getArguments().getInt(ARG_PARAM3);
         }
     }
 
@@ -109,9 +116,9 @@ public class CalendarPagerFragment extends Fragment {
             e.printStackTrace();
         }
 
-        Date earliestSession = new Date( allSessionTimestamps.get(0) );
+        Date earliestSession = new Date( allSessionTimestamps.get(allSessionTimestamps.size() - 1) );
         Date latestSession =
-                new Date(allSessionTimestamps.get(allSessionTimestamps.size() - 1 ));
+                new Date(allSessionTimestamps.get(0));
 
         String earliestYear =
                 new SimpleDateFormat("YYYY", Locale.getDefault()).format(earliestSession);
@@ -130,39 +137,174 @@ public class CalendarPagerFragment extends Fragment {
 //        int session_range_month =
 //                Math.abs( ( session_range_year * 12 ) - Integer.parseInt(latestMonth) - Integer.parseInt(earliestMonth) );
         int monthDiff = Integer.parseInt(latestMonth) - Integer.parseInt(earliestMonth);
+
+        int earliestMonthIndex = Integer.parseInt(earliestMonth);
+
         final int session_range_month =
-            (Math.abs( ( 12 * session_range_year )  - monthDiff));
+            (Math.abs( ( 12 * session_range_year ) + monthDiff));
         viewPager = view.findViewById(R.id.calendar_pager);
 
-        if(mParam1.equals(MonthlyCalendarFragment.class.getSimpleName())){
+        if(calendarType.equals(MonthlyCalendarFragment.class.getSimpleName())){
             calendarPagerAdapter =
                     new CalendarPagerAdapter(this,getString(R.string.months),
                             session_range_month + 1,
                             allSessionTimestamps);
-        }else if(mParam1.equals(YearlyCalendarFragment.class.getSimpleName())){
-            calendarPagerAdapter =
-                    new CalendarPagerAdapter(this,getString(R.string.years),
-                            session_range_year + 1,allSessionTimestamps);
+            viewPager.setAdapter(calendarPagerAdapter);
+        }else if(calendarType.equals(YearlyCalendarFragment.class.getSimpleName())){
+
+            Fragment yearlyCalendarFragment = YearlyCalendarFragment.newInstance(calendarValue,Integer.parseInt(earliestYear));
+            FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
+            fragmentTransaction.add(this.getId(),yearlyCalendarFragment,CalendarPagerFragment.class.getSimpleName());
+            fragmentTransaction.addToBackStack(null);
+            fragmentTransaction.commit();
+//            calendarPagerAdapter =
+//                    new CalendarPagerAdapter(this,getString(R.string.years),
+//                            session_range_year + 1,allSessionTimestamps);
         }
-        viewPager.setAdapter(calendarPagerAdapter);
-        if(mParam2 == null) {
-            viewPager.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    viewPager.setCurrentItem(calendarPagerAdapter.getItemCount(),
-                            true);
-                }
-            }, 20);
-        }else{
-            viewPager.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    viewPager.setCurrentItem(calendarPagerAdapter.getItemCount() - 1 - Integer.parseInt(mParam2)
-                            , true);
-                }
-            }, 20);
+
+        if(calendarType.equals(MonthlyCalendarFragment.class.getSimpleName())) {
+            if (calendarValue == -1) {
+                viewPager.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        viewPager.setCurrentItem(calendarPagerAdapter.getItemCount(),
+                                true);
+                    }
+                }, 20);
+            } else {
+                viewPager.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        int month_diff = (clickedYear - Integer.parseInt(earliestYear)) * 12
+                                - (earliestMonthIndex - calendarValue);
+                        viewPager.setCurrentItem(month_diff + 1, true);
+                    }
+                }, 20);
+            }
         }
+
+
+        viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                super.onPageSelected(position);
+                registerPageLimits(position);
+            }
+
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+                super.onPageScrolled(position, positionOffset, positionOffsetPixels);
+                Log.d("VIEWPAGER", "onPageScrolled: Page scrolled " +position);
+                registerPageLimits(position);
+            }
+        });
+
+
+
+
+//        viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+//            @Override
+//            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+//                super.onPageScrolled(position, positionOffset, positionOffsetPixels);
+//                if (position == 0) {
+//                    MainActivity.shared().findViewById(R.id.left_month_pager).setVisibility(View.INVISIBLE);
+//                } else {
+//                    MainActivity.shared().findViewById(R.id.left_month_pager).setVisibility(View.VISIBLE);
+//                }
+//            }
+//        });
+
     }
+
+    private void registerPageLimits(int position){
+        if (position == 0) {
+            if(calendarType.equals(MonthlyCalendarFragment.class.getSimpleName())) {
+                this.getView().findViewById(R.id.left_month_pager).setVisibility(View.INVISIBLE);
+
+            }else if(calendarType.equals(YearlyCalendarFragment.class.getSimpleName())){
+                this.getView().findViewById(R.id.previous_year_link_vp).setVisibility(View.INVISIBLE);
+            }
+        } else {
+            if(calendarType.equals(MonthlyCalendarFragment.class.getSimpleName())) {
+                this.getView().findViewById(R.id.left_month_pager).setVisibility(View.VISIBLE);
+            }
+            else if(calendarType.equals(YearlyCalendarFragment.class.getSimpleName())){
+                this.getView().findViewById(R.id.previous_year_link_vp).setVisibility(View.VISIBLE);
+            }
+        }
+
+        if (position == calendarPagerAdapter.getItemCount() - 1) {
+            if(calendarType.equals(MonthlyCalendarFragment.class.getSimpleName())){
+                this.getView().findViewById(R.id.right_month_pager).setVisibility(View.INVISIBLE);
+            }
+            else if(calendarType.equals(YearlyCalendarFragment.class.getSimpleName())){
+                this.getView().findViewById(R.id.next_year_link_vp).setVisibility(View.INVISIBLE);
+            }
+        } else {
+            if(calendarType.equals(MonthlyCalendarFragment.class.getSimpleName())){
+                this.getView().findViewById(R.id.right_month_pager).setVisibility(View.VISIBLE);
+            }
+            else if(calendarType.equals(YearlyCalendarFragment.class.getSimpleName())){
+                this.getView().findViewById(R.id.next_year_link_vp).setVisibility(View.VISIBLE);
+            }
+        }
+
+        if( calendarType.equals(MonthlyCalendarFragment.class.getSimpleName())){
+
+            leftNavigationView = this.getView().findViewById(R.id.left_month_pager);
+            rightNavigationView = this.getView().findViewById(R.id.right_month_pager);
+
+            leftNavigationView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+//                View viewroot = view.getRootView();
+//                ViewPager2 viewPager2 =
+//                        (ViewPager2) viewroot.findViewById(R.id.calendar_pager);
+                    int currentPage =  viewPager.getCurrentItem();
+                    viewPager.setCurrentItem( currentPage - 1 );
+                }
+            });
+
+            rightNavigationView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+//                View viewroot = view.getRootView();
+//                ViewPager2 viewPager2 =
+//                        (ViewPager2) viewroot.findViewById(R.id.calendar_pager);
+                    int currentPage =  viewPager.getCurrentItem();
+                    viewPager.setCurrentItem( currentPage + 1 );
+                }
+            });
+        }else{
+            leftNavigationView = this.getView().findViewById(R.id.
+                    previous_year_link_vp);
+            rightNavigationView = this.getView().findViewById(R.id.next_year_link_vp);
+
+            leftNavigationView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+//                View viewroot = view.getRootView();
+//                ViewPager2 viewPager2 =
+//                        (ViewPager2) viewroot.findViewById(R.id.calendar_pager);
+                    int currentPage =  viewPager.getCurrentItem();
+                    viewPager.setCurrentItem( currentPage - 1 );
+                }
+            });
+
+            rightNavigationView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+//                View viewroot = view.getRootView();
+//                ViewPager2 viewPager2 =
+//                        (ViewPager2) viewroot.findViewById(R.id.calendar_pager);
+                    int currentPage =  viewPager.getCurrentItem();
+                    viewPager.setCurrentItem( currentPage + 1 );
+                }
+            });
+        }
+
+    }
+
 
     // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri) {
@@ -172,7 +314,7 @@ public class CalendarPagerFragment extends Fragment {
     }
 
     public String getCalendarType(){
-        return  mParam1;
+        return calendarType;
     }
 
     @Override

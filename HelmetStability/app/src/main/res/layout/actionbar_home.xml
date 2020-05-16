@@ -2,13 +2,13 @@
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:CircleProgressView="http://schemas.android.com/apk/res-auto"
     android:layout_height="wrap_content"
-    android:layout_width="match_parent">
+    android:layout_width="match_parent"
+    android:backgroundTint="@color/colorPrimary">
 
 <LinearLayout
     android:layout_width="match_parent"
     android:layout_height="@dimen/action_bar_height"
-    android:orientation="horizontal"
-    android:background="@color/colorPrimary">
+    android:orientation="horizontal">
 
 
         <!-- In the home fragment , the back button is disabled by default-->

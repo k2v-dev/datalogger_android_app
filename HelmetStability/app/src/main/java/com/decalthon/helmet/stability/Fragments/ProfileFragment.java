@@ -1,29 +1,34 @@
-package com.decalthon.helmet.stability.Fragments;
+package com.decalthon.helmet.stability.fragments;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.ParseException;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.FileUtils;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Adapter;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
-import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.ActionBar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
@@ -31,36 +36,31 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.decalthon.helmet.stability.Activities.MainActivity;
 import com.decalthon.helmet.stability.R;
-import com.decalthon.helmet.stability.Utilities.Common;
-import com.decalthon.helmet.stability.Utilities.Constants;
-import com.decalthon.helmet.stability.Utilities.FileUtilities;
+import com.decalthon.helmet.stability.activities.ProfileActivity;
+import com.decalthon.helmet.stability.firestore.entities.impl.ProfileImpl;
+import com.decalthon.helmet.stability.utilities.Common;
+import com.decalthon.helmet.stability.utilities.Constants;
+import com.decalthon.helmet.stability.utilities.FileUtilities;
 import com.decalthon.helmet.stability.firestore.FirebaseStorageManager;
 import com.decalthon.helmet.stability.preferences.ProfilePreferences;
 import com.decalthon.helmet.stability.preferences.UserPreferences;
 import com.decalthon.helmet.stability.webservice.requests.ProfileReq;
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.common.io.Files;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.util.FileUtil;
 
 import java.io.File;
 import java.io.IOException;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 import id.zelory.compressor.Compressor;
@@ -90,6 +90,8 @@ public class ProfileFragment extends DialogFragment {
     private String mParam1;
     private String mParam2;
     private boolean isUploadedPhoto = false;
+    private boolean isDeletedPhoto = false;
+    static int [] initialSpinnerLoadPos;
 
     private static int ageIndex = 0,genderIndex = 0,heightIndex = 0,weightIndex = 0;
 
@@ -99,6 +101,7 @@ public class ProfileFragment extends DialogFragment {
 //    private static final int CAMERA_VIDEO_REQUEST_CODE = 7501;
     private static final int GALLERY_REQUEST_CODE = 7502;
     private static final int DOCUMENTS_REQUEST_CODE = 7503;
+    File fileNameOnDevice = null;
 
 // Fragment-specific variables
     protected View galleryButton;
@@ -116,6 +119,7 @@ public class ProfileFragment extends DialogFragment {
     private Context mContext;
 
     FirebaseFirestore firestoreDb;
+
 
     public ProfileFragment() {
         // Required empty public constructor
@@ -178,45 +182,69 @@ public class ProfileFragment extends DialogFragment {
             public void onClick(View v) {
                 if (ProfilePreferences.getInstance(getContext()).isEmpty()) {
                     Common.okAlertMessage(getContext(), getString(R.string.enter_all_details));
+                }else if(profileView.findViewById(R.id.save_profile).isEnabled()){
+                    ((ProfileActivity)getActivity()).showUnsavedAlertDialog();
                 }else {
-                    dismiss();
+                    //dismiss();
+                    getActivity().finish();
                 }
             }
         });
 
+
+
         CircleImageView photoEdit = profileView.findViewById(R.id.edit_profile_photo);
         String defaultImagePath = UserPreferences.getInstance(getContext()).
                 getProfilePhoto();
+        fileNameOnDevice = new File(defaultImagePath);
         String name = UserPreferences.getInstance(getContext()).getName();
         EditText editText =
                 profileView.findViewById(R.id.edit_profile_name);
         editText.setText(name);
+        editText.addTextChangedListener(new TextWatcher() {
 
-        int storedAge = ProfilePreferences.getInstance(getContext()).getAge();
-        char storedGender =
-                ProfilePreferences.getInstance(getContext()).getGender();
-        int storedHeight =
-                (int) ProfilePreferences.getInstance(getContext()).getHeight();
-        int storedWeight =
-                (int) ProfilePreferences.getInstance(getContext()).getWeight();
+            @Override
+            public void afterTextChanged(Editable s) {}
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start,
+                                          int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start,
+                                      int before, int count) {
+                enableSaveButton();
+            }
+        });
+
+//        int storedAge = ProfilePreferences.getInstance(getContext()).getAge();
+//        char storedGender =
+//                ProfilePreferences.getInstance(getContext()).getGender();
+//        int storedHeight =
+//                (int) ProfilePreferences.getInstance(getContext()).getHeight();
+//        int storedWeight =
+//                (int) ProfilePreferences.getInstance(getContext()).getWeight();
         isUploadedPhoto = false;
         //Retain default anonymous photo, unless there is a user-preference photo
-        if(defaultImagePath.equals("default")) {
-            ;
-        }
-        else{
+        if(fileNameOnDevice.exists()){
             photoEdit.setImageBitmap(BitmapFactory.decodeFile(defaultImagePath));
+        }else{
+            fileNameOnDevice = null;
         }
 
-        registerEditEvent(profileView);
-
+//        registerEditEvent(profileView);
         return  profileView;
     }
+
+
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        Button save = view.findViewById(R.id.save_profile);
         registerEditEvent(view);
+        save.setEnabled(false);
     }
 
     @Override
@@ -296,17 +324,32 @@ public class ProfileFragment extends DialogFragment {
         ageEditor.setHasFixedSize(true);
         ageEditor.setLayoutManager(ageLayoutManager);
 
+
         //2. Populate each spinner's recycler view using the template list item style
         ArrayAdapter adapter = ArrayAdapter.createFromResource(mContext,
                 R.array.ages_array, R.layout.list_item_view);
         ageSpinner.setAdapter(adapter);
+
+//        ageSpinner.setOnTouchListener(new View.OnTouchListener() {
+//            @Override
+//            public boolean onTouch(View v, MotionEvent event) {
+//                enableSaveButton();
+//                return false;
+//            }
+//        });
+
+
         int current_age = ProfilePreferences.getInstance(mContext).getAge();
         String [] allowedAges =
                 getResources().getStringArray(R.array.ages_array);
         int startingAge = Integer.parseInt(allowedAges[1]);
         int max_age = Integer.parseInt(allowedAges[allowedAges.length-1]);
         int range = max_age - startingAge;
-        ageSpinner.setSelection( current_age - (max_age - range) );
+        if(current_age <= 0){
+            ageSpinner.setSelection(0);
+        }else{
+            ageSpinner.setSelection( current_age - (max_age - range)+1);
+        }
 
         //3. Set the spinner adapter
 
@@ -334,6 +377,15 @@ public class ProfileFragment extends DialogFragment {
 
         genderSpinner.setSelection(genderIndex);
 
+//        genderSpinner.setOnTouchListener(new View.OnTouchListener() {
+//            @Override
+//            public boolean onTouch(View v, MotionEvent event) {
+//                enableSaveButton();
+//                return false;
+//            }
+//        });
+
+
 
         RecyclerView.LayoutManager heightLayoutManager =
                 new LinearLayoutManager(getContext());
@@ -353,8 +405,21 @@ public class ProfileFragment extends DialogFragment {
         int starting_height = Integer.parseInt(allowedHeights[1]);
         int end_height = Integer.parseInt(allowedHeights[allowedHeights.length-1]);
         int height_range = end_height - starting_height;
-        heightSpinner.setSelection(current_height - (end_height -  height_range));
 
+//        heightSpinner.setOnTouchListener(new View.OnTouchListener() {
+//            @Override
+//            public boolean onTouch(View v, MotionEvent event) {
+//                enableSaveButton();
+//                return false;
+//            }
+//        });
+
+
+        if(current_height < 1){
+            weightSpinner.setSelection(0);
+        }else{
+            heightSpinner.setSelection(current_height - (end_height -  height_range)+1);
+        }
         RecyclerView.LayoutManager weightLayoutManager =
                 new LinearLayoutManager(getContext());
 
@@ -372,8 +437,110 @@ public class ProfileFragment extends DialogFragment {
         int starting_weight = Integer.parseInt(allowedWeights[1]);
         int end_weight = Integer.parseInt(allowedWeights[allowedWeights.length-1]);
         int weight_range = end_weight - starting_weight;
-        weightSpinner.setSelection(current_weight - (end_weight - weight_range));
-        //Extract photo edit elements from the popup
+
+        if(current_weight < 1){
+            weightSpinner.setSelection(0);
+        }else{
+            weightSpinner.setSelection(current_weight - (end_weight - weight_range)+1);
+        }
+//        weightSpinner.setOnTouchListener(new View.OnTouchListener() {
+//            @Override
+//            public boolean onTouch(View v, MotionEvent event) {
+//                enableSaveButton();
+//                return false;
+//            }
+//        });
+        weightSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
+                // your code here
+
+                try{
+                    final int weight = Integer.parseInt(weightSpinner.getSelectedItem().toString());
+                    if(current_weight != weight){
+                        enableSaveButton();
+                    }
+                }catch (ParseException e){
+
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parentView) {
+                // your code here
+            }
+
+        });
+        heightSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
+                // your code here
+                //enableSaveButton();
+                try{
+                    final int ht = Integer.parseInt(heightSpinner.getSelectedItem().toString());
+                    if(current_height != ht){
+                        enableSaveButton();
+                    }
+                }catch (ParseException e){
+
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parentView) {
+                // your code here
+            }
+
+        });
+        genderSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
+                // your code here
+//                enableSaveButton();
+                try{
+                    final String gen = genderSpinner.getSelectedItem().toString();
+                    if(!gen.equalsIgnoreCase(selected_gender+"")){
+                        enableSaveButton();
+                    }
+                }catch (ParseException e){
+
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parentView) {
+                // your code here
+            }
+
+        });
+        ageSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
+                // your code here
+//                enableSaveButton();
+                try{
+                    final int age = Integer.parseInt(ageSpinner.getSelectedItem().toString());
+                    if(age != current_age){
+                        enableSaveButton();
+                    }
+                }catch (ParseException e){
+
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parentView) {
+                // your code here
+            }
+
+        });
+//        weightSpinner.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//             @Override
+//             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+//                 enableSaveButton();
+//             }
+//         });
+                //Extract photo edit elements from the popup
 
         CircleImageView photoView = profileView
                 .findViewById(R.id.edit_image);
@@ -383,7 +550,7 @@ public class ProfileFragment extends DialogFragment {
 
         //The photo edit listener shows a bottom dialog fragment with a custom media chooser
         photoView.setOnClickListener(v12 -> {
-
+            //enableSaveButton();
             //Display the bottom sheet dialog for the chooser
             View dialogView = getLayoutInflater().inflate(R.layout.bottom_sheet, null);
             bottomSheetDialog = new BottomSheetDialog(getContext());
@@ -459,6 +626,28 @@ public class ProfileFragment extends DialogFragment {
                 }
             });
 
+            dialogView.findViewById(R.id.choice_delete).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    bottomSheetDialog.hide();
+                    AlertDialog dialog = new AlertDialog.Builder(getContext())
+                            .setTitle("Alert")
+                            .setMessage(getString(R.string.remove_photo))
+                            .setNegativeButton("No",null)
+                            .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    isDeletedPhoto = true;
+                                    enableSaveButton();
+                                    photoEdit.setImageResource(R.mipmap.anonymous_round);
+                                }
+                            }).create();
+                    dialog.show();
+                    dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(ContextCompat.getColor(getContext(), R.color.black)); // Set text color to blue color
+                    dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(ContextCompat.getColor(getContext(), R.color.black));  // Set text color to ligh gray color
+                }
+            });
+
             //Checked for compatibility with phone
             checkGalleryAppAvailability();
         });
@@ -525,6 +714,7 @@ public class ProfileFragment extends DialogFragment {
             Calendar calendar = Calendar.getInstance();
             calendar.add(Calendar.YEAR, -(Integer.parseInt(age)));
             Date date = calendar.getTime();
+            profilePreferences.saveDob(date.getTime()/1000);
 
             profilePreferences.saveHeight(Float.parseFloat(height));
             heightIndex = heightSpinner.getSelectedItemPosition();
@@ -544,43 +734,72 @@ public class ProfileFragment extends DialogFragment {
                 ProfileReq profileReq = new ProfileReq();
                 profileReq.dob = date.getTime()/1000;
                 profileReq.gender = gender;
-                profileReq.weight = Float.parseFloat(weight);
-                profileReq.height = Float.parseFloat(height);
+                profileReq.wt = Double.parseDouble(weight);
+                profileReq.ht = Double.parseDouble(height);
                 profileReq.name = name;
-                updateProfile(user_id, profileReq);
+                new ProfileImpl(getContext()).updateProfile(user_id, profileReq);
             }
 
 
             /*On Entry to the edit popup, the last used image is restored
             * in a circular image view */
             try{
-                String filePath = userPreferences.getProfilePhoto();
-                if(!filePath.equalsIgnoreCase("default") && isUploadedPhoto){
+                if(fileNameOnDevice != null && isUploadedPhoto){
+                    Constants.isPhotoChanged = true;
+                    File compressFile = getCompressFile(fileNameOnDevice);
+                    userPreferences.saveProfilePhoto(compressFile.getAbsolutePath());
+
                     BitmapFactory.Options bitmapOptions = new BitmapFactory.Options();
-                    Bitmap bitmap = BitmapFactory.decodeFile(filePath, bitmapOptions);
+                    Bitmap bitmap = BitmapFactory.decodeFile(compressFile.getAbsolutePath(), bitmapOptions);
                     photoEdit.setImageBitmap(bitmap);
-                    FirebaseStorageManager.UploadBitmap(bitmap, user_id, new FirebaseStorageManager.UploadListener() {
+                    FirebaseStorageManager.UploadFile(compressFile, user_id, new FirebaseStorageManager.UploadFileListener() {
                         @Override
                         public void onComplete(boolean isSuccess) {
                             Log.d("fileupload",isSuccess +"");
+                            fileNameOnDevice = null;
                         }
                     });
                     isUploadedPhoto = false;
+                }else if(isDeletedPhoto){
+                    Constants.isPhotoChanged = true;
+                    isDeletedPhoto = false;
+                    userPreferences.saveProfilePhoto(Constants.DEFAULT_PATH);
+                    FirebaseStorageManager.deleteFile(user_id, new FirebaseStorageManager.DeleteListener() {
+                        @Override
+                        public void onComplete(boolean isSuccess) {
+                            Log.d("Delete file status:",isSuccess +"");
+                        }
+                    });
+                    if(fileNameOnDevice!=null && fileNameOnDevice.exists()){
+                        fileNameOnDevice.delete();
+                        fileNameOnDevice = null;
+                    }
                 }
             }catch (Exception ex){
                 ex.printStackTrace();
             }
-
+            Toast.makeText(getContext(), getString(R.string.profile_saved), Toast.LENGTH_SHORT).show();
+            save.getBackground().setTint(getResources().getColor(R.color.colorPrimary));
+            save.setEnabled(false);
         });
 
 
         //The popup close button to the top right dismisses the popup window
     }
 
+    private void enableSaveButton() {
+        System.out.println("ENabling save button");
+        Button saveButton = ProfileFragment.this.getView().findViewById(R.id.save_profile);
+        saveButton.setEnabled(true);
+        saveButton.getBackground().setTint(getResources().getColor(R.color.colorPrimaryDark));
+    }
+
     @Override
     public void onDismiss(@NonNull DialogInterface dialog) {
         super.onDismiss(dialog);
-        MainActivity.shared().onBackPressed();
+        getActivity().finish();
+       // MainActivity.shared().onBackPressed();
+        //MainActivity.shared().refresh(50);
     }
 
     /**Manipulate one captured/selected image at a time
@@ -590,17 +809,53 @@ public class ProfileFragment extends DialogFragment {
     private void onPhotosReturned(@NonNull MediaFile[] returnedPhotos) {
         //Save the last chosen photo as a user preference
         photos.addAll(Arrays.asList(returnedPhotos));
+        fileNameOnDevice = returnedPhotos[0].getFile();
+//        fileNameOnDevice = FileUtilities.getProfileFile(getContext());
+//        File compressedImage = returnedPhotos[0].getFile();
+//
+//        try {
+//            //If selected images's file size is more than 50KB then need to be compressed
+//            if (returnedPhotos[0].getFile().length()/1024 > 50){
+//                 compressedImage = new Compressor(getContext())
+//                        .setMaxHeight(100)
+//                        .setQuality(75)
+//                        .setCompressFormat(Bitmap.CompressFormat.WEBP)
+//                        .compressToFile(returnedPhotos[0].getFile());
+//            }
+//            if (fileNameOnDevice != null){
+//                Files.copy(compressedImage, fileNameOnDevice);
+////                compressedImage.renameTo(fileNameOnDevice);
+//            }else{
+//                fileNameOnDevice = compressedImage;
+//            }
+//        } catch (IOException e) {
+//            fileNameOnDevice = returnedPhotos[0].getFile();
+//            e.printStackTrace();
+//        }
+
+
+        isUploadedPhoto = true;
+        enableSaveButton();
+        //Update the action bar with the currently chosen photo
+
+
+        photoEdit.setImageBitmap(BitmapFactory.decodeFile(fileNameOnDevice.getAbsolutePath()));
+    }
+
+    private File getCompressFile(File original_file){
         File fileNameOnDevice = FileUtilities.getProfileFile(getContext());
-        File compressedImage = returnedPhotos[0].getFile();
+        File compressedImage = original_file;
 
         try {
             //If selected images's file size is more than 50KB then need to be compressed
-            if (returnedPhotos[0].getFile().length()/1024 > 50){
-                 compressedImage = new Compressor(getContext())
-                        .setMaxHeight(100)
+            if (original_file.length()/1024 > 50){
+
+                compressedImage = new Compressor(getContext())
+                        .setMaxHeight(140)
+                        .setMaxWidth(140)
                         .setQuality(75)
                         .setCompressFormat(Bitmap.CompressFormat.WEBP)
-                        .compressToFile(returnedPhotos[0].getFile());
+                        .compressToFile(original_file);
             }
             if (fileNameOnDevice != null){
                 Files.copy(compressedImage, fileNameOnDevice);
@@ -609,21 +864,12 @@ public class ProfileFragment extends DialogFragment {
                 fileNameOnDevice = compressedImage;
             }
         } catch (IOException e) {
-            fileNameOnDevice = returnedPhotos[0].getFile();
+            fileNameOnDevice = original_file;
             e.printStackTrace();
         }
-
-
-
-
-        UserPreferences userPreferences = UserPreferences.getInstance(getContext());
-        userPreferences.saveProfilePhoto(fileNameOnDevice.getAbsolutePath());
-        isUploadedPhoto = true;
-        //Update the action bar with the currently chosen photo
-
-
-        photoEdit.setImageBitmap(BitmapFactory.decodeFile(userPreferences.getProfilePhoto()));
+        return fileNameOnDevice;
     }
+
 
     private boolean arePermissionsGranted(String[] permissions) {
         for (String permission : permissions) {
@@ -633,6 +879,7 @@ public class ProfileFragment extends DialogFragment {
         }
         return true;
     }
+
 
     private void checkGalleryAppAvailability() {
         if (!easyImage.canDeviceHandleGallery()) {
@@ -673,51 +920,6 @@ public class ProfileFragment extends DialogFragment {
         mListener = null;
     }
 
-
-    public void updateProfile(String user_id, ProfileReq firestoreProfileModel) {
-        Map<String, Object> profile = new HashMap<>();
-        profile.put(Constants.ProfileFields.USERNAME, firestoreProfileModel.name);
-        profile.put(Constants.ProfileFields.WEIGHT, firestoreProfileModel.weight);
-        profile.put(Constants.ProfileFields.HEIGHT, firestoreProfileModel.height);
-        profile.put(Constants.ProfileFields.DOB, firestoreProfileModel.dob);
-        profile.put(Constants.ProfileFields.GENDER, firestoreProfileModel.gender);
-
-        Task<Void> newUser = firestoreDb.collection(Constants.PROFILE_COLLECTION).document(user_id).set(profile);
-        newUser.addOnSuccessListener(new OnSuccessListener<Void>() {
-            @Override
-            public void onSuccess(Void aVoid) {
-                Log.d(TAG, "Profile was successfully added");
-                //NavUtil.moveToNextPage(context, ProfileActivity.class, userEnteredName);
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Log.d(TAG, "Error has occurred " + e.getMessage());
-            }
-        });
-
-    }
-
-//    public void getProfileByUserID(String user_id) {
-//        DocumentReference docRef = firestoreDb.collection(Constants.PROFILE_COLLECTION).document(user_id);
-//        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-//            @Override
-//            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-//                if(task.isSuccessful()){
-//                    ProfileReq profile = Objects.requireNonNull(task.getResult()).toObject(ProfileReq.class);
-//                    //Navigate to profile page
-//                    if(profile != null){
-//                        Toast.makeText(getContext(), "Profile already exist in the database ", Toast.LENGTH_SHORT).show();
-//                    }else{
-//                        Toast.makeText(getContext(), "Profile does not exists ", Toast.LENGTH_SHORT).show();
-//                    }
-//                }else{
-//                    String excep = Objects.requireNonNull(task.getException()).getMessage();
-//                    Log.d(TAG, "Error reading user data " + excep);
-//                }
-//            }
-//        });
-//    }
 
     /**
      * This interface must be implemented by activities that contain this

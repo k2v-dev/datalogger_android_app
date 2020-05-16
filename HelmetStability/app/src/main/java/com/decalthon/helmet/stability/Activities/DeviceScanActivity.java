@@ -1,4 +1,4 @@
-package com.decalthon.helmet.stability.Activities;
+package com.decalthon.helmet.stability.activities;
 /*
  * Copyright (C) 2013 The Android Open Source Project
  *
@@ -23,6 +23,7 @@ import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.Editable;
@@ -41,24 +42,26 @@ import android.widget.Filterable;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.Toolbar;
 
 
 import com.decalthon.helmet.stability.R;
-import com.decalthon.helmet.stability.Utilities.Common;
-import com.decalthon.helmet.stability.Utilities.Constants;
-import com.decalthon.helmet.stability.model.DeviceModels.BleDevice;
-import com.decalthon.helmet.stability.model.DeviceModels.DeviceDetails;
+import com.decalthon.helmet.stability.utilities.Common;
+import com.decalthon.helmet.stability.utilities.Constants;
+import com.decalthon.helmet.stability.model.devicemodels.BleDevice;
+import com.decalthon.helmet.stability.model.devicemodels.DeviceDetails;
 
 import java.util.ArrayList;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import de.greenrobot.event.EventBus;
+import de.hdodenhof.circleimageview.CircleImageView;
 
 
 /**
  * Activity for scanning and displaying available Bluetooth LE devices.
  */
-public class DeviceScanActivity extends Activity {
+public class DeviceScanActivity extends AppCompatActivity {
     EditText textBox;
     ListView listView;
     private LeDeviceListAdapter mLeDeviceListAdapter;
@@ -70,12 +73,27 @@ public class DeviceScanActivity extends Activity {
     private static final int REQUEST_ENABLE_BT = 1;
     // Stops scanning after 10 seconds.
     private static final long SCAN_PERIOD = 10000;
-    Toolbar toolbar;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.scan_activity);
+//        getActionBar().setBackgroundDrawable(new ColorDrawable(getResources().getColor(R.color.colorPrimary)));
+//        getActionBar().setIcon(R.mipmap.back_button_round);
+//        getActionBar().setTitle("");
+//        getActionBar().getCustomView().setOCn
+        Toolbar myToolbar = findViewById(R.id.my_toolbar);
+        myToolbar.setTitle("");
+        if (myToolbar != null) {
+            setSupportActionBar(myToolbar);
+        }
+
+        myToolbar.findViewById(R.id.back_navigation_device_scan).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                DeviceScanActivity.this.finish();
+            }
+        });
 
         if (savedInstanceState == null) {
             Bundle extras = getIntent().getExtras();

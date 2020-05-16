@@ -1,4 +1,4 @@
-package com.decalthon.helmet.stability.model.DeviceModels;
+package com.decalthon.helmet.stability.model.devicemodels;
 
 public class MemoryUsage {
     public short session_summaries; // in percentage

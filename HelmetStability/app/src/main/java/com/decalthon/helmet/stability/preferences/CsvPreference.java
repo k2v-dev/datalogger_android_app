@@ -3,15 +3,14 @@ package com.decalthon.helmet.stability.preferences;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import com.decalthon.helmet.stability.Utilities.Constants;
-import com.google.gson.Gson;
+import com.decalthon.helmet.stability.utilities.Constants;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 public class CsvPreference {
     private static final String TAG = CsvPreference.class.getSimpleName();
+    private static final String CSV_GENERATED = "CSV.GENERATED.SessionIds";
     private static CsvPreference single_instance = null;
 
 
@@ -69,5 +68,39 @@ public class CsvPreference {
         return setInt;
     }
 
+    public Set<Long> getCsvGeneratedSessionIds(){
 
+        Set<String> setStr = sharedpreferences.getStringSet(CSV_GENERATED, null);
+        if(setStr == null){
+            setStr = new HashSet<>();
+        }
+        Set<Long> setInt = new HashSet<>();
+        for (String str: setStr) {
+            setInt.add(Long.parseLong(str));
+        }
+        return setInt;
+    }
+
+    public void addCsvGeneratedSessionId(long session_id){
+        Set<Long> sessionSet = getSessionIds();
+        sessionSet.add(session_id);
+        saveCsvGeneratedArray(sessionSet);
+    }
+
+    public void removeCsvGeneratedSessionId(long session_id){
+        Set<Long> sessionSet = getSessionIds();
+        sessionSet.remove(session_id);
+        saveCsvGeneratedArray(sessionSet);
+    }
+
+    private void saveCsvGeneratedArray(Set<Long> setInt){
+        Set<String> setStr = new HashSet<>();
+        for (Long session_id: setInt
+        ) {
+            setStr.add(session_id+"");
+        }
+        SharedPreferences.Editor editor = sharedpreferences.edit();
+        editor.putStringSet(CSV_GENERATED, setStr);
+        editor.apply();
+    }
 }

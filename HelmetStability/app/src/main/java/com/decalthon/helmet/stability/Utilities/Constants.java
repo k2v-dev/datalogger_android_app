@@ -1,8 +1,7 @@
-package com.decalthon.helmet.stability.Utilities;
+package com.decalthon.helmet.stability.utilities;
 
-import com.decalthon.helmet.stability.model.DeviceModels.DeviceDetails;
-import com.decalthon.helmet.stability.model.DeviceModels.HelmetData;
-import com.decalthon.helmet.stability.model.DeviceModels.SensoryWatch;
+import com.decalthon.helmet.stability.model.devicemodels.DeviceDetails;
+import com.decalthon.helmet.stability.model.devicemodels.HelmetData;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 
@@ -32,14 +31,17 @@ public class Constants {
     public static final String Gender = "user.gender";
     public static final String DOB = "user.dob";
     public static final String PHOTOS_KEY = "profilePhoto";
+    //CollectivePreference key string
+    public static final String TOTAL_SESSIONS = "session.total.session";
+    public static final String TOTAL_SIZE = "session.total.size";
+    public static final String TOTAL_DURATION = "session.total.duration";
+    public static final String ACT_TYPES = "session.act.types";
 
     // Fragment's name
-    public static final String HOME_FRAGMENT = "DeviceFragment";
-    public static final String LOGIN_FRAGMENT = "LoginFragment";
-    public static final String REGISTRATION_FRAGMENT = "RegistrationFormFragment";
     public static final int MAX_SESSIONS_COUNT = 7;
     public static final int MAX_SESSION_CARD_LINES = 7;
-
+    public static boolean isNewSessionAdded = false;
+    public static boolean isUpdateCollectiveSummary = false;
 
 
     public static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
@@ -60,7 +62,6 @@ public class Constants {
     public static final String DEVICE_ID = "DeviceID";
     public static Map<String, DeviceDetails> DEVICE_MAPS = new HashMap<>();
     public static Map<String, List<String>> SENSORS_MAPS = new HashMap<>();
-    public static Map<Integer, SensoryWatch> sensoryWatchMap = new HashMap<>();
     public static Map<String, String> ADDR_ID_MAPS = new HashMap<>();
 
     public static final String Dev1_type = "HELMET MAC";
@@ -108,21 +109,19 @@ public class Constants {
 
     public static final String  DevPREFERENCES = "com.decathlon.user.devices";
     public static final String  CsvPREFERENCES = "com.decathlon.user.csv.file";
+    public static final String  CollSumPREFERENCES = "com.decathlon.collective.summary";
     public static BiMap<String, Integer> ActivityCodeMap = HashBiMap.create();
+    public static Map<Integer, String> FirmwareTypeMap = new HashMap<>();
     public static final String INDOOR = "Indoor";
     public static final String OUTDOOR = "Outdoor";
     public static final String dateFormatString = "MMM dd YYYY HH:MM:SS EEE";
-    public static final int typesOfData = 38;
-    public static int INDOOR_REGULAR_TIMESTAMPS_INTERVAL = 50;
-//    static {
-//        DEVICE_MAPS.put(R.string.device1_tv, new DeviceDetails());
-//        DEVICE_MAPS.put("Device 2", new DeviceDetails());
-//        DEVICE_MAPS.put("Device 3", new DeviceDetails());
-//    }
+    public static final int typesOfData = 41;
+    public static int INDOOR_REGULAR_TIMESTAMPS_INTERVAL = 120;
+    public static boolean isPhotoChanged = false;
+    public static final short BB_PKT_SIZE = 18;
+    public static final short SD_PKT_SiZE = 80;
 
     static {
-
-
         // Helmet sesnsors lists
         HEL_SENSORS.add("HELMET_SENSORS"); //Helmet_Sensors
         // Watch sensors list
@@ -131,41 +130,6 @@ public class Constants {
         // BELT sensors list
         BELT_SENSORS.add("Ble HRM"); // BLE HRM
         BELT_SENSORS.add("DUAL HR"); // Dual HR
-
- //       French to English meaning
-//        Neutre == Neutral
-//        Sec == Dry
-//        Chaud == Hot
-//        Froid == Cold
-//        Très == very
-//        Humide == wet
-
-        // Mapping two byte information, which received from device, to french/english words
-        sensoryWatchMap.put(0x0000, new SensoryWatch((short)0, (short)0, "Neutre", "Sec", "Neutral dry")); // Neutral dry
-        sensoryWatchMap.put(0x0001, new SensoryWatch((short)1, (short)0, "Chaud", "Sec", "Hot dry"));  // Hot dry
-        sensoryWatchMap.put(0x0002, new SensoryWatch((short)-1, (short)0, "Froid", "Sec", "Cold dry")); // Cold dry
-        sensoryWatchMap.put(0x0010, new SensoryWatch((short)0, (short)0, "Neutre", "Sec", "Neutral dry")); // Neutral dry
-        sensoryWatchMap.put(0x0011, new SensoryWatch((short)2, (short)0, "Très chaud", "Sec", "Very hot dry"));// Very hot dry
-        sensoryWatchMap.put(0x0012, new SensoryWatch((short)-2, (short)0, "Très froid", "Sec", "Very cold dry")); // Very cold dry
-        sensoryWatchMap.put(0x0100, new SensoryWatch((short)0, (short)1, "Neutre", "Humide", "Neutral wet")); // Neutral wet
-        sensoryWatchMap.put(0x0101, new SensoryWatch((short)1, (short)1, "Chaud", "Humide", "Hot wet")); // Hot wet
-        sensoryWatchMap.put(0x0102, new SensoryWatch((short)-1, (short)1, "Froid", "Humide", "Cold wet")); // Cold wet
-        sensoryWatchMap.put(0x0110, new SensoryWatch((short)0, (short)1, "Neutre", "Humide", "Neutral wet")); // Neutral wet
-        sensoryWatchMap.put(0x0111, new SensoryWatch((short)2, (short)1, "Très chaud", "Humide", "Very hot wet")); // Very hot wet
-        sensoryWatchMap.put(0x0112, new SensoryWatch((short)-2, (short)1, "Très froid", "Humide", "Very cold wet")); // Very cold wet
-        sensoryWatchMap.put(0x1000, new SensoryWatch((short)0, (short)0, "Neutre", "Sec", "Neutral dry")); // Neutral dry
-        sensoryWatchMap.put(0x1001, new SensoryWatch((short)1, (short)0, "Chaud", "Sec", "Hot dry")); // Hot dry
-        sensoryWatchMap.put(0x1002, new SensoryWatch((short)-1, (short)0, "Froid", "Sec", "Cold dry")); // Cold dry
-        sensoryWatchMap.put(0x1010, new SensoryWatch((short)0, (short)0, "Neutre", "Sec", "Neutral dry")); // Neutral dry
-        sensoryWatchMap.put(0x1011, new SensoryWatch((short)2, (short)0, "Très chaud", "Sec", "Very hot dry")); // Very hot dry
-        sensoryWatchMap.put(0x1012, new SensoryWatch((short)-2, (short)0, "Très froid", "Sec", "Very hot dry")); // Very hot dry
-        sensoryWatchMap.put(0x1100, new SensoryWatch((short)0, (short)2, "Neutre", "Très humide", "Neutral very wet")); // Neutral very wet
-        sensoryWatchMap.put(0x1101, new SensoryWatch((short)1, (short)2, "Chaud", "Très humide", "Hot very wet")); // Hot very wet
-        sensoryWatchMap.put(0x1102, new SensoryWatch((short)-1, (short)2, "Froid", "Très humide", "Cold very hot")); // Cold very hot
-        sensoryWatchMap.put(0x1110, new SensoryWatch((short)0, (short)2, "Neutre", "Très humide", "Neutral hot wet")); // Neutral hot wet
-        sensoryWatchMap.put(0x1111, new SensoryWatch((short)2, (short)2, "Très chaud", "Très humide", "Very hot very wet")); // Very hot very wet
-        sensoryWatchMap.put(0x1112, new SensoryWatch((short)-2, (short)2, "Très froid", "Très humide", "Very cold very wet")); // Very cold very wet
-
     }
 
 //=============================================
@@ -252,6 +216,8 @@ public class Constants {
     public static final String UPLOAD_DIR = "uploads";
     public static final String USER_COLLECTION = "USERS";
     public static final String PROFILE_COLLECTION = "PROFILES";
+    public static final String USER_DATA_COLLECTION = "USERS_DATA";
+    public static final String DEFAULT_PATH = "default";
 
     public static class UserFields{
         public static final String EMAIL = "email";
@@ -267,6 +233,13 @@ public class Constants {
         public static final String GENDER = "gender";
     }
 
+    public static class CollSumFields{
+        public static final String TOT_SESSION = "total_sessions";
+        public static final String TOT_SIZE = "total_size";
+        public static final String TOT_DURATION = "total_duration";
+        public static final String ACT_CODE = "activity_types";
+    }
+
     //DB
     public static Map<Integer, String> MARKER_MAPS = new HashMap<>();
     static {
@@ -279,10 +252,4 @@ public class Constants {
         MARKER_MAPS.put(255, "Stop");
     }
 
-
-//    if BSP_BOARD_BUTTON_1 f_Poor 1
-//            if BSP_BOARD_BUTTON_1 f_Very_Poor 2
-//            if BSP_BOARD_BUTTON_2 f_No_Opnion 4
-//            if BSP_BOARD_BUTTON_3 f_Good 8
-//            if BSP_BOARD_BUTTON_3 f_Very_Good 16
 }

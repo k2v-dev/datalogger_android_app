@@ -75,4 +75,14 @@
         android:id="@+id/choice_cancel"
         android:text="CANCEL"
         android:textColor="#fff" />
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:background="@color/red"
+        android:id="@+id/choice_delete"
+        android:text="@string/DELETE"
+        android:textColor="#fff"/>
+
 </LinearLayout>

@@ -1,4 +1,4 @@
-package com.decalthon.helmet.stability.Utilities;
+package com.decalthon.helmet.stability.utilities;
 
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
@@ -7,8 +7,6 @@ import java.util.Arrays;
 
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
-
-import static com.decalthon.helmet.stability.Utilities.ByteUtils.longToBytesNew;
 
 /**
  *

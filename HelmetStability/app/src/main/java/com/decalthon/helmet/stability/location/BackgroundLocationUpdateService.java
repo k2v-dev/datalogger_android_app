@@ -23,7 +23,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
-import com.decalthon.helmet.stability.Activities.MainActivity;
+import com.decalthon.helmet.stability.activities.MainActivity;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.ApiException;

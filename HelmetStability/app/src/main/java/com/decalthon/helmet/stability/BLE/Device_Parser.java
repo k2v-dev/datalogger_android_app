@@ -1,12 +1,12 @@
-package com.decalthon.helmet.stability.BLE;
+package com.decalthon.helmet.stability.ble;
 
 import android.os.AsyncTask;
 
-import com.decalthon.helmet.stability.DB.Entities.SessionSummary;
-import com.decalthon.helmet.stability.DB.SessionCdlDb;
-import com.decalthon.helmet.stability.Utilities.ByteUtils;
-import com.decalthon.helmet.stability.Utilities.Constants;
-import com.decalthon.helmet.stability.model.DeviceModels.DeviceDetails;
+import com.decalthon.helmet.stability.database.entities.SessionSummary;
+import com.decalthon.helmet.stability.database.SessionCdlDb;
+import com.decalthon.helmet.stability.utilities.ByteUtils;
+import com.decalthon.helmet.stability.utilities.Constants;
+import com.decalthon.helmet.stability.model.devicemodels.DeviceDetails;
 
 import java.text.SimpleDateFormat;
 import java.util.List;

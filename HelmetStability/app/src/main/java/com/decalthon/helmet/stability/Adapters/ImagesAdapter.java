@@ -1,4 +1,4 @@
-package com.decalthon.helmet.stability.Adapters;
+package com.decalthon.helmet.stability.adapters;
 
 import android.content.Context;
 import android.view.LayoutInflater;

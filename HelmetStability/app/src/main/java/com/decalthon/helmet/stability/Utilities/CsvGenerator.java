@@ -1,18 +1,18 @@
-package com.decalthon.helmet.stability.Utilities;
+package com.decalthon.helmet.stability.utilities;
 
 import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.decalthon.helmet.stability.DB.Entities.ButtonBoxEntity;
-import com.decalthon.helmet.stability.DB.Entities.CsvFileStatus;
-import com.decalthon.helmet.stability.DB.Entities.GpsSpeed;
-import com.decalthon.helmet.stability.DB.Entities.MarkerData;
-import com.decalthon.helmet.stability.DB.Entities.SensorDataEntity;
-import com.decalthon.helmet.stability.DB.Entities.SessionSummary;
-import com.decalthon.helmet.stability.DB.SessionCdlDb;
+import com.decalthon.helmet.stability.database.entities.ButtonBoxEntity;
+import com.decalthon.helmet.stability.database.entities.CsvFileStatus;
+import com.decalthon.helmet.stability.database.entities.GpsSpeed;
+import com.decalthon.helmet.stability.database.entities.MarkerData;
+import com.decalthon.helmet.stability.database.entities.SensorDataEntity;
+import com.decalthon.helmet.stability.database.entities.SessionSummary;
+import com.decalthon.helmet.stability.database.SessionCdlDb;
 import com.decalthon.helmet.stability.MainApplication;
-import com.decalthon.helmet.stability.model.Generic.TimeFmt;
+import com.decalthon.helmet.stability.model.generic.TimeFmt;
 import com.decalthon.helmet.stability.preferences.CsvPreference;
 import com.decalthon.helmet.stability.preferences.ProfilePreferences;
 import com.decalthon.helmet.stability.preferences.UserPreferences;
@@ -104,14 +104,14 @@ public class CsvGenerator {
            Date date = new Date(sessionSummary.getDate());
            String date_str = dateFileFormat.format(date);
            String session_name = sessionSummary.getName()+"_"+date_str;
-           float total_MB = ((float)sessionSummary.getTotal_data())/(1024.0f*1024.0f);
+           float total_MB = ((float)sessionSummary.getSize())/(1024.0f);
            writer.append("Session_Name,"+session_name);writer.append(addComma());
            writer.append("Session_Start_Time,"+date_str);writer.append(addComma());
            writer.append("Duration,"+getDurationInString((long)(sessionSummary.getDuration()*1000)));writer.append(addComma());
            writer.append("Activity_type,"+sessionSummary.getActivity_type());writer.append(addComma());
-           writer.append("Sampling_rate_Hz,100");writer.append(addComma());
+           writer.append("Sampling_rate_Hz,"+sessionSummary.getSampling_freq());writer.append(addComma());
            writer.append("Raw_data_size_MB,"+String.format(Locale.getDefault(),"%3.2f", total_MB));writer.append(addComma());
-           writer.append("Number_of_Columns,38");writer.append(addComma());
+           writer.append("Number_of_Columns,"+Constants.typesOfData);writer.append(addComma());
            writer.append("Additional_Note,\""+sessionSummary.getNote()+"\"");writer.append(addComma());
 //           writer.append("\n\n\n");
 
@@ -128,13 +128,16 @@ public class CsvGenerator {
 //           long time1=0, time2=0;
            long start, end;
            start = System.currentTimeMillis();
-           for(int i=0; i< sensorDataEntities.size(); i++){
+//           for(int i=0; i< sensorDataEntities.size(); i++){
+          // for ( SensorDataEntity sensorDataEntity: sensorDataEntities) {
+           while(sensorDataEntities.size() > 0){
+               SensorDataEntity sensorDataEntity = sensorDataEntities.remove(0);
 //               if(i%1000==0){
 //                   t1 =  System.currentTimeMillis();
 //                   Log.d(TAG,"======================");
 //               }
                strBuilder.delete(0, strBuilder.length());
-               SensorDataEntity sensorDataEntity = sensorDataEntities.get(i);
+              // SensorDataEntity sensorDataEntity = sensorDataEntities.get(i);
                if(firstTime && (buttonBoxEntity.dateMillis > sensorDataEntity.dateMillis )){
                   // buttonBoxEntity = buttonBoxEntities.remove(0);
                    Log.d(TAG, "..continue");
@@ -169,7 +172,7 @@ public class CsvGenerator {
                        gpsSpeed = gpsSpeeds.remove(0);
                    }
                }
-               appendGpsSpeed(strBuilder, gpsSpeed);
+               appendGpsSpeed(strBuilder, gpsSpeed, sensorDataEntity.gps_tagger);
 //               if(i%1000==0){
 //                   t1_2 =  System.currentTimeMillis();
 //                   Log.d(TAG, "t1_2-time1="+(t1_2-time1));
@@ -191,9 +194,9 @@ public class CsvGenerator {
 //                   Log.d(TAG, "t2-t1_2="+(t2-t1_2));
 //               }
                writer.append(strBuilder);
-               if(i%1000==0){
+               if(count%1000==0){
                    writer.flush();
-                   System.out.println("i=="+i);
+                   System.out.println("i=="+count);
                }
 //               if(i%1000==0){
 //                   t3 =  System.currentTimeMillis();
@@ -209,6 +212,7 @@ public class CsvGenerator {
            end = System.currentTimeMillis();
            Log.d(TAG, "File Write sensor data ="+(end-start)+" ms");
            CsvPreference.getInstance(MainApplication.getAppContext()).removeSessionId(sessionSummary.getSession_id());
+           CsvPreference.getInstance(MainApplication.getAppContext()).addCsvGeneratedSessionId(sessionSummary.getSession_id());
            new WorkMgrHelper(context).oneTimeCSVUploadingRequest();
        }catch (Exception ex){
             ex.printStackTrace();
@@ -226,9 +230,9 @@ public class CsvGenerator {
             FileWriter writer = new FileWriter(logFile,false);
             Date date = new Date(sessionSummary.getDate());
             String date_str = dateFileFormat.format(date);
-            float total_MB = ((float)sessionSummary.getTotal_data())/(1024.0f*1024.0f);
+            float total_MB = ((float)sessionSummary.getSize())/(1024.0f);
 
-            String data = userId+","+sessionSummary.getName()+"_"+date_str+","+date_str+","+getDurationHHMMSSMil((long)(sessionSummary.getDuration()*1000))+","+sessionSummary.getActivity_type()+","+sessionSummary.getSampling_freq()+","+String.format(Locale.getDefault(),"%3.2f",total_MB)+",38,\""+sessionSummary.getNote()+"\"";
+            String data = userId+","+sessionSummary.getName()+"_"+date_str+","+date_str+","+getDurationHHMMSSMil((long)(sessionSummary.getDuration()*1000))+","+sessionSummary.getActivity_type()+","+sessionSummary.getSampling_freq()+","+String.format(Locale.getDefault(),"%3.2f",total_MB)+","+Constants.typesOfData+",\""+sessionSummary.getNote()+"\"";
             writer.append(header);
             writer.append(data);
             writer.flush();
@@ -340,7 +344,7 @@ public class CsvGenerator {
 
     private String addComma(){
         StringBuilder stringBuilder = new StringBuilder();
-        for (int i = 0; i < 38; i++) {
+        for (int i = 1; i < Constants.typesOfData; i++) {
             stringBuilder.append(", ");
         }
         return stringBuilder.toString()+"\n";
@@ -352,7 +356,7 @@ public class CsvGenerator {
             stringBuilder.append("_");
         }
         stringBuilder.append(" ").append(title).append(addComma());
-        return stringBuilder.toString()+"\n";
+        return stringBuilder.toString();
     }
 
     private void appendSensorDataEntity(StringBuilder sb, SensorDataEntity sensorDataEntity, int count){
@@ -375,13 +379,14 @@ public class CsvGenerator {
         Helper.format3(sb, sensorDataEntity.ax_3axis_dev2);sb.append(",");Helper.format3(sb, sensorDataEntity.ay_3axis_dev2);sb.append(",");Helper.format3(sb, sensorDataEntity.az_3axis_dev2);sb.append(",");
     }
 
-    private void appendGpsSpeed(StringBuilder sb, GpsSpeed gpsSpeed){
+    private void appendGpsSpeed(StringBuilder sb, GpsSpeed gpsSpeed, int geotag){
         Helper.format6(sb,gpsSpeed.latitude);sb.append(",");Helper.format6(sb,gpsSpeed.longitude);sb.append(",");
         Helper.format3(sb,gpsSpeed.altitude);sb.append(",");Helper.format3(sb,gpsSpeed.speed);sb.append(",");
+        Helper.format6(sb, geotag);sb.append(",");
     }
 
     private void appendMarkerData(StringBuilder sb, MarkerData markerData, short btnType){
-        Helper.format6(sb, markerData.markerNumber);sb.append(",");sb.append(btnType);sb.append(",\"");
+        sb.append(btnType);sb.append(",\"");
         sb.append(markerData.getNote());sb.append("\",");
     }
 

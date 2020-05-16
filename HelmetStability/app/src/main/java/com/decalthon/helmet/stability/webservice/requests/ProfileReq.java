@@ -2,14 +2,14 @@ package com.decalthon.helmet.stability.webservice.requests;
 
 public class ProfileReq {
     public String name;  // name
-    public float height; //cm
-    public float weight; //kg
+    public double ht; //cm
+    public double wt; //kg
     public String gender = "M"	; //M or F or O
     public long dob;   //dob
 
     public ProfileReq() {
-        height = 0.0f;
-        weight = 0.0f;
+        ht = 0;
+        wt = 0;
         dob = 0;
         gender = "M";
     }

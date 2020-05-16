@@ -1,6 +1,4 @@
-package com.decalthon.helmet.stability.model.NineAxisModels;
-
-import android.graphics.drawable.Drawable;
+package com.decalthon.helmet.stability.model.nineaxismodels;
 
 import androidx.room.ColumnInfo;
 import androidx.room.Ignore;

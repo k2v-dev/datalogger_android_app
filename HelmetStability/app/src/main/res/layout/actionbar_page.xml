@@ -7,12 +7,20 @@
     android:background="@color/colorPrimary"
     >
 
+<!--    <de.hdodenhof.circleimageview.CircleImageView-->
+<!--        android:id="@+id/back_navigation"-->
+<!--        android:layout_width="0dp"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_weight="0.15"-->
+<!--        android:background="#CFD8DC"-->
+<!--        android:src="@mipmap/back_button_round"-->
+<!--        android:tint="@color/colorPrimary" />-->
+
     <de.hdodenhof.circleimageview.CircleImageView
-        android:id = "@+id/back_navigation"
-        android:layout_width="0dp"
+        android:layout_width="70dp"
         android:layout_height="wrap_content"
-        android:layout_weight="0.15"
-        android:src="@mipmap/back_button_round" />
+        android:id="@+id/back_navigation"
+        android:src="@drawable/back_button_foreground"/>
 
     <Space
         android:layout_height = "wrap_content"

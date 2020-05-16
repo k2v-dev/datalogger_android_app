@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:background="@color/lightgray"
+    android:background="@color/white"
     android:id="@+id/map_fragment"
     android:clickable="true"
     android:focusable="true"
@@ -31,6 +31,7 @@
         android:layout_weight="0.05"
         android:paddingLeft="1dp"
         android:paddingRight="1dp"
+        android:background="@color/white"
         android:visibility="visible">
         <TextView
             android:id = "@+id/date_header"
@@ -39,6 +40,7 @@
             android:layout_alignParentStart="true"
             android:textStyle="bold"
             android:padding="4dp"
+            android:textColor="@color/colorTextPrimary"
             android:text="@string/date_placeholder"/>
 
         <TextView
@@ -56,6 +58,7 @@
             android:layout_toRightOf="@id/date_value_tv"
             android:padding="1dp"
             android:visibility="gone"
+            android:textColor="@color/colorTextPrimary"
             android:textStyle="bold" />
         <TextView
             android:id = "@+id/time_value_tv"
@@ -63,6 +66,7 @@
             android:layout_height="wrap_content"
             android:padding="4dp"
             android:layout_toRightOf="@id/time_header"
+            android:textColor="@color/colorTextPrimary"
             android:text="@string/time_value"/>
         <TextView
             android:id = "@+id/session_name_tv"
@@ -71,6 +75,7 @@
             android:layout_toLeftOf="@id/session_name_value_tv"
             android:textStyle="bold"
             android:padding="4dp"
+            android:textColor="@color/colorTextPrimary"
             android:text="@string/session_name"/>
         <TextView
             android:id = "@+id/session_name_value_tv"
@@ -79,6 +84,7 @@
             android:layout_alignParentRight="true"
             android:text="@string/session_name"
             android:singleLine="true"
+            android:textColor="@color/colorTextPrimary"
             android:padding="4dp"/>
     </RelativeLayout>
     <RelativeLayout
@@ -88,6 +94,7 @@
         android:layout_weight="0.05"
         android:paddingLeft="1dp"
         android:paddingRight="1dp"
+        android:background="@color/white"
         android:visibility="visible">
 
         <TextView
@@ -97,6 +104,7 @@
             android:layout_alignParentLeft="true"
             android:padding="4dp"
             android:text="@string/duration_placeholder"
+            android:textColor="@color/colorTextPrimary"
             android:textStyle="bold" />
         <TextView
             android:id = "@+id/session_duration_value_tv"
@@ -104,6 +112,7 @@
             android:layout_height="wrap_content"
             android:layout_toRightOf="@id/session_duration_tv"
             android:text="@string/duration_placeholder"
+            android:textColor="@color/colorTextPrimary"
             android:padding="4dp"/>
         <TextView
             android:id="@+id/activity_type_tv"
@@ -112,6 +121,7 @@
             android:layout_toLeftOf="@id/activity_type_value"
             android:textStyle="bold"
             android:padding="4dp"
+            android:textColor="@color/colorTextPrimary"
             android:text="@string/activity_type_name"/>
         <TextView
             android:id="@+id/activity_type_value"
@@ -119,6 +129,7 @@
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"
             android:text="@string/activity_type_name"
+            android:textColor="@color/colorTextPrimary"
             android:padding="4dp"/>
     </RelativeLayout>
     <!--    <View-->
@@ -134,18 +145,19 @@
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="0.7"
+        android:layout_weight="0.68"
         />
 
     <RelativeLayout
         android:id="@+id/data_received_bar"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="0.05"
+        android:layout_weight="0.07"
         android:orientation="horizontal"
         android:visibility="visible"
         android:paddingLeft="1dp"
         android:paddingRight="1dp"
+        android:background="@color/white"
         android:layout_gravity="bottom">
         <TextView
             android:id ="@+id/session_data_type_tv"
@@ -154,6 +166,7 @@
             android:layout_alignParentLeft="true"
             android:text="@string/type_of_data_placeholder"
             android:textStyle="bold"
+            android:textColor="@color/colorTextPrimary"
             android:padding="8dp"/>
         <TextView
             android:id = "@+id/session_data_types_value_tv"
@@ -161,6 +174,7 @@
             android:layout_height="wrap_content"
             android:textAlignment="viewStart"
             android:padding="8dp"
+            android:textColor="@color/colorTextPrimary"
             android:layout_toRightOf="@id/session_data_type_tv"
             android:text="@string/type_of_data_placeholder"/>
 
@@ -171,6 +185,7 @@
             android:layout_toLeftOf="@id/session_data_size_value_tv"
             android:padding="8dp"
             android:textStyle="bold"
+            android:textColor="@color/colorTextPrimary"
             android:text="@string/size_placeholder"/>
 
         <TextView
@@ -179,6 +194,7 @@
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"
             android:text="@string/size_value"
+            android:textColor="@color/colorTextPrimary"
             android:padding="8dp"
             />
     </RelativeLayout>
@@ -188,9 +204,12 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="0.03"
-        android:text="@string/text_note"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="@color/colorTextPrimary"
         android:textAlignment="center"
-        android:textStyle="bold" />
+        android:text="@string/hint_txt"
+        android:textStyle="bold"/>
 </LinearLayout>
 <!--<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"-->
 <!--    xmlns:tools="http://schemas.android.com/tools"-->

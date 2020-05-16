@@ -1,4 +1,4 @@
-package com.decalthon.helmet.stability.model.Generic;
+package com.decalthon.helmet.stability.model.generic;
 
 public class TimeFmt {
     public int hr;

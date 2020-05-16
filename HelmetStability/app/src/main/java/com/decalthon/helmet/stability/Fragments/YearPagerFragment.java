@@ -1,4 +1,4 @@
-package com.decalthon.helmet.stability.Fragments;
+package com.decalthon.helmet.stability.fragments;
 
 import android.content.Context;
 import android.net.Uri;
@@ -14,7 +14,7 @@ import androidx.fragment.app.Fragment;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.viewpager2.widget.ViewPager2;
 
-import com.decalthon.helmet.stability.Adapters.YearNumberPagerAdapter;
+import com.decalthon.helmet.stability.adapters.YearNumberPagerAdapter;
 import com.decalthon.helmet.stability.R;
 
 /**

@@ -1,4 +1,4 @@
-package com.decalthon.helmet.stability.Utilities;
+package com.decalthon.helmet.stability.utilities;
 
 import android.content.Context;
 import android.media.MediaScannerConnection;
@@ -6,8 +6,8 @@ import android.os.Environment;
 import android.util.Log;
 
 import com.decalthon.helmet.stability.R;
-import com.decalthon.helmet.stability.DB.Entities.GpsSpeed;
-import com.decalthon.helmet.stability.model.DeviceModels.SensorDataOld;
+import com.decalthon.helmet.stability.database.entities.GpsSpeed;
+import com.decalthon.helmet.stability.model.devicemodels.SensorDataOld;
 
 import java.io.File;
 import java.io.FileWriter;

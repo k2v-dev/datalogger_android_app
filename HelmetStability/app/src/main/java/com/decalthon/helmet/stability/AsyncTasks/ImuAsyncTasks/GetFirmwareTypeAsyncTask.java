@@ -1,9 +1,6 @@
-package com.decalthon.helmet.stability.AsyncTasks.ImuAsyncTasks;
+package com.decalthon.helmet.stability.asynctasks.imuasynctasks;
 
 import android.os.AsyncTask;
-
-import com.decalthon.helmet.stability.DB.Entities.SessionSummary;
-import com.decalthon.helmet.stability.DB.SessionCdlDb;
 
 public class GetFirmwareTypeAsyncTask extends AsyncTask<Void,
         Void, Integer> {

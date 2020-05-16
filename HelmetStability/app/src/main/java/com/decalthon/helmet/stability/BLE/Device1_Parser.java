@@ -1,24 +1,23 @@
-package com.decalthon.helmet.stability.BLE;
+package com.decalthon.helmet.stability.ble;
 
 import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.decalthon.helmet.stability.Activities.MainActivity;
-import com.decalthon.helmet.stability.DB.DatabaseHelper;
-import com.decalthon.helmet.stability.DB.Entities.MarkerData;
-import com.decalthon.helmet.stability.DB.Entities.SensorDataEntity;
-import com.decalthon.helmet.stability.DB.SessionCdlDb;
+import com.decalthon.helmet.stability.database.DatabaseHelper;
+import com.decalthon.helmet.stability.database.entities.MarkerData;
+import com.decalthon.helmet.stability.database.entities.SensorDataEntity;
+import com.decalthon.helmet.stability.database.SessionCdlDb;
 import com.decalthon.helmet.stability.R;
-import com.decalthon.helmet.stability.Utilities.ByteUtils;
-import com.decalthon.helmet.stability.Utilities.Common;
-import com.decalthon.helmet.stability.Utilities.Constants;
-import com.decalthon.helmet.stability.Utilities.Helper;
-import com.decalthon.helmet.stability.model.DeviceModels.DeviceDetails;
-import com.decalthon.helmet.stability.model.DeviceModels.DeviceHelper;
-import com.decalthon.helmet.stability.model.DeviceModels.MemoryUsage;
-import com.decalthon.helmet.stability.model.DeviceModels.session.SessionHeader;
-import com.decalthon.helmet.stability.DB.Entities.SessionSummary;
+import com.decalthon.helmet.stability.utilities.ByteUtils;
+import com.decalthon.helmet.stability.utilities.Common;
+import com.decalthon.helmet.stability.utilities.Constants;
+import com.decalthon.helmet.stability.utilities.Helper;
+import com.decalthon.helmet.stability.model.devicemodels.DeviceDetails;
+import com.decalthon.helmet.stability.model.devicemodels.DeviceHelper;
+import com.decalthon.helmet.stability.model.devicemodels.MemoryUsage;
+import com.decalthon.helmet.stability.model.devicemodels.session.SessionHeader;
+import com.decalthon.helmet.stability.database.entities.SessionSummary;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -128,7 +127,7 @@ public class Device1_Parser extends Device_Parser{
             return;
         }
 
-        int packet_size = 80;
+        int packet_size = Constants.SD_PKT_SiZE;
 
         if(received_data.length < packet_size) {
             Log.d(TAG, "Invalid packet data");
@@ -272,7 +271,7 @@ public class Device1_Parser extends Device_Parser{
             new UpdateNumberofReadPacketsAsyncTask().execute(DeviceHelper.SESSION_SUMMARIES.get(currentSessionNumber));
             Common.wait(10);
             DeviceHelper.SESSION_SUMMARIES.remove(currentSessionNumber);
-
+            NUM_PKTS_MAP.put(currentSessionNumber, sensorDataEntity.packet_number);
             // Add stop marker in MarkerData table
 //            MarkerData markerData = new MarkerData(sensorDataEntity.dateMillis,  "0", "");
 //            markerData.session_id = sensorDataEntity.session_id;
@@ -286,7 +285,9 @@ public class Device1_Parser extends Device_Parser{
             // When this bug get fixed, then uncomment sendReadSessionCmd  method and comment sendNextSessionCmd method
             sendReadSessionCmd(currentSessionNumber);
 //            sendNextSessionCmd(context);
-            if(num_pkt_read > 50){
+            if(num_pkt_read > 30){
+                NUM_PKTS_MAP.put(currentSessionNumber, sensorDataEntity.packet_number);
+                update_num_pkt_rcvd();
                 new DatabaseHelper.CheckForCsvGeneration().execute(sensorDataEntity.session_id);
             }
             num_pkt_read = 0;
@@ -319,7 +320,7 @@ public class Device1_Parser extends Device_Parser{
 
     // Parsing session header which recevied just before packets
     private void parseSessionHeader(byte[] received_data) {
-        int packet_size = 18; // change to 16 when new firmwarer availabe
+        int packet_size = 19; // change to 16 when new firmwarer availabe
         int session_num =  received_data[1] & 0xFF ;
 
         if(received_data.length < packet_size) {
@@ -378,11 +379,14 @@ public class Device1_Parser extends Device_Parser{
 
         sessionHeader.setFirmwareType((short) (received_data[13] & 0xFF));
 
-        int act_code = received_data[14] & 0xFF;
+        float version = Common.getVersion(received_data[14]);
+        sessionHeader.setFirmwareVer(version);
+
+        int act_code = received_data[15] & 0xFF;
 
         sessionHeader.setActivity_type(act_code);
 
-        int samp_freq = received_data[15] & 0xFF;
+        int samp_freq = received_data[16] & 0xFF;
 
         sessionHeader.setSamp_freq((short) (samp_freq));
 
@@ -394,7 +398,7 @@ public class Device1_Parser extends Device_Parser{
         DeviceHelper.REC_SESSION_HDR = sessionHeader;
 
         if(act_code < 10){
-            act_code = 52;
+            act_code = 11;
             sessionHeader.setActivity_type(act_code);
         }
         String session_name = Constants.ActivityCodeMap.inverse().get(act_code);
@@ -405,6 +409,7 @@ public class Device1_Parser extends Device_Parser{
         DeviceHelper.SESSION_SUMMARIES.get(session_num).setName(session_name);
         DeviceHelper.SESSION_SUMMARIES.get(session_num).setFirmware_type(sessionHeader.getFirmwareType());
         DeviceHelper.SESSION_SUMMARIES.get(session_num).setSampling_freq(sessionHeader.getSamp_freq());
+        DeviceHelper.SESSION_SUMMARIES.get(session_num).setFirmware_ver(version);
 
         DeviceHelper.SESSION_SUMMARIES.get(session_num).setDuration(duration);
         String name = Constants.ActivityCodeMap.inverse().get(sessionHeader.getActivity_type());
@@ -473,7 +478,7 @@ public class Device1_Parser extends Device_Parser{
             total_pkts_available += total_pkts;
             sessionSummary.setNum_pages(number_pages);
             sessionSummary.setTotal_pkts(total_pkts);
-            sessionSummary.setTotal_data(total_pkts*80);// 80 bytes per packet
+            sessionSummary.setTotal_data(total_pkts*Constants.SD_PKT_SiZE);// 80 bytes per packet
             Calendar calendar = Calendar.getInstance();
             calendar.set(Calendar.DAY_OF_MONTH, received_data[index+4] & 0xFF);
             int month = received_data[index+5] & 0xFF;
@@ -649,6 +654,7 @@ public class Device1_Parser extends Device_Parser{
     }
 
     public static void sendStartActivityCmd(Context context, int activity_type){
+        if(Constants.DEVICE_MAPS.size() == 0) return;;
         byte[] cmd = new byte[4];
 
         cmd[0] = 0x06;
@@ -677,6 +683,7 @@ public class Device1_Parser extends Device_Parser{
      * @param context
      */
     public static void sendNotificationCmd(Context context) {
+        if(Constants.DEVICE_MAPS.size() == 0) return;;
         DeviceDetails deviceDetails = Constants.DEVICE_MAPS.get(context.getResources().getString(R.string.device1_tv));
         if(deviceDetails != null && deviceDetails.mac_address != null){
 
@@ -689,6 +696,7 @@ public class Device1_Parser extends Device_Parser{
      * @param context
      */
     public static void sendStopActivityCmd(Context context){
+        if(Constants.DEVICE_MAPS.size() == 0) return;;
         DeviceDetails deviceDetails = Constants.DEVICE_MAPS.get(context.getResources().getString(R.string.device1_tv));
         if(deviceDetails != null && deviceDetails.mac_address != null){
 
@@ -701,6 +709,7 @@ public class Device1_Parser extends Device_Parser{
      * @param context
      */
     public static void sendMemoryCmd(Context context){
+        if(Constants.DEVICE_MAPS.size() == 0) return;;
         DeviceDetails deviceDetails = Constants.DEVICE_MAPS.get(context.getResources().getString(R.string.device1_tv));
         if(deviceDetails != null && deviceDetails.mac_address != null){
             deviceDetails.sendData(Common.convertingTobyteArray(Constants.MEM_USAGE_CMD));

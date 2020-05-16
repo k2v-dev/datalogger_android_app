@@ -15,10 +15,18 @@
 
     </LinearLayout>
 
+    <com.google.android.material.tabs.TabLayout
+        android:layout_height="0dp"
+        android:layout_width="match_parent"
+        android:layout_weight="0.1  "
+        android:background="@color/lightgray"
+        app:tabMode="scrollable"
+        android:id="@+id/tab_layout"/>
+
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="0.9"
+        android:layout_weight="0.8"
         android:fillViewport="true"
         android:background="@color/white"
         android:clickable="true"
@@ -28,19 +36,9 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <com.google.android.material.tabs.TabLayout
-                android:layout_height="0dp"
-                android:layout_width="match_parent"
-                android:layout_weight="0.05"
-                android:background="@color/lightgray"
-                app:tabMode="scrollable"
-                android:id="@+id/tab_layout"/>
-
-
             <androidx.viewpager2.widget.ViewPager2
-                android:layout_height="0dp"
+                android:layout_height="wrap_content"
                 android:layout_width="match_parent"
-                android:layout_weight="0.85"
                 android:id="@+id/pager"
                 />
         </LinearLayout>

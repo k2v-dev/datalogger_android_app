@@ -1,11 +1,10 @@
-package com.decalthon.helmet.stability.Fragments;
+package com.decalthon.helmet.stability.fragments;
 
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
-import android.location.Location;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -28,18 +27,21 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import de.greenrobot.event.EventBus;
 
-import com.decalthon.helmet.stability.Activities.MainActivity;
-import com.decalthon.helmet.stability.DB.Entities.GpsSpeed;
-import com.decalthon.helmet.stability.DB.Entities.MarkerData;
-import com.decalthon.helmet.stability.DB.Entities.SessionSummary;
-import com.decalthon.helmet.stability.DB.SessionCdlDb;
+import com.decalthon.helmet.stability.activities.MainActivity;
+import com.decalthon.helmet.stability.database.entities.GpsSpeed;
+import com.decalthon.helmet.stability.database.entities.MarkerData;
+import com.decalthon.helmet.stability.database.entities.SessionSummary;
+import com.decalthon.helmet.stability.database.SessionCdlDb;
+import com.decalthon.helmet.stability.MainApplication;
 import com.decalthon.helmet.stability.R;
-import com.decalthon.helmet.stability.Utilities.Common;
-import com.decalthon.helmet.stability.Utilities.Constants;
-import com.decalthon.helmet.stability.model.DeviceModels.DeviceHelper;
-import com.decalthon.helmet.stability.model.Generic.TimeFmt;
-import com.decalthon.helmet.stability.model.IndoorTimestamp;
+import com.decalthon.helmet.stability.utilities.Common;
+import com.decalthon.helmet.stability.utilities.Constants;
+import com.decalthon.helmet.stability.model.generic.TimeFmt;
 import com.decalthon.helmet.stability.model.MarkerNote;
+import com.decalthon.helmet.stability.model.indoor_timeline.IndoorMarker;
+import com.decalthon.helmet.stability.model.indoor_timeline.MarkerViewType;
+import com.decalthon.helmet.stability.preferences.CsvPreference;
+import com.decalthon.helmet.stability.workmanager.WorkMgrHelper;
 import com.github.vipulasri.timelineview.TimelineView;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -69,9 +71,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import static com.decalthon.helmet.stability.Fragments.GPSSpeedFragment.sessionCdlDb;
-import static com.decalthon.helmet.stability.Utilities.Constants.FRAGMENT_NAME_DEVICE1_9_AXIS;
-import static com.decalthon.helmet.stability.Utilities.Constants.INTER_MARKER_COUNT;
+import static com.decalthon.helmet.stability.fragments.GPSSpeedFragment.sessionCdlDb;
+import static com.decalthon.helmet.stability.utilities.Constants.INTER_MARKER_COUNT;
 
 //Frequently used static constants
 
@@ -90,6 +91,7 @@ import static com.decalthon.helmet.stability.Utilities.Constants.INTER_MARKER_CO
  * The map fragment is used to display trackers for a session.
  */
 public class MapFragment extends Fragment implements OnMapReadyCallback {
+
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -187,8 +189,13 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         if (getArguments() != null) {
             activityType = getArguments().getString(ARG_PARAM1); // Cyclic_Outdoor
 //            activityType = "indoor";
-            mParam2 = getArguments().getLong(ARG_PARAM2);
+            session_id = getArguments().getLong(ARG_PARAM2);
             activityDuration = getArguments().getFloat(ARG_PARAM3);
+//            if(activityType.toLowerCase().contains(getString(R.string.activity_outdoor).toLowerCase()))  {
+//                session_id = 4;
+//            }else{
+//                session_id = 8;
+//            }
         }
     }
 
@@ -386,7 +393,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         @Override
         protected Void doInBackground(Void... voids) {
             markerPosList.clear();
-
+            gpsPosList.clear();
             markerDatas = sessionCdlDb.getMarkerDataDAO().getMarkerData(session_id);
             if(markerDatas == null || markerDatas.size() == 0){
                 return null;
@@ -397,7 +404,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             if(activityType.toLowerCase().contains(getString(R.string.activity_outdoor).toLowerCase())) {
                 gpsSpeeds = sessionCdlDb.gpsSpeedDAO().getGpsSpeed(markerDatas.get(0).marker_timestamp-1, markerDatas.get(markerDatas.size()-1).marker_timestamp+1);
 
-                gpsPosList.clear();
                 for(GpsSpeed gpsSpeed: gpsSpeeds){
                     gpsPosList.add(new LatLng(gpsSpeed.latitude, gpsSpeed.longitude));
                 }
@@ -543,9 +549,50 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         full_Schedule_list.addAll(marker_timestamp_list);
         full_Schedule_list.addAll(absolute_timestamps_list);
         Collections.sort(full_Schedule_list);
+        ///////// Ajit:start
+        long duration = ( last_timestamp - first_timestamp ); // millisecond
+        int total_regular_marker =
+                (int) (duration/((float)Constants.INDOOR_REGULAR_TIMESTAMPS_INTERVAL*1000)) ;
+        Long [] reg_relative_timestamps =
+                new Long[total_regular_marker];
 
-        timeLineViewAdapter = new TimeLineViewAdapter(full_Schedule_list,
-                first_timestamp, marker_nums, note_markers);
+        int counter = 0;
+        int delta = (Constants.INDOOR_REGULAR_TIMESTAMPS_INTERVAL)*1000;
+        for(int reg_i = delta; reg_i <= duration ; reg_i += delta ){
+            reg_relative_timestamps[counter++] = (long)reg_i;
+        }
+
+        int size = markerDatas.size() + reg_relative_timestamps.length;
+        IndoorMarker[] indoorMarkers = new IndoorMarker[size];
+        indoorMarkers[0] = new IndoorMarker(MarkerViewType.START, first_timestamp);
+        int indoor_marker_count = 1;
+        int marker_counter = 1;
+        for(int i=0; i < reg_relative_timestamps.length; i++){
+            long cur_ts = reg_relative_timestamps[i] + first_timestamp;
+            while(cur_ts >= markerDatas.get(marker_counter).marker_timestamp){
+                MarkerData markerData = markerDatas.get(marker_counter);
+                indoorMarkers[indoor_marker_count++] = new IndoorMarker(MarkerViewType.USER, markerData.marker_timestamp, markerData);
+                System.out.println("markerdata, indoor_marker_count="+indoor_marker_count+", marker_counter="+marker_counter+", marker_id="+markerData.markerNumber);
+                marker_counter++;
+            }
+            indoorMarkers[indoor_marker_count++] = new IndoorMarker(MarkerViewType.REGULAR, cur_ts);
+            System.out.println("regular, indoor_marker_count="+indoor_marker_count+", marker_counter="+marker_counter);
+
+        }
+        while(marker_counter < markerDatas.size()-1){
+            MarkerData markerData = markerDatas.get(marker_counter);
+            indoorMarkers[indoor_marker_count++] = new IndoorMarker(MarkerViewType.USER, markerData.marker_timestamp, markerData);
+            System.out.println("markerdata, indoor_marker_count="+indoor_marker_count+", marker_counter="+marker_counter+", marker_id="+markerData.markerNumber);
+            marker_counter++;
+        }
+        indoorMarkers[indoor_marker_count] = new IndoorMarker(MarkerViewType.STOP, markerDatas.get(markerDatas.size()-1).marker_timestamp, markerDatas.get(markerDatas.size()-1));
+        timeLineViewAdapter = new TimeLineViewAdapter(indoorMarkers);
+        ///////// Ajit:End
+
+
+//        timeLineViewAdapter = new TimeLineViewAdapter(full_Schedule_list,
+//                first_timestamp, marker_nums, note_markers);
+
         indoorRecyclerView.setLayoutManager(linearLayoutManager);
         indoorRecyclerView.setAdapter(timeLineViewAdapter);
     }
@@ -565,7 +612,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
             Toast.makeText(getContext(), "No Data is available", Toast.LENGTH_LONG);
         }
-        LatLng savedFirst = markerPosList.get(0);
+        //LatLng savedFirst = markerPosList.get(0);
 //
 //        for (LatLng markable : markerPosList) {
 //            builder.include(markable);
@@ -603,17 +650,17 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
          * using respective MarkerOptions objects
          * */
 
-        mMap.addMarker(new MarkerOptions()
-                .position(savedFirst)
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
-                .draggable(false)
-                .visible(true));
+//        mMap.addMarker(new MarkerOptions()
+//                .position(savedFirst)
+//                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
+//                .draggable(false)
+//                .visible(true));
 
         mMap.addMarker(new MarkerOptions()
                 .position(savedLast)
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
                 .draggable(false)
-                .visible(true));
+                .visible(true)).setTag(markerDatas.get(markerDatas.size()-1));
 
         /**The statements below build the bounding box
          * rom the LatLng position assets  and moves camera
@@ -666,7 +713,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                             ftxn.replace(MapFragment.this.getId(),
                                     customViewFragment,
                                     CustomViewFragment.class.getSimpleName());
-                            ftxn.addToBackStack(MapFragment.class.getSimpleName());
+                            ftxn.addToBackStack(CustomViewFragment.class.getSimpleName());
                             ftxn.commit();
                         }
 
@@ -782,6 +829,22 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
     private void showDialog(String note, long marker_timestamp,
                             long note_timestamp) {
+        try{
+            MarkerDialogFragment markerDialogFragment = null;
+            if(activityType.toLowerCase().contains(getString(R.string.outdoor).toLowerCase())){
+                markerDialogFragment = MarkerDialogFragment.newInstance(note,"1", marker_timestamp, note_timestamp);
+            }else if(activityType.toLowerCase().contains(getString(R.string.indoor).toLowerCase())){
+                markerDialogFragment =
+                        MarkerDialogFragment.newInstance(note,"3", marker_timestamp, note_timestamp);
+            }
+            markerDialogFragment.show(getFragmentManager(), MarkerDialogFragment.class.getSimpleName());
+        }catch (Exception ex){
+            Log.d(TAG, "Error="+ex.getMessage());
+        }
+    }
+
+    private void showDialogOld(String note, long marker_timestamp,
+                            long note_timestamp) {
         Fragment markerDialogFragment = new Fragment();
         if(activityType.toLowerCase().contains(getString(R.string.outdoor).toLowerCase())){
             markerDialogFragment = MarkerDialogFragment.newInstance(note,"1", marker_timestamp, note_timestamp);
@@ -796,9 +859,8 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
 
-        transaction.add(this.getId(),markerDialogFragment,"Marker Dialog " +
-                "Fragment")
-                .addToBackStack(MapFragment.class.getSimpleName()).commit();
+        transaction.add(this.getId(),markerDialogFragment, MarkerDialogFragment.class.getSimpleName())
+                .addToBackStack(MarkerDialogFragment.class.getSimpleName()).commit();
     }
 
     private static void addMarkerDataEntry(MarkerData markerData) {
@@ -1068,9 +1130,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     }
 
     public class TimeLineViewAdapter extends RecyclerView.Adapter{
-        private final long firstTimestamp;
-        private final Long [] all_marker_timestamps;
-        private final int last_index;
+//        private final long firstTimestamp ;
+//        private final Long [] all_marker_timestamps ;
+//        private final int last_index ;
         long progress;
         Date dateStart;
         int marker_data_index = 0;
@@ -1078,22 +1140,27 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         String [] note_markers;
         private int note_marker_counter = -1;
         private Map<Integer, Integer> note_pos_map = new HashMap<>();
+        private IndoorMarker[] indoorMarkers;
 
 
-        public TimeLineViewAdapter(ArrayList<Long> timestamps,
-                                   long first_timestamp,
-                                   Integer[] markerNums,
-                                   String[] note_markers) {
-            this.all_marker_timestamps = timestamps.toArray(new Long[0]);
-            this.last_index = all_marker_timestamps.length - 1;
-            this.dateStart =  new Date(first_timestamp);
-            this.firstTimestamp = first_timestamp;
-            this.progress = first_timestamp;
-            this.markerNums = markerNums;
-            this.note_markers = note_markers;
-
-
+        public TimeLineViewAdapter(IndoorMarker[] indoorMarkers) {
+            this.indoorMarkers = indoorMarkers;
         }
+
+//        public TimeLineViewAdapter(ArrayList<Long> timestamps,
+//                                   long first_timestamp,
+//                                   Integer[] markerNums,
+//                                   String[] note_markers) {
+//            this.all_marker_timestamps = timestamps.toArray(new Long[0]);
+//            this.last_index = all_marker_timestamps.length - 1;
+//            this.dateStart =  new Date(first_timestamp);
+//            this.firstTimestamp = first_timestamp;
+//            this.progress = first_timestamp;
+//            this.markerNums = markerNums;
+//            this.note_markers = note_markers;
+//
+//
+//        }
 
 
         @NonNull
@@ -1105,101 +1172,191 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
         @Override
         public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-            System.out.println("position="+position);
-            if(position == 0 || position == last_index){
-                ((TimeLineViewHolder) holder).mTimelineView.setMarkerColor(Color.RED);
-            }else if( (all_marker_timestamps[position] % Constants.INDOOR_REGULAR_TIMESTAMPS_INTERVAL) == 0 ){
-                // TODO Check use-case for  marker timestamp itself % NDOOR_REGULAR_TIMESTAMPS_INTERVAL
-                ((TimeLineViewHolder) holder).mTimelineView.setMarkerColor(getResources().getColor(R.color.offgray));
-                ((TimeLineViewHolder) holder).holderCard.setCardBackgroundColor(getResources().getColor(R.color.offgray));
-                ((TimeLineViewHolder) holder).mTimelineView.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        //Add Graph Navigation here
-//                        CustomViewFragment customViewFragment = CustomViewFragment.newInstance
-//                                (FRAGMENT_NAME_DEVICE1_9_AXIS,"plot");
-//                        CustomViewFragment customViewFragment = CustomViewFragment.newInstance
-//                                (session_id,1l, 1l);
-                        CustomViewFragment customViewFragment = CustomViewFragment.newInstance
-                                (session_id, all_marker_timestamps[position], markerDatas.get(0).marker_timestamp);
+            try{
+                IndoorMarker indoorMarker = indoorMarkers[position];
+                switch (indoorMarker.markerViewType){
+                    case START:
+                        ((TimeLineViewHolder) holder).holderCard.setCardBackgroundColor(Color.TRANSPARENT);
+                        ((TimeLineViewHolder) holder).mTimelineView.getMarker().setAlpha(0);
+                        break;
+                    case STOP:
+                        ((TimeLineViewHolder) holder).mTimelineView.setMarkerColor(Color.RED);
+                        break;
+                    case REGULAR:
+                        ((TimeLineViewHolder) holder).mTimelineView.setMarkerColor(getResources().getColor(R.color.regular_marker_color));
+                        ((TimeLineViewHolder) holder).holderCard.setCardBackgroundColor(getResources().getColor(R.color.regular_marker_color));
+                        ((TimeLineViewHolder) holder).holderCard.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                //Add Graph Navigation here
+                                CustomGraphFragment.clear();
+                                CustomViewFragment customViewFragment = CustomViewFragment.newInstance
+                                        (session_id, indoorMarker.timestamp, markerDatas.get(0).marker_timestamp);
 
-                        FragmentTransaction ftxn = getFragmentManager()
-                                .beginTransaction();
-                        ftxn.replace(MapFragment.this.getId(),
-                                customViewFragment,
-                                CustomViewFragment.class.getSimpleName());
-                        ftxn.addToBackStack(MapFragment.class.getSimpleName());
-                        ftxn.commit();
-                    }
-                });
+                                FragmentTransaction ftxn = getFragmentManager()
+                                        .beginTransaction();
+                                ftxn.replace(MapFragment.this.getId(),
+                                        customViewFragment,
+                                        CustomViewFragment.class.getSimpleName());
+                                ftxn.addToBackStack(CustomViewFragment.class.getSimpleName());
+                                ftxn.commit();
+                            }
+                        });
+                        break;
+                    case USER:
+                        if(indoorMarker.markerData != null){
+                            MarkerData markerData = indoorMarker.markerData;
+                            TimelineView timelineview =
+                                    ((TimeLineViewHolder) holder).mTimelineView;
+                            if(timelineview.getTag() instanceof MarkerData){
+                                markerData = (MarkerData)timelineview.getTag();
+                            }else{
+//                                timelineview.setTag(markerData);
+                                ((TimeLineViewHolder) holder).holderCard.setTag(markerData);
+                            }
+                            if(!(markerData.note.isEmpty())){
+                                timelineview.setMarkerColor(getResources().getColor(R
+                                        .color.non_empty_note_marker_color));
+                                ((TimeLineViewHolder) holder).holderCard.setCardBackgroundColor(getResources().getColor(R.color.non_empty_note_marker_color));
+                            }else{
+                                timelineview.setMarkerColor(getResources().getColor(R.color.empty_note_marker_color));
+                                ((TimeLineViewHolder) holder).holderCard.setCardBackgroundColor(getResources().getColor(R.color.empty_note_marker_color));
+                            }
 
-            }else{
-                int cur_note_marker_temp = 0;
-                if(note_pos_map.containsKey(position)){
-                    cur_note_marker_temp = note_pos_map.get(position);
-                }else if(note_marker_counter < markerNums.length - 1) {
-                    note_marker_counter++;
-                    cur_note_marker_temp = note_marker_counter;
-                    note_pos_map.put(position, note_marker_counter);
-                }
+                            ((TimeLineViewHolder) holder).holderCard.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View view) {
+                                    currentIndoorCard = (CardView) view;
+                                    indoorMarkerCurrent =
+                                            ((TimeLineViewHolder) holder).mTimelineView;
+                                    markerDataCurrent = (MarkerData) currentIndoorCard.getTag();
+                                    if(markerDataCurrent != null ){
+//                                    markerDataCurrent.marker_timestamp =
+//                                            new Date(progress + 1000*all_marker_timestamps[cur_note_marker]).getTime();
 
-                final int cur_note_marker = cur_note_marker_temp;
-                MarkerData markerData = markerDatas.get(markerNums[cur_note_marker]);
-                TimelineView timelineview =
-                        ((TimeLineViewHolder) holder).mTimelineView;
-                if(timelineview.getTag() instanceof MarkerData){
-                    markerData = (MarkerData)timelineview.getTag();
-                }else{
-                    timelineview.setTag(markerData);
-                }
-                if(!(markerData.note.isEmpty())){
-                    timelineview.setMarkerColor(getResources().getColor(R
-                            .color.orange));
-                    ((TimeLineViewHolder) holder).holderCard.setCardBackgroundColor(getResources().getColor(R.color.orange));
-                }else{
-                    timelineview.setMarkerColor(getResources().getColor(R.color.yellow));
-                    ((TimeLineViewHolder) holder).holderCard.setCardBackgroundColor(getResources().getColor(R.color.yellow));
-                }
-//                markerDataCurrent = new MarkerData();
-//                markerDataCurrent.session_id = session_id;
-//                markerDataCurrent.note = note_markers[cur_note_marker];
-
-                timelineview.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        indoorMarkerCurrent = view;
-                        currentIndoorCard =
-                                ((TimeLineViewHolder) holder).holderCard;
-                        markerDataCurrent = (MarkerData) view.getTag();
-                        if(markerDataCurrent != null ){
-                            markerDataCurrent.marker_timestamp =
-                                    new Date(progress + 1000*all_marker_timestamps[cur_note_marker]).getTime();
-                            showDialog( markerDataCurrent.getNote(),
-                                    markerDataCurrent.marker_timestamp,
-                                    markerDataCurrent.note_timestamp);
-                        }else{
-                            markerDataCurrent = new MarkerData();
-                            markerDataCurrent.setMarkerNumber(markerNums[cur_note_marker]);
-                            markerDataCurrent.session_id =
-                                    MapFragment.this.session_id;
-                            markerDataCurrent.marker_timestamp =
-                                    new Date(progress + 1000*all_marker_timestamps[position ]).getTime();
-                            showDialog(note_markers[cur_note_marker],
-                                    new Date().getTime(),
-                                    0);
+                                    }else{
+                                        markerDataCurrent = new MarkerData();
+                                        markerDataCurrent.session_id =
+                                                MapFragment.this.session_id;
+                                        markerDataCurrent.marker_timestamp =
+                                                new Date().getTime();
+                                    }
+                                    showDialog( markerDataCurrent.getNote(),
+                                            markerDataCurrent.marker_timestamp,
+                                            markerDataCurrent.note_timestamp);
+                                }
+                            });
                         }
-                    }
-                });
+                        break;
+
+                }
+                TextView indoorDateView  =
+                        ((TimeLineViewHolder) holder).holderCard.findViewById(R.id.indoor_text_timeline_date);
+                indoorDateView.setText(new SimpleDateFormat("HH:mm:ss",
+                        Locale.getDefault()).format(new Date(indoorMarker.timestamp)));
+            }catch (Exception ex){
+                Log.d(TAG, "Position="+position+", exception="+ex.getMessage());
             }
 
-            TextView indoorDateView  =
-                    ((TimeLineViewHolder) holder).holderCard.findViewById(R.id.indoor_text_timeline_date);
-            indoorDateView.setText(new SimpleDateFormat("HH:mm:ss",
-                    Locale.getDefault()).format(new Date(progress + 1000*all_marker_timestamps[position])));
         }
+
+//        @Override
+//        public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+//            System.out.println("position="+position);
+//            if(position == 0 || position == last_index){
+//                ((TimeLineViewHolder) holder).mTimelineView.setMarkerColor(Color.RED);
+//            }else if( (all_marker_timestamps[position] % Constants.INDOOR_REGULAR_TIMESTAMPS_INTERVAL) == 0 ){
+//                // TODO Check use-case for  marker timestamp itself % NDOOR_REGULAR_TIMESTAMPS_INTERVAL
+//                ((TimeLineViewHolder) holder).mTimelineView.setMarkerColor(getResources().getColor(R.color.offgray));
+//                ((TimeLineViewHolder) holder).holderCard.setCardBackgroundColor(getResources().getColor(R.color.offgray));
+//                ((TimeLineViewHolder) holder).mTimelineView.setOnClickListener(new View.OnClickListener() {
+//                    @Override
+//                    public void onClick(View view) {
+//                        //Add Graph Navigation here
+////                        CustomViewFragment customViewFragment = CustomViewFragment.newInstance
+////                                (FRAGMENT_NAME_DEVICE1_9_AXIS,"plot");
+////                        CustomViewFragment customViewFragment = CustomViewFragment.newInstance
+////                                (session_id,1l, 1l);
+//                        CustomViewFragment customViewFragment = CustomViewFragment.newInstance
+//                                (session_id, progress + 1000*all_marker_timestamps[position], markerDatas.get(0).marker_timestamp);
+//
+//                        FragmentTransaction ftxn = getFragmentManager()
+//                                .beginTransaction();
+//                        ftxn.replace(MapFragment.this.getId(),
+//                                customViewFragment,
+//                                CustomViewFragment.class.getSimpleName());
+//                        ftxn.addToBackStack(MapFragment.class.getSimpleName());
+//                        ftxn.commit();
+//                    }
+//                });
+//
+//            }else{
+//                int cur_note_marker_temp = 0;
+//                if(note_pos_map.containsKey(position)){
+//                    cur_note_marker_temp = note_pos_map.get(position);
+//                }else if(note_marker_counter < markerNums.length - 1) {
+//                    note_marker_counter++;
+//                    cur_note_marker_temp = note_marker_counter;
+//                    note_pos_map.put(position, note_marker_counter);
+//                }
+//
+//                final int cur_note_marker = cur_note_marker_temp;
+//                MarkerData markerData = markerDatas.get(markerNums[cur_note_marker]);
+//                TimelineView timelineview =
+//                        ((TimeLineViewHolder) holder).mTimelineView;
+//                if(timelineview.getTag() instanceof MarkerData){
+//                    markerData = (MarkerData)timelineview.getTag();
+//                }else{
+//                    timelineview.setTag(markerData);
+//                }
+//                if(!(markerData.note.isEmpty())){
+//                    timelineview.setMarkerColor(getResources().getColor(R
+//                            .color.orange));
+//                    ((TimeLineViewHolder) holder).holderCard.setCardBackgroundColor(getResources().getColor(R.color.orange));
+//                }else{
+//                    timelineview.setMarkerColor(getResources().getColor(R.color.yellow));
+//                    ((TimeLineViewHolder) holder).holderCard.setCardBackgroundColor(getResources().getColor(R.color.yellow));
+//                }
+////                markerDataCurrent = new MarkerData();
+////                markerDataCurrent.session_id = session_id;
+////                markerDataCurrent.note = note_markers[cur_note_marker];
+//
+//                timelineview.setOnClickListener(new View.OnClickListener() {
+//                    @Override
+//                    public void onClick(View view) {
+//                        indoorMarkerCurrent = view;
+//                        currentIndoorCard =
+//                                ((TimeLineViewHolder) holder).holderCard;
+//                        markerDataCurrent = (MarkerData) view.getTag();
+//                        if(markerDataCurrent != null ){
+//                            markerDataCurrent.marker_timestamp =
+//                                    new Date(progress + 1000*all_marker_timestamps[cur_note_marker]).getTime();
+//                            showDialog( markerDataCurrent.getNote(),
+//                                    markerDataCurrent.marker_timestamp,
+//                                    markerDataCurrent.note_timestamp);
+//                        }else{
+//                            markerDataCurrent = new MarkerData();
+//                            markerDataCurrent.setMarkerNumber(markerNums[cur_note_marker]);
+//                            markerDataCurrent.session_id =
+//                                    MapFragment.this.session_id;
+//                            markerDataCurrent.marker_timestamp =
+//                                    new Date(progress + 1000*all_marker_timestamps[position ]).getTime();
+//                            showDialog(note_markers[cur_note_marker],
+//                                    new Date().getTime(),
+//                                    0);
+//                        }
+//                    }
+//                });
+//            }
+//
+//            TextView indoorDateView  =
+//                    ((TimeLineViewHolder) holder).holderCard.findViewById(R.id.indoor_text_timeline_date);
+//            indoorDateView.setText(new SimpleDateFormat("HH:mm:ss",
+//                    Locale.getDefault()).format(new Date(progress + 1000*all_marker_timestamps[position])));
+//        }
         @Override
         public int getItemCount() {
-            return  all_marker_timestamps.length;
+            return  indoorMarkers.length;
         }
 
         @Override
@@ -1265,7 +1422,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 //         SimpleDateFormat dateFileFormat = new SimpleDateFormat(dateFilePattern);
         @Override
         protected SessionSummary doInBackground(Void... voids) {
-            return SessionCdlDb.getInstance().getSessionDataDAO().getSessionSummaryById(4);
+            return SessionCdlDb.getInstance().getSessionDataDAO().getSessionSummaryById(session_id);
         }
 
 
@@ -1295,7 +1452,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
             durationTv.setText(sessionDuration);
             String sessionDataSize =
-                    String.valueOf(sessionSummary.getTotal_data()/1024) +"KB";
+                    String.valueOf(sessionSummary.getSize()) +"KB";
             sessionDateSizeTv.setText(sessionDataSize);
             String typesOfData = String.valueOf(Constants.typesOfData);
             sessionDataTypesTv.setText(typesOfData);
@@ -1303,8 +1460,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
 
             if(sessionSummary.getNote().trim().length() == 0){
-                textNoteTv.setText("");
-                textNoteTv.setHint(getString(R.string.hint_txt));
+                textNoteTv.setText(getString(R.string.hint_txt));
             }else{
                 textNoteTv.setText(sessionSummary.getNote());
             }
@@ -1313,14 +1469,23 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
             textNoteTv.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    Fragment markerDialogFragment =
-                            MarkerDialogFragment.newInstance(sessionSummary.getNote(), "2", sessionSummary.getDate(), sessionSummary.getNote_timestamp());
-                    FragmentTransaction fragmentTransaction =
-                            getFragmentManager().beginTransaction();
-                    fragmentTransaction.add(MapFragment.this.getId(),
-                            markerDialogFragment,MapFragment.class.getSimpleName());
-                    fragmentTransaction.addToBackStack(MapFragment.class.getSimpleName());
-                    fragmentTransaction.commit();
+                    try{
+                        MarkerDialogFragment markerDialogFragment =
+                                MarkerDialogFragment.newInstance(sessionSummary.getNote(), "2", sessionSummary.getDate(), sessionSummary.getNote_timestamp());
+                        markerDialogFragment.show(getFragmentManager(), MarkerDialogFragment.class.getSimpleName());
+                    }catch (Exception ex){
+                        Log.d(TAG, "Error="+ex.getMessage());
+                    }
+
+
+//                    Fragment markerDialogFragment =
+//                            MarkerDialogFragment.newInstance(sessionSummary.getNote(), "2", sessionSummary.getDate(), sessionSummary.getNote_timestamp());
+//                    FragmentTransaction fragmentTransaction =
+//                            getFragmentManager().beginTransaction();
+//                    fragmentTransaction.add(MapFragment.this.getId(),
+//                            markerDialogFragment, MarkerDialogFragment.class.getSimpleName());
+//                    fragmentTransaction.addToBackStack(MarkerDialogFragment.class.getSimpleName());
+//                    fragmentTransaction.commit();
 
 
 //                    Fragment mapFragment = MapFragment.newInstance(" SESSION 7", "Latest session");
@@ -1341,8 +1506,9 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
     public void onEvent(final MarkerNote markerNote){
         try{
+            boolean isUpdated = false;
             switch (markerNote.noteType){
-                case "1": // for update the MarkerData's note
+                case "1": // for update the MarkerData's note (outdoor)
                 {
                     markerDataCurrent.note = markerNote.note;
                     markerDataCurrent.note_timestamp = new Date().getTime();
@@ -1362,44 +1528,59 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
 
                     Log.d(TAG, "onEvent: Received a marker data note");
                     new UpdateNoteAsyncTask().execute(markerDataCurrent);
+                    isUpdated = true;
                 }
                 break;
                 case "2": // for update the session summary's note
                 {
-                    curSessionSummary.setNote(markerNote.note);
-                    curSessionSummary.setNote_timestamp(new Date().getTime());
-                    getActivity().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            textNoteTv.setText(markerNote.note);
-                        }
-                    });
+                    if(markerNote.note.isEmpty()){
+                        TextView text_note_tv = MapFragment.this.getView().findViewById(R.id.text_note_tv);
+                        text_note_tv.setText(getResources().getString(R.string.hint_txt));
+                    }else {
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                textNoteTv.setText(markerNote.note);
+                            }
+                        });
+                    }
+                        curSessionSummary.setNote(markerNote.note);
+                        curSessionSummary.setNote_timestamp(new Date().getTime());
                     new UpdateSessionSummary().execute(curSessionSummary);
+                    isUpdated = true;
+                    Constants.isNewSessionAdded = true;
                 }
                 break;
 
-                case "3": // for update the MarkerData's note
-
+                case "3": // for update the MarkerData's note (indoor)
+                {
                     markerDataCurrent.note = markerNote.note;
                     markerDataCurrent.note_timestamp = new Date().getTime();
                     Log.d(TAG,
                             "onEvent: markerDataindoor" + markerDataCurrent.getMarker_timestamp());
-                    indoorMarkerCurrent.setTag(markerDataCurrent);
+                    currentIndoorCard.setTag(markerDataCurrent);
 
                     if (!markerDataCurrent.note.isEmpty()) {
-                        ((TimelineView)this.indoorMarkerCurrent).setMarkerColor(getResources().getColor(R.color.orange));
-                        currentIndoorCard.setCardBackgroundColor(getResources().getColor(R.color.orange));
+                        ((TimelineView) this.indoorMarkerCurrent).setMarkerColor(getResources().getColor(R.color.non_empty_note_marker_color));
+                        currentIndoorCard.setCardBackgroundColor(getResources().getColor(R.color.non_empty_note_marker_color));
                     } else {
-                        ((TimelineView)this.indoorMarkerCurrent).setMarkerColor(getResources().getColor(R.color.yellow));
-                        currentIndoorCard.setCardBackgroundColor(getResources().getColor(R.color.yellow));
+                        ((TimelineView) this.indoorMarkerCurrent).setMarkerColor(getResources().getColor(R.color.empty_note_marker_color));
+                        currentIndoorCard.setCardBackgroundColor(getResources().getColor(R.color.empty_note_marker_color));
 
                     }
 
                     new UpdateNoteAsyncTask().execute(markerDataCurrent);
+                    isUpdated = true;
+                }
                 break;
 
                 default:
                     Log.d(TAG, "No option");
+            }
+            // If something update in text, CSV generation's process will start aftr some momemnt
+            if(isUpdated){
+                CsvPreference.getInstance(MainApplication.getAppContext()).addSessionId(session_id);
+                new WorkMgrHelper(MainApplication.getAppContext()).oneTimeCSVGenerationRequest();
             }
         }catch (Exception ex){
             Log.d(TAG, "OnEvent: error msg="+ex.getMessage());

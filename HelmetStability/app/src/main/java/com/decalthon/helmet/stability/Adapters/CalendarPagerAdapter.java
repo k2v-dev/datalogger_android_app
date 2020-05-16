@@ -1,4 +1,4 @@
-package com.decalthon.helmet.stability.Adapters;
+package com.decalthon.helmet.stability.adapters;
 
 import android.util.Log;
 
@@ -6,17 +6,12 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 
-import com.decalthon.helmet.stability.Fragments.MonthlyCalendarFragment;
-import com.decalthon.helmet.stability.Fragments.YearlyCalendarFragment;
-import com.decalthon.helmet.stability.Utilities.CalendarUtils;
+import com.decalthon.helmet.stability.fragments.MonthlyCalendarFragment;
+import com.decalthon.helmet.stability.fragments.YearlyCalendarFragment;
+import com.decalthon.helmet.stability.utilities.CalendarUtils;
 
 import java.text.SimpleDateFormat;
-import java.time.Year;
-import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 
@@ -30,25 +25,27 @@ public class CalendarPagerAdapter extends FragmentStateAdapter {
         super(fragment);
         frag = fragString;
         this.session_range = session_range;
-        for(Long timestamp : allSessionTimestamps){
-            Date date = (new Date(timestamp));
-            String monthPosition = new SimpleDateFormat("MM",
-                    Locale.getDefault()).format(date);
-            CalendarUtils.dateMap.put(date,Integer.valueOf(monthPosition));
+
+        if(frag.startsWith("month")) {
+            for (Long timestamp : allSessionTimestamps) {
+                Date date = (new Date(timestamp));
+                String monthPosition = new SimpleDateFormat("MM",
+                        Locale.getDefault()).format(date);
+                CalendarUtils.dateMap.put(date, Integer.valueOf(monthPosition));
+            }
         }
     }
 
     @NonNull
     @Override
     public Fragment createFragment(int position) {
+        int currentMonth,monthIndex;
         if(frag.startsWith("month")){
             return MonthlyCalendarFragment.newInstance(String.valueOf(session_range - position - 1),null);
         }
-        if(frag.startsWith("year")){
-            int year = Calendar.getInstance().get(Calendar.YEAR);
-            return YearlyCalendarFragment.newInstance(String.valueOf(year),
-                    null);
-        }
+    //        else if(frag.startsWith("year")){
+    //            return YearlyCalendarFragment.newInstance(String.valueOf(session_range - position - 1),null);
+    //        }
         return new Fragment();
     }
 

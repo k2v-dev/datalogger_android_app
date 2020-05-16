@@ -1,4 +1,4 @@
-package com.decalthon.helmet.stability.Fragments;
+package com.decalthon.helmet.stability.fragments;
 
 import android.Manifest;
 import android.content.Context;
@@ -19,33 +19,25 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.ActionBar;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
-import androidx.room.Room;
-import androidx.room.RoomDatabase;
-import androidx.sqlite.db.SupportSQLiteDatabase;
 
-import com.decalthon.helmet.stability.Activities.MainActivity;
-import com.decalthon.helmet.stability.BLE.Device1_Parser;
-import com.decalthon.helmet.stability.DB.Entities.GpsSpeed;
-import com.decalthon.helmet.stability.DB.SessionCDL;
-import com.decalthon.helmet.stability.DB.SessionCdlDb;
+import com.decalthon.helmet.stability.database.entities.GpsSpeed;
+import com.decalthon.helmet.stability.database.SessionCdlDb;
 import com.decalthon.helmet.stability.R;
-import com.decalthon.helmet.stability.Utilities.Common;
-import com.decalthon.helmet.stability.Utilities.Constants;
-import com.decalthon.helmet.stability.Utilities.FileUtilities;
+import com.decalthon.helmet.stability.utilities.Common;
+import com.decalthon.helmet.stability.utilities.Constants;
+import com.decalthon.helmet.stability.utilities.FileUtilities;
 import com.decalthon.helmet.stability.location.BackgroundLocationUpdateService;
-import com.decalthon.helmet.stability.model.DeviceModels.SensorDataOld;
+import com.decalthon.helmet.stability.model.devicemodels.SensorDataOld;
 
-import java.util.ArrayList;
 import java.util.Date;
 
 import de.greenrobot.event.EventBus;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 import static androidx.core.content.ContextCompat.checkSelfPermission;
-import static com.decalthon.helmet.stability.Utilities.FileUtilities.REQUEST_PERMISSIONS_LOG_STORAGE;
+import static com.decalthon.helmet.stability.utilities.FileUtilities.REQUEST_PERMISSIONS_LOG_STORAGE;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -168,17 +160,41 @@ public class GPSSpeedFragment extends Fragment implements LocationListener  {
 //                ( (MainActivity) getActivity() ).getSupportActionBar();
 //
 //        /*The button to start or stop location updates*/
-        final CircleImageView startStopView =
-                MainActivity.shared().findViewById(R.id.gps_session_start_btn);
-        startStopView.setImageResource(R.drawable.pause);
-        startStopView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startStopView.setImageResource(R.mipmap.start_session_round);
-                Device1_Parser.sendStopActivityCmd(getContext());
-                MainActivity.shared().onBackPressed();
-            }
-        });
+//        final CircleImageView startStopView =
+//                MainActivity.shared().findViewById(R.id.gps_session_start_btn);
+//        startStopView.setImageResource(R.mipmap.pause_round);
+//        startStopView.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                    try{
+//                        AlertDialog dialog = new AlertDialog.Builder(getContext())
+//                                .setTitle("Alert")
+//                                .setMessage(getResources().getString(R.string.stop_activity))
+//                                .setNegativeButton("No", null)
+//                                .setPositiveButton("Yes",new DialogInterface.OnClickListener() {
+//                                    @Override
+//                                    public void onClick(DialogInterface dialog, int which) {
+//                                        try{
+//                                            startStopView.setImageResource(R.mipmap.start_session_round);
+//                                            Device1_Parser.sendStopActivityCmd(getContext());
+//                                            MainActivity.shared().onBackPressed();
+//
+//                                        }catch (Exception ex){
+//
+//                                        }
+//
+//                                    }
+//                                })
+//                                .create();
+//                        dialog.show();
+//                        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.parseColor("#FF1B5AAC")); // Set text color to blue color
+//                        dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(Color.parseColor("#D3D3D3"));  // Set text color to ligh gray color
+//
+//                    }catch (Exception e){
+//
+//                    }
+//            }
+//        });
     }
 
 

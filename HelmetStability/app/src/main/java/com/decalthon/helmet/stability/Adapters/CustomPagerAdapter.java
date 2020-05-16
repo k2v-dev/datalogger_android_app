@@ -1,17 +1,11 @@
-package com.decalthon.helmet.stability.Adapters;
+package com.decalthon.helmet.stability.adapters;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 
-import com.decalthon.helmet.stability.Fragments.CustomGraphFragment;
-
-import static com.decalthon.helmet.stability.Utilities.Constants.FRAGMENT_NAME_DEVICE1_9_AXIS;
-import static com.decalthon.helmet.stability.Utilities.Constants.FRAGMENT_NAME_DEVICE1_3_AXIS;
-import static com.decalthon.helmet.stability.Utilities.Constants.FRAGMENT_NAME_DEVICE2_3_AXIS;
-import static com.decalthon.helmet.stability.Utilities.Constants.FRAGMENT_NAME_DEVICE2_9_AXIS;
-import static com.decalthon.helmet.stability.Utilities.Constants.FRAGMENT_NAME_GPS_SPEED;
+import com.decalthon.helmet.stability.fragments.CustomGraphFragment;
 
 
 public class CustomPagerAdapter extends FragmentStateAdapter {

@@ -1,23 +1,23 @@
-package com.decalthon.helmet.stability.BLE;
+package com.decalthon.helmet.stability.ble;
 
 import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.decalthon.helmet.stability.DB.DatabaseHelper;
-import com.decalthon.helmet.stability.DB.Entities.ButtonBoxEntity;
-import com.decalthon.helmet.stability.DB.Entities.MarkerData;
-import com.decalthon.helmet.stability.DB.Entities.SensorDataEntity;
-import com.decalthon.helmet.stability.DB.Entities.SessionSummary;
-import com.decalthon.helmet.stability.DB.SessionCdlDb;
+import com.decalthon.helmet.stability.database.DatabaseHelper;
+import com.decalthon.helmet.stability.database.entities.ButtonBoxEntity;
+import com.decalthon.helmet.stability.database.entities.MarkerData;
+import com.decalthon.helmet.stability.database.entities.SensorDataEntity;
+import com.decalthon.helmet.stability.database.entities.SessionSummary;
+import com.decalthon.helmet.stability.database.SessionCdlDb;
 import com.decalthon.helmet.stability.R;
-import com.decalthon.helmet.stability.Utilities.ByteUtils;
-import com.decalthon.helmet.stability.Utilities.Common;
-import com.decalthon.helmet.stability.Utilities.Constants;
-import com.decalthon.helmet.stability.Utilities.Helper;
-import com.decalthon.helmet.stability.model.DeviceModels.DeviceDetails;
-import com.decalthon.helmet.stability.model.DeviceModels.DeviceHelper;
-import com.decalthon.helmet.stability.model.DeviceModels.session.SessionHeader;
+import com.decalthon.helmet.stability.utilities.ByteUtils;
+import com.decalthon.helmet.stability.utilities.Common;
+import com.decalthon.helmet.stability.utilities.Constants;
+import com.decalthon.helmet.stability.utilities.Helper;
+import com.decalthon.helmet.stability.model.devicemodels.DeviceDetails;
+import com.decalthon.helmet.stability.model.devicemodels.DeviceHelper;
+import com.decalthon.helmet.stability.model.devicemodels.session.SessionHeader;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -91,7 +91,7 @@ public class ButtonBox_Parser extends Device_Parser{
             return;
         }
 
-        int packet_size = 18;
+        int packet_size = Constants.BB_PKT_SIZE;
 
         if(received_data.length < packet_size) {
             Log.d(TAG, "Invalid packet data");
@@ -195,7 +195,9 @@ public class ButtonBox_Parser extends Device_Parser{
             //sendSessionCommand();
             sendReadSessionCmd(currentSessionNumber);
             DeviceHelper.SESSION_SUMMARIES_BB.remove(currentSessionNumber);
-            if(num_pkt_read > 50 ){
+            if(num_pkt_read > 30 ){
+                NUM_PKTS_MAP.put(currentSessionNumber, buttonBoxEntity.packet_number);
+                update_num_pkt_rcvd();
                 Log.d(TAG, "Ready for insert markers data");
                 new InsertMarkerDataAsyncTask().execute(new MarkerData(buttonBoxEntity.dateMillis,  "128", "", buttonBoxEntity.session_id));
                 new DatabaseHelper.UpdateMarkerData().execute(buttonBoxEntity.session_id);
@@ -355,7 +357,7 @@ public class ButtonBox_Parser extends Device_Parser{
             sessionSummary.setBb_num_pages(number_pages);
             sessionSummary.setBb_total_pkts(total_pkts);
             //sessionSummary.setBb_total_pkts(31000);
-            sessionSummary.setBb_total_data(total_pkts*18);// 80 bytes per packet
+            sessionSummary.setBb_total_data(total_pkts*Constants.BB_PKT_SIZE);// 80 bytes per packet
             Calendar calendar = Calendar.getInstance();
             calendar.set(Calendar.DAY_OF_MONTH, received_data[index+4] & 0xFF);
             int month = received_data[index+5] & 0xFF;

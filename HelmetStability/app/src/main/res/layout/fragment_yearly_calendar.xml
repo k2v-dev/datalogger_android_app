@@ -1,58 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white"
-    tools:context=".Fragments.YearlyCalendarFragment">
+    android:layout_width="match_parent"
+    android:orientation="vertical">
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_height="0dp"
+        android:layout_weight="0.1">
+
+        <include layout="@layout/actionbar_page" />
+
+    </LinearLayout>
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:background="@color/white"
+        android:layout_weight="0.9"
+        tools:context=".fragments.YearlyCalendarFragment">
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:padding="20dp">
-            <TextView
-                android:id="@+id/previous_year_link_vp"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="0.20"
-                android:textSize="30sp"
-                android:textStyle="bold"
-                android:textAlignment="center"
-                android:text="@string/left_caret"
-                android:textColor="@color/black"/>
-            <TextView
-                android:id = "@+id/year_number_tv"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="0.60"
-                android:textSize="30sp"
-                android:textAlignment="center"
-                android:text="@string/year_number_placeholder"
-                android:textColor="@color/black"/>
-            <TextView
-                android:id="@+id/next_year_link_vp"
-                android:layout_width="0dp"
-                android:layout_weight="0.20"
-                android:textSize="30sp"
-                android:layout_height="match_parent"
-                android:textAlignment="center"
-                android:text="@string/right_caret"
-                android:textStyle="bold"
-                android:textColor="@color/black"/>
+            android:orientation="vertical">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="20dp">
+                <TextView
+                    android:id="@+id/previous_year_link_vp"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="0.20"
+                    android:textSize="30sp"
+                    android:textAlignment="center"
+                    android:text="@string/left_caret"
+                    android:textColor="@color/colorTextPrimary"/>
+                <TextView
+                    android:id = "@+id/year_number_tv"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="0.60"
+                    android:textSize="30sp"
+                    android:textAlignment="center"
+                    android:textColor="@color/colorTextPrimary"/>
+                <TextView
+                    android:id="@+id/next_year_link_vp"
+                    android:layout_width="0dp"
+                    android:layout_weight="0.20"
+                    android:textSize="30sp"
+                    android:layout_height="match_parent"
+                    android:textAlignment="center"
+                    android:text="@string/right_caret"
+                    android:textColor="@color/colorTextPrimary"/>
+            </LinearLayout>
+            <!-- TODO: Update blank fragment layout -->
+            <GridView
+                android:id= "@+id/month_only_grid"
+                android:layout_width="match_parent"
+                android:layout_height = "match_parent"
+                android:columnWidth="100dp"
+                android:numColumns="3"
+                android:verticalSpacing="0.5dp"
+                android:background="#88FFFFFF" />
         </LinearLayout>
-        <!-- TODO: Update blank fragment layout -->
-        <GridView
-            android:id= "@+id/month_only_grid"
-            android:layout_width="match_parent"
-            android:layout_height = "match_parent"
-            android:columnWidth="100dp"
-            android:numColumns="3"
-            android:verticalSpacing="0.5dp"
-            android:background="#88FFFFFF" />
-    </LinearLayout>
-
-</FrameLayout>
+    </FrameLayout>
+</LinearLayout>

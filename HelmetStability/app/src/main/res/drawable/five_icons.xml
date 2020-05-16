@@ -3,31 +3,31 @@
     <item>
         <bitmap
             android:gravity="top|left"
-            android:tint="@android:color/holo_green_dark"
+            android:tint="@android:color/darker_gray"
             android:src="@drawable/ic_dot" />
     </item>
     <item>
         <bitmap
             android:gravity="top|center"
-            android:tint="@android:color/holo_red_dark"
+            android:tint="@android:color/darker_gray"
             android:src="@drawable/ic_dot" />
     </item>
     <item android:left="126dp">
         <bitmap
             android:gravity="top|right"
-            android:tint="@android:color/holo_blue_dark"
+            android:tint="@android:color/darker_gray"
             android:src="@drawable/ic_dot"/>
     </item>
     <item android:top="63dp">
         <bitmap
             android:gravity="bottom|left"
-            android:tint="@android:color/holo_orange_dark"
+            android:tint="@android:color/darker_gray"
             android:src="@drawable/ic_dot" />
     </item>
     <item>
         <bitmap
             android:gravity="bottom|center"
-            android:tint="@android:color/holo_purple"
+            android:tint="@android:color/darker_gray"
             android:src="@drawable/ic_dot" />
     </item>
 

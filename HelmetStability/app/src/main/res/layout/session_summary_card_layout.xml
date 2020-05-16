@@ -4,11 +4,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    app:cardBackgroundColor="@color/orange"
     app:cardCornerRadius="@dimen/card_radius"
-    android:layout_marginTop="1dp"
+    app:cardBackgroundColor="@color/colorPrimary"
     app:contentPadding="@dimen/card_padding"
     app:cardElevation="0dp">
+<!--    app:cardBackgroundColor="@color/orange"-->
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -22,131 +23,339 @@
             android:layout_width="wrap_content"
             android:fontFamily="sans-serif"
             android:text = "@string/card_heading_placeholder"/>
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="16sp"
-                android:text="@string/sample_bullet_point"/>
-            <TextView
-                android:id = "@+id/session_name_card_tv"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="16sp"
-                android:singleLine="true"
-                android:text="@string/card_view_default_tv_text"
-                />
-        </LinearLayout>
+        <TableLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
 
-        <LinearLayout
-            android:layout_width="wrap_content"
+        <TableRow
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            >
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="16sp"
-                android:text="@string/sample_bullet_point"/>
-
-            <TextView
-                android:id="@+id/type_of_activity_tv"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:text="@string/card_view_default_tv_text"
-                android:textSize="16sp" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
+                android:layout_column="1"
+                android:layout_weight="1"
+                android:fontFamily="sans-serif"
+                android:padding="2dp"
+                android:text="@string/session_name_desc"
+                android:textAlignment="viewStart"
+                android:textSize="15sp"
+                android:textStyle="bold" />
             <TextView
-                android:layout_width="wrap_content"
+                android:id="@+id/session_name_card_tv"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/sample_bullet_point"
-                android:textSize="16sp"/>
-            <TextView
-                android:id = "@+id/duration_tv"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/card_view_default_tv_text"
-                android:textSize="16sp"
-                />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/sample_bullet_point"
-                android:textSize="16sp"/>
-            <TextView
-                android:id= "@+id/total_data_tv"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/card_view_default_tv_text"
-                android:textSize="16sp"
-                />
-        </LinearLayout>
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/sample_bullet_point"
-                android:textSize="16sp"/>
-            <TextView
-                android:id= "@+id/sampling_rate_tv"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/card_view_default_tv_text"
-                android:textSize="16sp"
-                />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/sample_bullet_point"
-                android:textSize="16sp"/>
-            <TextView
-                android:id= "@+id/types_of_data_tv"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="16sp"
+                android:layout_column="1"
+                android:layout_weight="6"
+                android:padding="2dp"
+                android:text="@string/algorithm_output1"
+                android:textAlignment="viewStart"
+                android:fontFamily="sans-serif"
+                android:textSize="15sp"
                 android:singleLine="true"
                 />
-        </LinearLayout>
+        </TableRow>
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                >
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_column="1"
+                    android:layout_weight="1"
+                    android:fontFamily="sans-serif"
+                    android:padding="2dp"
+                    android:text="@string/activity_type_desc"
+                    android:textAlignment="viewStart"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+                <TextView
+                    android:id="@+id/type_of_activity_tv"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_column="1"
+                    android:layout_weight="6"
+                    android:padding="2dp"
+                    android:text="@string/algorithm_output1"
+                    android:textAlignment="viewStart"
+                    android:fontFamily="sans-serif"
+                    android:textSize="15sp"
+                    android:singleLine="true"
+                    />
+            </TableRow>
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                >
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_column="1"
+                    android:layout_weight="1"
+                    android:fontFamily="sans-serif"
+                    android:padding="2dp"
+                    android:text="@string/total_duration_desc"
+                    android:textAlignment="viewStart"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+                <TextView
+                    android:id="@+id/duration_tv"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_column="1"
+                    android:layout_weight="6"
+                    android:padding="2dp"
+                    android:text="@string/algorithm_output1"
+                    android:textAlignment="viewStart"
+                    android:fontFamily="sans-serif"
+                    android:textSize="15sp"
+                    android:singleLine="true"
+                    />
+            </TableRow>
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                >
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_column="1"
+                    android:layout_weight="1"
+                    android:fontFamily="sans-serif"
+                    android:padding="2dp"
+                    android:text="@string/total_data_desc"
+                    android:textAlignment="viewStart"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+                <TextView
+                    android:id="@+id/total_data_tv"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_column="1"
+                    android:layout_weight="6"
+                    android:padding="2dp"
+                    android:text="@string/algorithm_output1"
+                    android:textAlignment="viewStart"
+                    android:fontFamily="sans-serif"
+                    android:textSize="15sp"
+                    android:singleLine="true"
+                    />
+            </TableRow>
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                >
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_column="1"
+                    android:layout_weight="1"
+                    android:fontFamily="sans-serif"
+                    android:padding="2dp"
+                    android:text="@string/sampling_frequency_desc"
+                    android:textAlignment="viewStart"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+                <TextView
+                    android:id="@+id/sampling_rate_tv"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_column="1"
+                    android:layout_weight="6"
+                    android:padding="2dp"
+                    android:text="@string/algorithm_output1"
+                    android:textAlignment="viewStart"
+                    android:fontFamily="sans-serif"
+                    android:textSize="15sp"
+                    android:singleLine="true"
+                    />
+            </TableRow>
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                >
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_column="1"
+                    android:layout_weight="1"
+                    android:fontFamily="sans-serif"
+                    android:padding="2dp"
+                    android:text="@string/types_of_data_desc"
+                    android:textAlignment="viewStart"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+                <TextView
+                    android:id="@+id/types_of_data_tv"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_column="1"
+                    android:layout_weight="6"
+                    android:padding="2dp"
+                    android:text="@string/algorithm_output1"
+                    android:textAlignment="viewStart"
+                    android:fontFamily="sans-serif"
+                    android:textSize="15sp"
+                    android:singleLine="true"
+                    />
+            </TableRow>
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                >
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_column="1"
+                    android:layout_weight="1"
+                    android:fontFamily="sans-serif"
+                    android:padding="2dp"
+                    android:text="@string/note_desc"
+                    android:textAlignment="viewStart"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+                <TextView
+                    android:id="@+id/text_note_summary_line_tv"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_column="1"
+                    android:layout_weight="6"
+                    android:padding="2dp"
+                    android:text="@string/algorithm_output1"
+                    android:textAlignment="viewStart"
+                    android:fontFamily="sans-serif"
+                    android:textSize="15sp"
+                    android:singleLine="true"
+                    />
+            </TableRow>
+        </TableLayout>
+<!--        <LinearLayout-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:orientation="horizontal">-->
+<!--&lt;!&ndash;            <TextView&ndash;&gt;-->
+<!--&lt;!&ndash;                android:layout_width="wrap_content"&ndash;&gt;-->
+<!--&lt;!&ndash;                android:layout_height="wrap_content"&ndash;&gt;-->
+<!--&lt;!&ndash;                android:textSize="16sp"&ndash;&gt;-->
+<!--&lt;!&ndash;                android:text="@string/sample_bullet_point"/>&ndash;&gt;-->
+<!--            <TextView-->
+<!--                android:id = "@+id/session_name_card_tv"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:textSize="16sp"-->
+<!--                android:singleLine="true"-->
+<!--                android:text="@string/card_view_default_tv_text"-->
+<!--                />-->
+<!--        </LinearLayout>-->
 
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/sample_bullet_point"
-            android:textSize="16sp"/>
-        <TextView
-            android:id= "@+id/text_note_summary_line_tv"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/default_text_note"
-            android:textSize="16sp"
-            android:singleLine="true"
-            />
-        </LinearLayout>
+<!--        <LinearLayout-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:orientation="horizontal">-->
+<!--&lt;!&ndash;            <TextView&ndash;&gt;-->
+<!--&lt;!&ndash;                android:layout_width="wrap_content"&ndash;&gt;-->
+<!--&lt;!&ndash;                android:layout_height="wrap_content"&ndash;&gt;-->
+<!--&lt;!&ndash;                android:textSize="16sp"&ndash;&gt;-->
+<!--&lt;!&ndash;                android:text="@string/sample_bullet_point"/>&ndash;&gt;-->
+
+<!--            <TextView-->
+<!--                android:id="@+id/type_of_activity_tv"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="match_parent"-->
+<!--                android:text="@string/card_view_default_tv_text"-->
+<!--                android:textSize="16sp" />-->
+<!--        </LinearLayout>-->
+
+<!--        <LinearLayout-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:orientation="horizontal">-->
+<!--&lt;!&ndash;            <TextView&ndash;&gt;-->
+<!--&lt;!&ndash;                android:layout_width="wrap_content"&ndash;&gt;-->
+<!--&lt;!&ndash;                android:layout_height="wrap_content"&ndash;&gt;-->
+<!--&lt;!&ndash;                android:text="@string/sample_bullet_point"&ndash;&gt;-->
+<!--&lt;!&ndash;                android:textSize="16sp"/>&ndash;&gt;-->
+<!--            <TextView-->
+<!--                android:id = "@+id/duration_tv"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:text="@string/card_view_default_tv_text"-->
+<!--                android:textSize="16sp"-->
+<!--                />-->
+<!--        </LinearLayout>-->
+
+<!--        <LinearLayout-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:orientation="horizontal">-->
+<!--&lt;!&ndash;            <TextView&ndash;&gt;-->
+<!--&lt;!&ndash;                android:layout_width="wrap_content"&ndash;&gt;-->
+<!--&lt;!&ndash;                android:layout_height="wrap_content"&ndash;&gt;-->
+<!--&lt;!&ndash;                android:text="@string/sample_bullet_point"&ndash;&gt;-->
+<!--&lt;!&ndash;                android:textSize="16sp"/>&ndash;&gt;-->
+<!--            <TextView-->
+<!--                android:id= "@+id/total_data_tv"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:text="@string/card_view_default_tv_text"-->
+<!--                android:textSize="16sp"-->
+<!--                />-->
+<!--        </LinearLayout>-->
+<!--        <LinearLayout-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:orientation="horizontal">-->
+<!--&lt;!&ndash;            <TextView&ndash;&gt;-->
+<!--&lt;!&ndash;                android:layout_width="wrap_content"&ndash;&gt;-->
+<!--&lt;!&ndash;                android:layout_height="wrap_content"&ndash;&gt;-->
+<!--&lt;!&ndash;                android:text="@string/sample_bullet_point"&ndash;&gt;-->
+<!--&lt;!&ndash;                android:textSize="16sp"/>&ndash;&gt;-->
+<!--            <TextView-->
+<!--                android:id= "@+id/sampling_rate_tv"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:text="@string/card_view_default_tv_text"-->
+<!--                android:textSize="16sp"-->
+<!--                />-->
+<!--        </LinearLayout>-->
+
+<!--        <LinearLayout-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:orientation="horizontal">-->
+<!--&lt;!&ndash;            <TextView&ndash;&gt;-->
+<!--&lt;!&ndash;                android:layout_width="wrap_content"&ndash;&gt;-->
+<!--&lt;!&ndash;                android:layout_height="wrap_content"&ndash;&gt;-->
+<!--&lt;!&ndash;                android:text="@string/sample_bullet_point"&ndash;&gt;-->
+<!--&lt;!&ndash;                android:textSize="16sp"/>&ndash;&gt;-->
+<!--            <TextView-->
+<!--                android:id= "@+id/types_of_data_tv"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:textSize="16sp"-->
+<!--                android:singleLine="true"-->
+<!--                />-->
+<!--        </LinearLayout>-->
+
+<!--    <LinearLayout-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:orientation="horizontal">-->
+<!--&lt;!&ndash;        <TextView&ndash;&gt;-->
+<!--&lt;!&ndash;            android:layout_width="wrap_content"&ndash;&gt;-->
+<!--&lt;!&ndash;            android:layout_height="wrap_content"&ndash;&gt;-->
+<!--&lt;!&ndash;            android:text="@string/sample_bullet_point"&ndash;&gt;-->
+<!--&lt;!&ndash;            android:textSize="16sp"/>&ndash;&gt;-->
+<!--        <TextView-->
+<!--            android:id= "@+id/text_note_summary_line_tv"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:text="@string/default_text_note"-->
+<!--            android:textSize="16sp"-->
+<!--            android:singleLine="true"-->
+<!--            />-->
+<!--        </LinearLayout>-->
     </LinearLayout>
 </androidx.cardview.widget.CardView>

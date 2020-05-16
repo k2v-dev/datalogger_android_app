@@ -1,8 +1,7 @@
-package com.decalthon.helmet.stability.Adapters;
+package com.decalthon.helmet.stability.adapters;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,14 +10,13 @@ import android.widget.TextView;
 
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
-import androidx.viewpager2.widget.ViewPager2;
 
-import com.decalthon.helmet.stability.Activities.MainActivity;
-import com.decalthon.helmet.stability.Fragments.CalendarPagerFragment;
-import com.decalthon.helmet.stability.Fragments.MonthlyCalendarFragment;
-import com.decalthon.helmet.stability.Fragments.YearlyCalendarFragment;
+import com.decalthon.helmet.stability.activities.MainActivity;
+import com.decalthon.helmet.stability.fragments.CalendarPagerFragment;
+import com.decalthon.helmet.stability.fragments.MonthlyCalendarFragment;
+import com.decalthon.helmet.stability.fragments.YearlyCalendarFragment;
 import com.decalthon.helmet.stability.R;
-import com.decalthon.helmet.stability.Utilities.CalendarUtils;
+import com.decalthon.helmet.stability.utilities.CalendarUtils;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -30,8 +28,9 @@ public class MonthGridAdapter extends BaseAdapter {
     private static String TAG = MonthGridAdapter.class.getSimpleName();
 
     private final String months[];
+    private int mYearPassed;
 
-    public MonthGridAdapter(Context context, String [] months){
+    public MonthGridAdapter(Context context, String[] months) {
         this.mContext = context;
         this.months = months;
     }
@@ -69,6 +68,14 @@ public class MonthGridAdapter extends BaseAdapter {
         return 0;
     }
 
+    public int getmYearPassed() {
+        return mYearPassed;
+    }
+
+    public void setmYearPassed(int mYearPassed) {
+        this.mYearPassed = mYearPassed;
+    }
+
     /**
      * Get a View that displays the data at the specified position in the data set. You can either
      * create a View manually or inflate it from an XML layout file. When the View is inflated, the
@@ -90,28 +97,6 @@ public class MonthGridAdapter extends BaseAdapter {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         View parentView = (View) parent.getParent();
-        TextView leftCaret = parentView.findViewById(R.id.previous_year_link_vp);
-        TextView rightCaret = parentView.findViewById(R.id.next_year_link_vp);
-
-        leftCaret.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                ViewPager2 parentPager = parentView.getRootView().findViewById(R.id.calendar_pager);
-                int currentPosition = parentPager.getCurrentItem();
-                parentPager.setCurrentItem(currentPosition - 1);
-            }
-        });
-
-        rightCaret.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                ViewPager2 parentPager = parentView.getRootView().findViewById(R.id.calendar_pager);
-                int currentPosition = parentPager.getCurrentItem();
-                parentPager.setCurrentItem(currentPosition + 1);
-            }
-        });
-
         TextView monthTextView = new TextView(mContext);
 
         monthTextView.setLayoutParams(new ViewGroup.LayoutParams(
@@ -119,23 +104,21 @@ public class MonthGridAdapter extends BaseAdapter {
                 ViewGroup.LayoutParams.MATCH_PARENT));
         monthTextView.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
         monthTextView.setBackgroundColor(Color.parseColor("#FFFFFFFF"));
-        monthTextView.setPadding(64,80,64,80);
+        monthTextView.setPadding(64, 80, 64, 80);
         monthTextView.setText(months[position]);
         monthTextView.setTextColor(Color.parseColor("#33000000"));
-        for(Map.Entry<Date,Integer> entry: CalendarUtils.dateMap.entrySet()){
+        for (Map.Entry<Date, Integer> entry : CalendarUtils.dateMap.entrySet()) {
             Calendar calendar = Calendar.getInstance();
             calendar.setTime(entry.getKey());
-            TextView currentYear =
-                    parent.getRootView().findViewById(R.id.year_number_tv);
-            if(String.valueOf(calendar.get(Calendar.YEAR)).equals(currentYear.getText().toString())){
-                if( ( position + 1) == CalendarUtils.dateMap.get(entry.getKey())){
-//                    monthTextView.setBackgroundColor(Color.YELLOW);
-                    monthTextView.setTextColor(Color.BLACK);
+            if ( calendar.get(Calendar.YEAR) ==  mYearPassed ) {
+                if ((position + 1) == CalendarUtils.dateMap.get(entry.getKey())) {
+                    monthTextView.setTextColor(mContext.getResources().getColor(R.color.colorTextPrimary));
                     monthTextView.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
+                            Calendar calendar = Calendar.getInstance();
                             Fragment monthPager =
-                                    CalendarPagerFragment.newInstance(MonthlyCalendarFragment.class.getSimpleName(),String.valueOf(position));
+                                    CalendarPagerFragment.newInstance(MonthlyCalendarFragment.class.getSimpleName(), position,mYearPassed);
                             FragmentTransaction fragmentTransaction =
                                     MainActivity.shared().getSupportFragmentManager().beginTransaction();
                             fragmentTransaction.add(R.id.main_activity,

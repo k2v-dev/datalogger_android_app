@@ -1,11 +1,6 @@
-package com.decalthon.helmet.stability.model.NineAxisModels;
+package com.decalthon.helmet.stability.model.nineaxismodels;
 
-import android.os.Build;
-
-import androidx.annotation.RequiresApi;
 import androidx.room.ColumnInfo;
-
-import java.util.concurrent.ThreadLocalRandom;
 
 public class AccelerometerData {
 

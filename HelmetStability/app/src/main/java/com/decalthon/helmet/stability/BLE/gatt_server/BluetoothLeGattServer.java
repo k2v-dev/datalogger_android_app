@@ -1,4 +1,4 @@
-package com.decalthon.helmet.stability.BLE.gatt_server;
+package com.decalthon.helmet.stability.ble.gatt_server;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;

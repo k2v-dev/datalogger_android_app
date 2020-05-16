@@ -1,14 +1,14 @@
-package com.decalthon.helmet.stability.model.NineAxisModels;
+package com.decalthon.helmet.stability.model.nineaxismodels;
 
 import android.content.Context;
 
-import com.decalthon.helmet.stability.Activities.MainActivity;
-import com.decalthon.helmet.stability.AsyncTasks.ImuAsyncTasks.GetDevice1ThreeAxisSensorDataAsyncTask;
-import com.decalthon.helmet.stability.AsyncTasks.ImuAsyncTasks.GetDevice2AccNineAxisSensorDataAsyncTask;
-import com.decalthon.helmet.stability.AsyncTasks.ImuAsyncTasks.GetDevice2GyroNineAxisSensorDataAsyncTask;
-import com.decalthon.helmet.stability.AsyncTasks.ImuAsyncTasks.GetDevice2MagnetoNineAxisSensorDataAsyncTask;
-import com.decalthon.helmet.stability.AsyncTasks.ImuAsyncTasks.GetDevice2ThreeAxisSensorDataAsyncTask;
-import com.decalthon.helmet.stability.Fragments.CustomGraphFragment;
+import com.decalthon.helmet.stability.activities.MainActivity;
+import com.decalthon.helmet.stability.asynctasks.imuasynctasks.GetDevice1ThreeAxisSensorDataAsyncTask;
+import com.decalthon.helmet.stability.asynctasks.imuasynctasks.GetDevice2AccNineAxisSensorDataAsyncTask;
+import com.decalthon.helmet.stability.asynctasks.imuasynctasks.GetDevice2GyroNineAxisSensorDataAsyncTask;
+import com.decalthon.helmet.stability.asynctasks.imuasynctasks.GetDevice2MagnetoNineAxisSensorDataAsyncTask;
+import com.decalthon.helmet.stability.asynctasks.imuasynctasks.GetDevice2ThreeAxisSensorDataAsyncTask;
+import com.decalthon.helmet.stability.fragments.CustomGraphFragment;
 import com.decalthon.helmet.stability.R;
 
 import java.util.ArrayList;
@@ -71,7 +71,7 @@ public class QueryDbAPI {
         try{
             if(queryParameters.chartType == ChartType.ACC){
                 maps = CustomGraphFragment.SAVE_TAB_DATA.get(queryParameters.fragmentType).accChartData;
-            }else if(queryParameters.chartType == ChartType.GYRO){
+            }else if(queryParameters.chartType == ChartType.GYR){
                 maps = CustomGraphFragment.SAVE_TAB_DATA.get(queryParameters.fragmentType).gyrChartData;
             }else if(queryParameters.chartType == ChartType.MAG){
                 maps = CustomGraphFragment.SAVE_TAB_DATA.get(queryParameters.fragmentType).magChartData;

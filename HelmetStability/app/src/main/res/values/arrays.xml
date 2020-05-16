@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string-array name="indoor_sports_array">
+    <string-array name="outdoor_sports_array">
         <item>Running</item>
         <item>Cycling</item>
         <item>Walking-Regular</item>
@@ -14,7 +14,7 @@
         <item>Tennis</item>
         <item>Other</item>
     </string-array>
-    <integer-array name="indoor_sports_array_code">
+    <integer-array name="outdoor_sports_array_code">
         <item>10</item>
         <item>11</item>
         <item>12</item>
@@ -28,7 +28,7 @@
         <item>20</item>
         <item>21</item>
     </integer-array>
-    <string-array name="outdoor_sports_array" >
+    <string-array name="indoor_sports_array" >
         <item>Running</item>
         <item>Cycling</item>
         <item>Fitness</item>
@@ -39,7 +39,7 @@
         <item>Tennis</item>
         <item>Other</item>
     </string-array>
-    <integer-array name="outdoor_sports_array_code" >
+    <integer-array name="indoor_sports_array_code" >
         <item>51</item>
         <item>52</item>
         <item>53</item>
@@ -49,5 +49,15 @@
         <item>57</item>
         <item>58</item>
         <item>59</item>
+    </integer-array>
+    <string-array name="fireware_name_array" >
+        <item>Standard Firmware</item>
+        <item>Slippage Angle</item>
+        <item>Force Monitoring</item>
+    </string-array>
+    <integer-array name="firmware_type_array" >
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
     </integer-array>
 </resources>

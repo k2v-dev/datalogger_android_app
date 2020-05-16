@@ -1,4 +1,4 @@
-package com.decalthon.helmet.stability.model.UIModels;
+package com.decalthon.helmet.stability.model.uimodels;
 
 import android.content.Context;
 import android.util.AttributeSet;

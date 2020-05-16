@@ -1,7 +1,6 @@
-package com.decalthon.helmet.stability.Fragments;
+package com.decalthon.helmet.stability.fragments;
 
 import android.content.Context;
-import android.os.AsyncTask;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -17,17 +16,16 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
-import com.decalthon.helmet.stability.Activities.MainActivity;
-import com.decalthon.helmet.stability.Adapters.SessionSummaryListAdapter;
-import com.decalthon.helmet.stability.AsyncTasks.SessionInfoAsyncTasks.GetDaySessionSummariesAsyncTask;
-import com.decalthon.helmet.stability.DB.Entities.SessionSummary;
-import com.decalthon.helmet.stability.DB.SessionCdlDb;
+import com.decalthon.helmet.stability.activities.MainActivity;
+import com.decalthon.helmet.stability.adapters.SessionSummaryListAdapter;
+import com.decalthon.helmet.stability.asynctasks.sessioninfoasynctasks.GetDaySessionSummariesAsyncTask;
+import com.decalthon.helmet.stability.database.entities.SessionSummary;
 import com.decalthon.helmet.stability.R;
-import com.decalthon.helmet.stability.Utilities.Constants;
+import com.decalthon.helmet.stability.utilities.Common;
+import com.decalthon.helmet.stability.utilities.Constants;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 

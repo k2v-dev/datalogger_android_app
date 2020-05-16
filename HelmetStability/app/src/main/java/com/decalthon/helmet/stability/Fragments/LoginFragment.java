@@ -1,4 +1,4 @@
-package com.decalthon.helmet.stability.Fragments;
+package com.decalthon.helmet.stability.fragments;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -13,19 +13,17 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.chaos.view.PinView;
-import com.decalthon.helmet.stability.Activities.MainActivity;
 import com.decalthon.helmet.stability.R;
-import com.decalthon.helmet.stability.Utilities.Common;
-import com.decalthon.helmet.stability.Utilities.Constants;
+import com.decalthon.helmet.stability.firestore.entities.impl.CollectiveSummaryImpl;
+import com.decalthon.helmet.stability.utilities.Common;
+import com.decalthon.helmet.stability.utilities.Constants;
 import com.decalthon.helmet.stability.firestore.FirebaseStorageManager;
 import com.decalthon.helmet.stability.firestore.entities.impl.ProfileImpl;
 import com.decalthon.helmet.stability.model.InternetCheck;
@@ -122,6 +120,7 @@ public class LoginFragment extends Fragment implements View.OnClickListener{
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
         // Inflate the layout for this fragment
         view = inflater.inflate(R.layout.fragment_login, container, false);
         topText = view.findViewById(R.id.topText);
@@ -165,7 +164,7 @@ public class LoginFragment extends Fragment implements View.OnClickListener{
                                                }
                                            }
         );
-
+        Common.dismiss_wait_bar();
         return view;
     }
 
@@ -329,7 +328,7 @@ public class LoginFragment extends Fragment implements View.OnClickListener{
             loginBtn.setText(getResources().getString(R.string.verify));
             first.setVisibility(View.GONE);
             second.setVisibility(View.VISIBLE);
-            topText.setText(getString(R.string.enter_otp_msg));
+            topText.setText(getString(R.string.enter_otp));
             register_now_tv.setVisibility(View.INVISIBLE);
         }
     };
@@ -366,18 +365,26 @@ public class LoginFragment extends Fragment implements View.OnClickListener{
                             userPreferences.saveName(userInfo.userName);
                             userPreferences.saveUserID(userId);
                             new ProfileImpl(getContext()).getProfileByUserID(userId);
+                            new CollectiveSummaryImpl(getContext()).getUserDataByUserID(userId);
                             FirebaseStorageManager.downloadImage(getContext(), userId, new FirebaseStorageManager.DownloadListener() {
                                 @Override
                                 public void onComplete(boolean isSuccess, String filepath) {
                                     if(isSuccess){
                                         userPreferences.saveProfilePhoto(filepath);
-
+                                        //Todo: Update the photo in action bar
+                                    }
+                                    Constants.isPhotoChanged = true;
+                                    if(getActivity() != null){
+                                        getActivity().finish();
                                     }
                                 }
+
                             });
-                            FragmentManager fm = getActivity()
-                                    .getSupportFragmentManager();
-                            fm.popBackStack();
+
+
+//                            FragmentManager fm = getActivity()
+//                                    .getSupportFragmentManager();
+//                            fm.popBackStack(HomeFragment.class.getSimpleName(),FragmentManager.POP_BACK_STACK_INCLUSIVE);
 //                            MainActivity.shared().onBackPressed();
                             /*try{
                                 UserInfoService userInfoService = new UserInfoService();

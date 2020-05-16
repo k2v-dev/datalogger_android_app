@@ -1,4 +1,4 @@
-package com.decalthon.helmet.stability.Utilities;
+package com.decalthon.helmet.stability.utilities;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;

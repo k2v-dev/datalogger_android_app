@@ -1,11 +1,10 @@
-package com.decalthon.helmet.stability.Utilities;
+package com.decalthon.helmet.stability.utilities;
 
 import android.app.Activity;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.text.TextUtils;
-import android.util.Log;
 import android.util.Patterns;
 import android.view.MotionEvent;
 import android.view.View;

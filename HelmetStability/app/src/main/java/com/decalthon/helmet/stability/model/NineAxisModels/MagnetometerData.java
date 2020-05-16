@@ -1,8 +1,6 @@
-package com.decalthon.helmet.stability.model.NineAxisModels;
+package com.decalthon.helmet.stability.model.nineaxismodels;
 
 import androidx.room.ColumnInfo;
-
-import java.util.concurrent.ThreadLocalRandom;
 
 public  class MagnetometerData {
     @ColumnInfo(name = "mx_9axis_dev1")

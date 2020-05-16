@@ -1,8 +1,6 @@
-package com.decalthon.helmet.stability.model.NineAxisModels;
+package com.decalthon.helmet.stability.model.nineaxismodels;
 
 import androidx.room.ColumnInfo;
-
-import java.util.concurrent.ThreadLocalRandom;
 
 public  class GyroscopeData {
     @ColumnInfo(name = "gx_9axis_dev1")

@@ -3,11 +3,9 @@ package com.decalthon.helmet.stability.preferences;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import com.decalthon.helmet.stability.Utilities.Constants;
+import com.decalthon.helmet.stability.utilities.Constants;
 
 import java.sql.Timestamp;
-import java.time.LocalDate;
-import java.time.Period;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -115,7 +113,7 @@ public class ProfilePreferences {
      * @return user's dob
      */
     public Date getDob() {
-        long ts = sharedpreferences.getLong(Constants.DOB, 0);
+        long ts = sharedpreferences.getLong(Constants.DOB, new Date().getTime());
         Timestamp timestamp = new Timestamp(ts*1000);
         Date date=new Date(timestamp.getTime());
         return date;
@@ -126,9 +124,10 @@ public class ProfilePreferences {
      * @return user's dob
      */
     public Integer getAge() {
-        long ts = sharedpreferences.getLong(Constants.DOB, 0);
-        Timestamp timestamp = new Timestamp(ts*1000);
-        Date date=new Date(timestamp.getTime());
+        long ts = sharedpreferences.getLong(Constants.DOB,  new Date().getTime());
+
+       // Timestamp timestamp = new Timestamp(ts*1000);
+        Date date=new Date(ts*(1000L));
 
         Calendar dob = Calendar.getInstance();
         dob.setTime(date);

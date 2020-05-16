@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id = "@+id/year_pager_fragment"
-    tools:context=".Fragments.YearPagerFragment">
+    tools:context=".fragments.YearPagerFragment">
 
     <!-- TODO: Update blank fragment layout -->
     <androidx.viewpager2.widget.ViewPager2

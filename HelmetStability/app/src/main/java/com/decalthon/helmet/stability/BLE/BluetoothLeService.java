@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.decalthon.helmet.stability.BLE;
+package com.decalthon.helmet.stability.ble;
 
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
@@ -32,14 +32,13 @@ import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
 
-import com.decalthon.helmet.stability.Activities.MainActivity;
-import com.decalthon.helmet.stability.BLE.gatt_server.BluetoothLeGattServer;
+import com.decalthon.helmet.stability.activities.MainActivity;
 import com.decalthon.helmet.stability.R;
-import com.decalthon.helmet.stability.Utilities.Common;
-import com.decalthon.helmet.stability.Utilities.Constants;
-import com.decalthon.helmet.stability.model.DeviceModels.BatteryLevel;
-import com.decalthon.helmet.stability.model.DeviceModels.DeviceData;
-import com.decalthon.helmet.stability.model.DeviceModels.DeviceDetails;
+import com.decalthon.helmet.stability.utilities.Common;
+import com.decalthon.helmet.stability.utilities.Constants;
+import com.decalthon.helmet.stability.model.devicemodels.BatteryLevel;
+import com.decalthon.helmet.stability.model.devicemodels.DeviceData;
+import com.decalthon.helmet.stability.model.devicemodels.DeviceDetails;
 
 import java.util.HashMap;
 import java.util.Map;

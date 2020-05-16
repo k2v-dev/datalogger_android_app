@@ -2,8 +2,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="horizontal"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
     android:layout_marginTop="24dp"
     android:layout_marginBottom="24dp">
 
@@ -11,7 +12,6 @@
         android:id="@+id/timeline"
         android:layout_width="wrap_content"
         android:layout_height="40dp"
-        android:layout_marginStart="30dp"
         app:endLineColor="@color/blue"
         app:lineStyle="normal"
         app:lineWidth="2.5dp"

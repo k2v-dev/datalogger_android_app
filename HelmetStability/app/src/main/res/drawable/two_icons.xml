@@ -3,14 +3,14 @@
     <item>
         <bitmap
             android:gravity="top|left"
-            android:tint="@android:color/holo_green_dark"
+            android:tint="@android:color/darker_gray"
             android:src="@drawable/ic_dot" />
 
     </item>
     <item android:left="63dp">
         <bitmap
             android:gravity="center"
-            android:tint="@android:color/holo_red_dark"
+            android:tint="@android:color/darker_gray"
             android:src="@drawable/ic_dot" />
     </item>
 

@@ -1,22 +1,19 @@
 package com.decalthon.helmet.stability.workmanager;
 
 import android.content.Context;
-import android.os.StatFs;
 import android.util.Log;
 
-import com.decalthon.helmet.stability.Utilities.Constants;
 import com.decalthon.helmet.stability.workmanager.worker.CsvGenerationWorker;
 import com.decalthon.helmet.stability.workmanager.worker.CsvUploadingWorker;
+import com.decalthon.helmet.stability.workmanager.worker.DeleteOldSessionWorker;
 import com.decalthon.helmet.stability.workmanager.worker.TestWorker;
 import com.google.common.util.concurrent.ListenableFuture;
 
-import java.io.File;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import androidx.work.Constraints;
-import androidx.work.Data;
 import androidx.work.ExistingPeriodicWorkPolicy;
 import androidx.work.ExistingWorkPolicy;
 import androidx.work.NetworkType;
@@ -26,9 +23,11 @@ import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 
 public class WorkMgrHelper {
-    private static long TIME_INTERVAL_IN_MIN =  120;
+    private static long TIME_INTERVAL_IN_MIN =  10;
+    private static long TIME_INTERVAL_IN_SEC =  600;
     private final String CSV_UPLOAD_WORKER = "Csv_Uploading_Worker";
     private final String CSV_GENERATE_WORKER = "Csv_Generation_Worker";
+    private final String DELETE_SESSION_WORKER = "DELETE_SESSION_WORKER";
     private Context context;
 
     public WorkMgrHelper(Context context) {
@@ -128,10 +127,10 @@ public class WorkMgrHelper {
                 new OneTimeWorkRequest.Builder(CsvUploadingWorker.class)
 //                        .setInputData(data)
                         .setConstraints(constraints)
-                        .setInitialDelay(10, TimeUnit.SECONDS)
+                        .setInitialDelay(30, TimeUnit.SECONDS)
                         .build();
         WorkManager instance = WorkManager.getInstance(context);
-        instance.enqueueUniqueWork(CSV_UPLOAD_WORKER, ExistingWorkPolicy.KEEP , workRequest);
+        instance.enqueueUniqueWork(CSV_UPLOAD_WORKER, ExistingWorkPolicy.REPLACE , workRequest);
     }
 
     /**
@@ -152,10 +151,33 @@ public class WorkMgrHelper {
                 new OneTimeWorkRequest.Builder(CsvGenerationWorker.class)
 //                        .setInputData(data)
                         .setConstraints(constraints)
-                        .setInitialDelay(600, TimeUnit.SECONDS)
+                        .setInitialDelay(TIME_INTERVAL_IN_SEC, TimeUnit.SECONDS)
                         .build();
         WorkManager instance = WorkManager.getInstance(context);
         instance.enqueueUniqueWork(CSV_GENERATE_WORKER, ExistingWorkPolicy.KEEP , workRequest);
+    }
+
+    /**
+     * One Time Request for uploading pending csv files.
+     */
+    public void oneTimeDeleteSessionRequest(){
+        if(isWorkScheduled(DELETE_SESSION_WORKER)){
+            Log.d("oneTimeCSVGeneration", DELETE_SESSION_WORKER+" is already pending or running");
+            return;
+        }
+        //creating constraints
+        Constraints constraints = new Constraints.Builder()
+                .setRequiresBatteryNotLow(true)
+                .build();
+
+        final OneTimeWorkRequest workRequest =
+                new OneTimeWorkRequest.Builder(DeleteOldSessionWorker.class)
+//                        .setInputData(data)
+                        .setConstraints(constraints)
+                        .setInitialDelay(60, TimeUnit.SECONDS)
+                        .build();
+        WorkManager instance = WorkManager.getInstance(context);
+        instance.enqueueUniqueWork(DELETE_SESSION_WORKER, ExistingWorkPolicy.KEEP , workRequest);
     }
 
 }

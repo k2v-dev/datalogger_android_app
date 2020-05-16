@@ -1,6 +1,6 @@
-package com.decalthon.helmet.stability.model.DeviceModels;
+package com.decalthon.helmet.stability.model.devicemodels;
 
-import com.decalthon.helmet.stability.Utilities.Constants;
+import com.decalthon.helmet.stability.utilities.Constants;
 
 // Pojo class for Helmet data
 public class HelmetData {

@@ -1,8 +1,8 @@
-package com.decalthon.helmet.stability.model.DeviceModels;
+package com.decalthon.helmet.stability.model.devicemodels;
 
 import androidx.annotation.NonNull;
 
-import com.decalthon.helmet.stability.Utilities.Constants;
+import com.decalthon.helmet.stability.utilities.Constants;
 
 
 // It has data of helmet , sensory watch and heart rate belt.

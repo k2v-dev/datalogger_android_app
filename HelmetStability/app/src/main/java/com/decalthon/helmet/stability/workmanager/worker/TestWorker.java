@@ -3,7 +3,7 @@ package com.decalthon.helmet.stability.workmanager.worker;
 import android.content.Context;
 import android.util.Log;
 
-import com.decalthon.helmet.stability.Utilities.Common;
+import com.decalthon.helmet.stability.utilities.Common;
 
 import java.util.Date;
 

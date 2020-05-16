@@ -1,11 +1,13 @@
-package com.decalthon.helmet.stability.Fragments;
+package com.decalthon.helmet.stability.fragments;
 
 import android.Manifest;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -13,6 +15,7 @@ import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
+import android.text.Html;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Gravity;
@@ -24,39 +27,51 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.RadioButton;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
-import com.decalthon.helmet.stability.Activities.MainActivity;
-import com.decalthon.helmet.stability.AsyncTasks.SessionInfoAsyncTasks.GetLatestSessionSummaryAsyncTask;
-import com.decalthon.helmet.stability.AsyncTasks.ImuAsyncTasks.GetCollectiveSummaryDetailsAsyncTask;
-import com.decalthon.helmet.stability.BLE.ButtonBox_Parser;
-import com.decalthon.helmet.stability.BLE.Device1_Parser;
-import com.decalthon.helmet.stability.BLE.Device_Parser;
-import com.decalthon.helmet.stability.DB.Entities.SessionSummary;
+import com.decalthon.helmet.stability.MainApplication;
+import com.decalthon.helmet.stability.activities.LoginActivity;
+import com.decalthon.helmet.stability.activities.MainActivity;
+import com.decalthon.helmet.stability.activities.ProfileActivity;
+import com.decalthon.helmet.stability.asynctasks.imuasynctasks.GetCollectiveSummaryDetailsAsyncTask;
+import com.decalthon.helmet.stability.asynctasks.sessioninfoasynctasks.GetLatestSessionSummaryAsyncTask;
+import com.decalthon.helmet.stability.ble.ButtonBox_Parser;
+import com.decalthon.helmet.stability.ble.Device1_Parser;
+import com.decalthon.helmet.stability.ble.Device_Parser;
+import com.decalthon.helmet.stability.database.DatabaseHelper;
+import com.decalthon.helmet.stability.database.entities.SessionSummary;
 import com.decalthon.helmet.stability.R;
-import com.decalthon.helmet.stability.Utilities.Common;
-import com.decalthon.helmet.stability.Utilities.Constants;
-import com.decalthon.helmet.stability.Utilities.CsvGenerator;
-import com.decalthon.helmet.stability.model.DeviceModels.DeviceDetails;
-import com.decalthon.helmet.stability.model.DeviceModels.MemoryUsage;
-import com.decalthon.helmet.stability.model.Generic.TimeFmt;
+import com.decalthon.helmet.stability.firestore.entities.impl.CollectiveSummaryImpl;
+import com.decalthon.helmet.stability.model.devicemodels.DeviceDetails;
+import com.decalthon.helmet.stability.preferences.CollectiveSummaryPreference;
+import com.decalthon.helmet.stability.preferences.CsvPreference;
+import com.decalthon.helmet.stability.utilities.Common;
+import com.decalthon.helmet.stability.utilities.Constants;
+import com.decalthon.helmet.stability.model.devicemodels.MemoryUsage;
+import com.decalthon.helmet.stability.model.generic.TimeFmt;
 import com.decalthon.helmet.stability.preferences.DevicePreferences;
 import com.decalthon.helmet.stability.preferences.ProfilePreferences;
 import com.decalthon.helmet.stability.preferences.UserPreferences;
-import com.google.firebase.FirebaseApp;
+import com.decalthon.helmet.stability.utilities.CsvGenerator;
+import com.decalthon.helmet.stability.webservice.requests.CollectiveSummaryReq;
+import com.decalthon.helmet.stability.workmanager.WorkMgrHelper;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -67,9 +82,9 @@ import de.greenrobot.event.EventBus;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 import static androidx.core.content.ContextCompat.checkSelfPermission;
-import static androidx.core.content.ContextCompat.getDrawable;
-import static com.decalthon.helmet.stability.Utilities.ViewDimUtils.applyDim;
-import static com.decalthon.helmet.stability.Utilities.ViewDimUtils.clearDim;
+import static androidx.core.content.ContextCompat.getColor;
+import static com.decalthon.helmet.stability.utilities.ViewDimUtils.applyDim;
+import static com.decalthon.helmet.stability.utilities.ViewDimUtils.clearDim;
 
 
 /**
@@ -92,12 +107,18 @@ public class HomeFragment extends Fragment  {
     private static int percentage = 0;
     private static boolean isDone = false;
     private View actionbarView;
-    private String activityType = "";
-    private  SessionSummary latestSessionSummary;
+    private String mActivityType = "";
+    private String prev_indoor_selected = "", prev_outdoor_selected = "";
+//    private  SessionSummary mLatestSessionSummary;
     //A BLE device list adapter instance
     private BluetoothAdapter mBluetoothAdapter;
+    private CircleImageView mProfileImageView =null;
     //Event bus instance use for onEvent actions
     private EventBus mBus = EventBus.getDefault();
+    private boolean mIsStopActivity = true;
+    private View mHomeFragmentView;
+
+    SessionSummary mlatestSessionSummary = null;
 
     public HomeFragment() {
         // Required empty public constructor
@@ -137,33 +158,37 @@ public class HomeFragment extends Fragment  {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        mHomeFragmentView = view;
         actionbarView = view.findViewById(R.id.home_action_bar);
 
-        CircleImageView profileImageView = view.findViewById(R.id.profile_btn);
+        mProfileImageView = view.findViewById(R.id.profile_btn);
 
         //Restoration of profile photo from shared preferences
         UserPreferences userPreferences = UserPreferences.getInstance(getContext());
 
 //        profileImageView.setImageBitmap(BitmapFactory.decodeFile
 //                (userPreferences.getProfilePhoto()));
-        if(userPreferences.getProfilePhoto().equals("default")){
-            profileImageView.setImageResource(R.mipmap.anonymous_round);
+        if(userPreferences.getProfilePhoto().equals(Constants.DEFAULT_PATH)){
+            mProfileImageView.setImageResource(R.mipmap.anonymous_round);
         }
         else{
-            profileImageView.setImageBitmap(BitmapFactory.decodeFile
+            mProfileImageView.setImageBitmap(BitmapFactory.decodeFile
                     (userPreferences.getProfilePhoto()));
         }
         //Navigation to profile edit page
-        profileImageView.setOnClickListener(new View.OnClickListener() {
+        mProfileImageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Fragment profileFragment = new ProfileFragment();
-                FragmentTransaction fragmentTransaction =
-                        getFragmentManager().beginTransaction();
-                fragmentTransaction.replace(HomeFragment.this.getId(),
-                        profileFragment, ProfileFragment.class.getSimpleName());
-                fragmentTransaction.addToBackStack(HomeFragment.class.getSimpleName());
-                fragmentTransaction.commit();
+//                Fragment profileFragment = new ProfileFragment();
+//                FragmentTransaction fragmentTransaction =
+//                        getFragmentManager().beginTransaction();
+//                fragmentTransaction.replace(HomeFragment.this.getId(),
+//                        profileFragment, ProfileFragment.class.getSimpleName());
+//                fragmentTransaction.addToBackStack(HomeFragment.class.getSimpleName());
+//                fragmentTransaction.commit();
+                Intent in = new Intent(getActivity(), ProfileActivity.class);
+
+                startActivity(in);
             }
         });
 
@@ -187,14 +212,51 @@ public class HomeFragment extends Fragment  {
         gpsSpeedShortcut.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                DeviceDetails deviceDetails = Constants.DEVICE_MAPS.get(getContext().getResources().getString(R.string.device1_tv));
-                if(deviceDetails == null || deviceDetails.mac_address == null || !deviceDetails.connected) {
-                    Common.okAlertMessage(getContext(), getString(R.string.connect_helmet_dev));
-                    return;
+
+                if(mIsStopActivity){
+
+                    DeviceDetails deviceDetails = Constants.DEVICE_MAPS.get(getContext().getResources().getString(R.string.device1_tv));
+                    if(deviceDetails == null || deviceDetails.mac_address == null || !deviceDetails.connected) {
+                        Common.okAlertMessage(getContext(), getString(R.string.connect_helmet_dev));
+                        return;
+                    }else{
+                        Common.show_wait_bar(getContext(),"Wait for acknowledgement\nfrom Helmet.");
+                        Device1_Parser.sendStopCmd(getContext());
+                        Device1_Parser.sendMemoryCmd(getContext());
+                    }
+
+//                    inflatePopup(getContext());
+
                 }else{
-                    Device1_Parser.sendMemoryCmd(getContext());
-                    Common.show_wait_bar(getContext(),"Wait for acknowledgement\nfrom Helmet.");
+                    try{
+                        AlertDialog dialog = new AlertDialog.Builder(getContext())
+                                .setTitle("Alert")
+                                .setMessage(getResources().getString(R.string.stop_activity))
+                                .setNegativeButton("No", null)
+                                .setPositiveButton("Yes",new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        try{
+                                            mIsStopActivity = !mIsStopActivity;
+                                            gpsSpeedShortcut.setImageResource(R.mipmap.start_session_round);
+                                            Device1_Parser.sendStopActivityCmd(getContext());
+                                            MainActivity.shared().onBackPressed();
+                                        }catch (Exception ex){
+
+                                        }
+
+                                    }
+                                })
+                                .create();
+                        dialog.show();
+                        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(ContextCompat.getColor(getContext(), R.color.black)); // Set text color to blue color
+                        dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(ContextCompat.getColor(getContext(), R.color.black));  // Set text color to ligh gray color
+
+                    }catch (Exception e){
+
+                    }
                 }
+
             }
         });
 
@@ -216,233 +278,37 @@ public class HomeFragment extends Fragment  {
             }
         });
 
-
+//        String userid = UserPreferences.getInstance(getContext()).getUserID();
+//
+//        new CollectiveSummaryImpl(getContext()).getUserDataByUserID(userid);
+//        Common.wait(100);
         //Latest session summary, topmost card
-        View latestSessionSummaryView =
-                view.findViewById(R.id.latest_activity_summary);
-        if (latestSessionSummary == null) {
-            try {
-                latestSessionSummary =
-                        new GetLatestSessionSummaryAsyncTask().execute().get();
-            } catch (ExecutionException | InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-        TimeFmt timeFmt;
-        String total_duration;
-        if(latestSessionSummary != null){
-            //Setting card title as date and time in locale setting
-            TextView title_text = latestSessionSummaryView.findViewById(R.id.card_title);
-            Date date = new Date(latestSessionSummary.getDate());
-            String dateString = new SimpleDateFormat("MMM dd YYYY HH:MM:SS EEE",
-                    Locale.getDefault()).format(date);
-            title_text.setText(dateString);
+        update_session_card();
+        //Update collective summary card
+        update_collective_summary();
 
-            //Setting session name as retrieved from the DB
-            TextView session_name = latestSessionSummaryView.findViewById(R.id.session_name_card_tv);
-            String sessionNameStr =
-                    getString(R.string.session_name_desc) + latestSessionSummary.getName();
-            session_name.setText(sessionNameStr);
-
-
-            TextView activity_type = latestSessionSummaryView.findViewById(R.id.type_of_activity_tv);
-//        String activityTypeStr =
-//                "Activity Type : " + latestSessionSummary.getActivity_type() + "";
-            String activityTypeStr =
-                    getString(R.string.activity_type_desc) + Constants.ActivityCodeMap.inverse().get(52);
-            activity_type.setText(activityTypeStr);
-
-
-            TextView duration =
-                    latestSessionSummaryView.findViewById(R.id.duration_tv);
-            timeFmt = Common.convertToTimeFmt((long)(latestSessionSummary.getDuration()*1000));
-            total_duration =
-                    String.format(Locale.getDefault(), "%02d:%02d:%02d", timeFmt.hr, timeFmt.min, timeFmt.sec);//+collective_summary_info.get(1).toString();
-
-            String durationStr =
-                    getString(R.string.duration_desc) + total_duration;
-            duration.setText(durationStr);
-
-            TextView total_dataTV = latestSessionSummaryView.findViewById(R.id.total_data_tv);
-            String totalDataStr =
-                    getString(R.string.total_data_desc) + (latestSessionSummary.getTotal_data() / 1024);
-            total_dataTV.setText(totalDataStr);
-
-            String samplingRate = getString(R.string.sampling_frequency_desc) +
-                    String.valueOf(latestSessionSummary.getSampling_freq());
-            TextView samplingFrequency =
-                    latestSessionSummaryView.findViewById(R.id.sampling_rate_tv);
-            samplingFrequency.setText(samplingRate);
-
-            String typesOfData = getString(R.string.types_of_data_desc) +
-                    String.valueOf(Constants.typesOfData);
-            TextView types_of_data_tv =
-                    latestSessionSummaryView.findViewById(R.id.types_of_data_tv);
-            types_of_data_tv.setText(typesOfData);
-
-            String oneLineNote =  getString(R.string.note_desc)  + latestSessionSummary.getNote();
-            TextView note =
-                    latestSessionSummaryView.findViewById(R.id.text_note_summary_line_tv);
-            if(!oneLineNote.isEmpty()) {
-                note.setText(oneLineNote);
-            }
-        }
-
-//        if(note.get)
-        //A click on the first card view navigates to tracker
-        //(A) Outdoor tracker is the GPS map view
-        //(B) Indoor tracker is the TimelineView
-        view.findViewById(R.id.latest_activity_summary).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Fragment mapFragment =
-                        MapFragment.newInstance(Constants.ActivityCodeMap.inverse().get(latestSessionSummary.getActivity_type()),latestSessionSummary.getSession_id(),latestSessionSummary.getDuration());
-                FragmentTransaction fragmentTransaction = null;
-                if (getFragmentManager() != null) {
-                    fragmentTransaction = getFragmentManager()
-                            .beginTransaction();
-                    fragmentTransaction.replace(HomeFragment.this.getId(),
-                            mapFragment,
-                            MapFragment.class.getSimpleName());
-                    fragmentTransaction.addToBackStack(null);
-                    fragmentTransaction.commit();
-                }
-            }
-        });
-
-        //This is the second card view - collective summary
-        View collective_summary_view =
-                view.findViewById(R.id.collective_summary);
-        TextView summary_title =
-                collective_summary_view.findViewById(R.id.collective_summary_card_title);
-        summary_title.setText(getString(R.string.collective_Summary_title_tv));
-
-        //TODO uncomment this when more collective session fields are finalized
-
-//        try {
-//            List<Float> collective_summary_info =
-//                    new GetCollectiveSummaryDetailsAsyncTask().execute().get();
-//
-//            collective_summary_view.findViewById(R.id.session_name_tv).setVisibility(View.GONE);
-//
-//            TextView nSessions_tv =
-//                    collective_summary_view.findViewById(R.id.number_sessions_tv);
-//            String nSessions =
-//                    String.valueOf(collective_summary_info.get(0));
-//
-//            TextView total_duration_tv =
-//                    collective_summary_view.findViewById(R.id.duration_tv);
-//            timeFmt = Common.convertToTimeFmt((long)(collective_summary_info.get(1)*1000));
-//            total_duration =
-//                    getString(R.string.total_duration_desc) + String.format(Locale.getDefault(), "%02d:%02d:%02d", timeFmt.hr, timeFmt.min, timeFmt.sec);
-//
-//
-//            String total_duration_all =
-//                    getString(R.string.total_duration_desc) + collective_summary_info.get(1).toString();
-//            total_duration_tv.setText();
-//
-//            TextView activities_tv =
-//                    collective_summary_view.findViewById(R.id.activity_type_tv);
-//            String activities =
-//                    getString(R.string.activity_types_desc) +
-// collective_summary_info.get(3).toString();
-////                    "Activity Types : " + Constants.ActivityCodeMap.inverse().get(52)
-////                    +(Constants.ActivityCodeMap.inverse().get(50));
-//            activities_tv.setText(activities);
-//
-//            TextView total_duration_tv =
-//                    collective_summary_view.findViewById(R.id.duration_tv);
-//            String total_duration =
-//                    getString(R.string.total_duration_desc) + collective_summary_info.get(1).toString();
-//            total_duration_tv.setText(total_duration);
-//
-//            TextView total_data_tv =
-//                    collective_summary_view.findViewById(R.id.total_data_tv);
-//            float total_data = (float)collective_summary_info.get(0);
-//            String total_data_str =
-//                    "Total Data (KB) : " + (int)total_data;
-//            total_data_tv.setText(total_data_str);
-
-        try {
-            List<Float> collective_summary_info =
-                    new GetCollectiveSummaryDetailsAsyncTask().execute().get();
-
-//            collective_summary_view.findViewById(R.id.session_name_tv).setVisibility(View.GONE);
-
-            TextView nSessions_tv =
-                    collective_summary_view.findViewById(R.id.number_sessions_tv);
-            Float nSessionCount = collective_summary_info.get(0);
-            int sessionCount = nSessionCount.intValue();
-            String nSessions =
-                    getString(R.string.n_sessions) + sessionCount;
-            nSessions_tv.setText(nSessions);
-
-            TextView total_duration_tv =
-                    collective_summary_view.findViewById(R.id.total_duration_tv);
-             timeFmt = Common.convertToTimeFmt((long)(collective_summary_info.get(1)*1000));
-             total_duration =
-                    getString(R.string.total_duration_desc) + String.format(Locale.getDefault(), "%02d:%02d:%02d", timeFmt.hr, timeFmt.min, timeFmt.sec);
-            total_duration_tv.setText(total_duration);
-
-            TextView total_data_tv =
-                    collective_summary_view.findViewById(R.id.total_data_tv);
-            float total_data = (float)collective_summary_info.get(2);
-            String total_data_str =
-                    getString(R.string.collective_summary_total_data) + (int)total_data;
-            total_data_tv.setText(total_data_str);
-
-            TextView activities_tv =
-                    collective_summary_view.findViewById(R.id.types_of_activity_tv);
-            int activityTypeCOunt = (collective_summary_info.get(3)).intValue();
-            String activities =
-                    getString(R.string.activity_types_desc) + activityTypeCOunt;
-//                    "Activity Types : " + Constants.ActivityCodeMap.inverse().get(52)
-//                    +(Constants.ActivityCodeMap.inverse().get(50));
-            activities_tv.setText(activities);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-
-        //Navigation to session summary page on clicking the collective summary
-        collective_summary_view.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                Fragment sevenSessionsSummaryFragment = new SevenSessionsSummaryFragment();
-                FragmentTransaction fragmentTransaction;
-                if (getFragmentManager() != null) {
-                    fragmentTransaction = getFragmentManager()
-                            .beginTransaction();
-                    fragmentTransaction.add(HomeFragment.this.getId(),
-                            sevenSessionsSummaryFragment,
-                            SevenSessionsSummaryFragment.class.getSimpleName());
-                    fragmentTransaction.addToBackStack(null);
-                    fragmentTransaction.commit();
-                }
-            }
-        });
-
-
-        //Calendar icon, clicking on calendaar icon navigates to daywise
-        // ..calendar
         view.findViewById(R.id.calendar_icon)
                 .setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         Log.d(TAG, "onClick: check on click");
-                        Fragment calendarFragment =
-                                CalendarPagerFragment.newInstance
-                                        (MonthlyCalendarFragment.class.getSimpleName(), null);
-                        FragmentTransaction fragmentTransaction;
-                        if (getFragmentManager() != null) {
-                            fragmentTransaction = getFragmentManager().beginTransaction();
-                            fragmentTransaction.add
-                                    (HomeFragment.this.getId(), calendarFragment,
-                                            CalendarPagerFragment.class.getSimpleName());
-                            fragmentTransaction.addToBackStack(HomeFragment.class.getSimpleName());
-                            fragmentTransaction.commit();
+                        if(mlatestSessionSummary.getName().isEmpty()){
+                            Common.okAlertMessage(getContext(),"No session yet");
+                        }else {
+                            Fragment calendarFragment =
+//                                    CalendarPagerFragment.newInstance
+//                                            (-1, -1);
+                            CalendarPagerFragment.newInstance
+                                    (MonthlyCalendarFragment.class.getSimpleName(), -1, 2020);
+                            FragmentTransaction fragmentTransaction;
+                            if (getFragmentManager() != null) {
+                                fragmentTransaction = getFragmentManager().beginTransaction();
+                                fragmentTransaction.add
+                                        (HomeFragment.this.getId(), calendarFragment,
+                                                CalendarPagerFragment.class.getSimpleName());
+                                fragmentTransaction.addToBackStack(HomeFragment.class.getSimpleName());
+                                fragmentTransaction.commit();
+                            }
                         }
                     }
                 });
@@ -475,30 +341,31 @@ public class HomeFragment extends Fragment  {
 
             ((MainActivity)getActivity()).showProgressCircle( Device_Parser.get_txf_status());
 
-            UserPreferences userPreferences = UserPreferences.getInstance(getContext());
-
-            if(userPreferences.getProfilePhoto().equals("default")){
-                ;
-            }
-            else if(profileShortcut != null){
-                profileShortcut.setImageBitmap(BitmapFactory.decodeFile
-                        (userPreferences.getProfilePhoto()));
-            }
-            //Profile can be edited on clicking the profileShortcut
-            if(profileShortcut != null){
-                profileShortcut.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        Fragment profileFragment = new ProfileFragment();
-                        FragmentTransaction fragmentTransaction = getFragmentManager()
-                                .beginTransaction();
-                        fragmentTransaction.add(R.id.fragment,
-                                profileFragment,ProfileFragment.class.getSimpleName());
-                        fragmentTransaction.addToBackStack(null);
-                        fragmentTransaction.commit();
-                    }
-                });
-            }
+//            UserPreferences userPreferences = UserPreferences.getInstance(getContext());
+//
+//            if(userPreferences.getProfilePhoto().equals(Constants.DEFAULT_PATH)){
+//                ;
+//            }
+//            else if(profileShortcut != null){
+//                profileShortcut.setImageBitmap(BitmapFactory.decodeFile
+//                        (userPreferences.getProfilePhoto()));
+//            }
+//            //Profile can be edited on clicking the profileShortcut
+//            if(profileShortcut != null){
+//                profileShortcut.setOnClickListener(new View.OnClickListener() {
+//                    @Override
+//                    public void onClick(View v) {
+//
+//                        Fragment profileFragment = new ProfileFragment();
+//                        FragmentTransaction fragmentTransaction = getFragmentManager()
+//                                .beginTransaction();
+//                        fragmentTransaction.add(R.id.fragment,
+//                                profileFragment,ProfileFragment.class.getSimpleName());
+//                        fragmentTransaction.addToBackStack(null);
+//                        fragmentTransaction.commit();
+//                    }
+//                });
+//            }
 
 
             //BLE connections can be seen and modified on clicking the device view
@@ -563,22 +430,30 @@ public class HomeFragment extends Fragment  {
                             .setPositiveButton("Yes",new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
+                                    Constants.isPhotoChanged = true;
+                                    Common.show_wait_bar(getContext(), "Signing out...");
                                     UserPreferences.getInstance(getContext()).clear();
                                     ProfilePreferences.getInstance(getContext()).clear();
                                     DevicePreferences.getInstance(getContext()).clear();
+                                    new CollectiveSummaryPreference(getContext()).clear();
                                     navigateToFragments();
                                 }
                             })
                             .create();
                     dialog.show();
-                    dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.parseColor("#FF1B5AAC")); // Set text color to blue color
-                    dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(Color.parseColor("#D3D3D3"));  // Set text color to ligh gray color
+                    dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(ContextCompat.getColor(getContext(), R.color.black)); // Set text color to blue color
+                    dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(ContextCompat.getColor(getContext(), R.color.black));  // Set text color to ligh gray color
                 }
             });
         }
         catch (NullPointerException e){
             e.printStackTrace();
         }
+        new WorkMgrHelper(MainApplication.getAppContext()).oneTimeDeleteSessionRequest();
+//        new DatabaseHelper.DeleteOldSessions().execute();
+//        String userid = UserPreferences.getInstance(getContext()).getUserID();
+//        new CollectiveSummaryImpl(getContext()).getUserDataByUserID(userid);
+
 //        new InternetCheck(isInternet -> {
 //            if (!isInternet) {
 //                Common.isInternetAvailable(getContext());
@@ -586,7 +461,7 @@ public class HomeFragment extends Fragment  {
 //        });
 //        Common.wait(50);
 
-        navigateToFragments();
+
 //        WorkManager.getInstance(getContext()).cancelAllWorkByTag("Csv_Generation_Workertest");
 //        WorkManager.getInstance(getContext()).cancelAllWorkByTag("Csv_Generation_Worker");
 //        Common.show_wait_bar(getContext(), "Waiting for cursor");
@@ -656,12 +531,14 @@ public class HomeFragment extends Fragment  {
     @Override
     public void onStart() {
         super.onStart();
+
 //        WorkMgrHelper workMgrHelper = new WorkMgrHelper(getContext());
 //        workMgrHelper.oneTimeCSVUploadingRequest();
         //workMgrHelper.oneTimeCSVGenerationRequest();
         DevicePreferences.getInstance(getContext()).lowStorageAlert(getContext());
         Log.d(TAG, "Start");
     }
+
 
 
     @Override
@@ -683,9 +560,272 @@ public class HomeFragment extends Fragment  {
                 && checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
         }
+        navigateToFragments();
+        if( Constants.isPhotoChanged && mProfileImageView != null ){
+            Constants.isPhotoChanged = false;
+            UserPreferences userPreferences = UserPreferences.getInstance(getContext());
 
+            if(userPreferences.getProfilePhoto().equals(Constants.DEFAULT_PATH)){
+                mProfileImageView.setImageResource(R.mipmap.anonymous_round);
+            }
+            else{
+                mProfileImageView.setImageBitmap(BitmapFactory.decodeFile
+                        (userPreferences.getProfilePhoto()));
+            }
+        }
+        refresh_cards();
         Log.d(TAG, "Resume");
     }
+
+    public void refresh_cards(){
+        if(Constants.isNewSessionAdded){
+            Constants.isNewSessionAdded = false;
+            update_session_card();
+        }
+        if(Constants.isUpdateCollectiveSummary){
+            Constants.isUpdateCollectiveSummary = false;
+            update_collective_summary();
+        }
+    }
+
+    /**
+     * Update the topmost card
+     */
+    public void update_session_card(){
+        if(mHomeFragmentView == null) return;
+        View latestSessionSummaryView =
+                mHomeFragmentView.findViewById(R.id.latest_activity_summary);
+//        if (mLatestSessionSummary == null) {
+
+            try {
+                 mlatestSessionSummary =
+                        new GetLatestSessionSummaryAsyncTask().execute().get();
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            if(mlatestSessionSummary == null){
+                mlatestSessionSummary = new SessionSummary();
+            }
+//        }
+        TimeFmt timeFmt;
+        String total_duration;
+        if(mlatestSessionSummary != null){
+            //Setting card title as date and time in locale setting
+            TextView title_text = latestSessionSummaryView.findViewById(R.id.card_title);
+            Date date = null;
+            if(mlatestSessionSummary.getDate() > 0){
+                date = new Date(mlatestSessionSummary.getDate());
+            }else{
+                date = new Date();
+            }
+            String dateString = new SimpleDateFormat("MMM dd YYYY HH:MM:SS EEE",
+                    Locale.getDefault()).format(date);
+            title_text.setText(dateString);
+
+            //Setting session name as retrieved from the DB
+            TextView session_name = latestSessionSummaryView.findViewById(R.id.session_name_card_tv);
+            if(mlatestSessionSummary.getName().isEmpty()){
+                session_name.setText("-");
+            }else{
+                session_name.setText(mlatestSessionSummary.getName());
+            }
+
+//            String sessionNameStr =
+//                    "<b>"+getString(R.string.session_name_desc)+ "</b>"+ latestSessionSummary.getName();
+//            session_name.setText(Html.fromHtml(sessionNameStr));
+
+
+            TextView activity_type = latestSessionSummaryView.findViewById(R.id.type_of_activity_tv);
+//        String activityTypeStr =
+//                "Activity Type : " + latestSessionSummary.getActivity_type() + "";
+            String activityTypeStr = String.format(Locale.getDefault(), "%s",
+                     Constants.ActivityCodeMap.inverse().get(mlatestSessionSummary.getActivity_type()));
+            activity_type.setText(Html.fromHtml(activityTypeStr));
+//                    getString(R.string.activity_type_desc) + Constants.ActivityCodeMap.inverse().get(latestSessionSummary.getActivity_type());
+            activity_type.setText(activityTypeStr);
+
+
+            TextView duration =
+                    latestSessionSummaryView.findViewById(R.id.duration_tv);
+            timeFmt = Common.convertToTimeFmt((long)(mlatestSessionSummary.getDuration()*1000));
+            total_duration =
+                    String.format(Locale.getDefault(), "%02d:%02d:%02d", timeFmt.hr, timeFmt.min, timeFmt.sec);//+collective_summary_info.get(1).toString();
+
+            String durationStr =  total_duration.toString();
+            duration.setText(durationStr);
+
+            TextView total_dataTV = latestSessionSummaryView.findViewById(R.id.total_data_tv);
+            String totalDataStr = String.valueOf(mlatestSessionSummary.getSize());
+            total_dataTV.setText(totalDataStr);
+
+            String samplingRate = String.valueOf(mlatestSessionSummary.getSampling_freq());
+            TextView samplingFrequency =
+                    latestSessionSummaryView.findViewById(R.id.sampling_rate_tv);
+            samplingFrequency.setText(samplingRate);
+
+            String typesOfData = "0";
+            if(mlatestSessionSummary.getActivity_type() > 0){
+                typesOfData = String.valueOf(Constants.typesOfData);
+            }
+
+            TextView types_of_data_tv =
+                    latestSessionSummaryView.findViewById(R.id.types_of_data_tv);
+            types_of_data_tv.setText(typesOfData);
+
+            String oneLineNote =  mlatestSessionSummary.getNote();
+            TextView note =
+                    latestSessionSummaryView.findViewById(R.id.text_note_summary_line_tv);
+            if(!oneLineNote.isEmpty()) {
+                note.setText(oneLineNote);
+            }else{
+                note.setText("-");
+            }
+
+            if(mlatestSessionSummary != null){
+                TextView firmware_type = mHomeFragmentView.findViewById(R.id.firmware_type);
+                TextView firmware_ver = mHomeFragmentView.findViewById(R.id.firmware_ver);
+                LinearLayout firmware_details = mHomeFragmentView.findViewById(R.id.firmware_details);
+                int type = mlatestSessionSummary.getFirmware_type();
+                if(type >= 0){
+                    if(Constants.FirmwareTypeMap.get(type)!= null){
+                        firmware_type.setText(Constants.FirmwareTypeMap.get(type));
+                    }
+                    firmware_ver.setText(String.format(Locale.getDefault(), "Version %.2f", mlatestSessionSummary.getFirmware_ver()));
+                    if(type == 0){
+                        firmware_details.setBackgroundTintList(ColorStateList.valueOf(getColor(getContext(), R.color.red)));
+                    }else{
+                        firmware_details.setBackgroundTintList(ColorStateList.valueOf(getColor(getContext(), R.color.green)));
+                    }
+                }else{
+                    firmware_type.setText("-");
+                    firmware_ver.setText("-");
+                    firmware_details.setBackgroundTintList(ColorStateList.valueOf(getColor(getContext(), R.color.colorPrimary)));
+//                    view.setBackgroundColor(getColor(getContext(), R.color.offgray));
+//                    firmware_type.setBackgroundColor(getColor(getContext(), R.color.gray));
+//                    firmware_ver.setBackgroundColor(getColor(getContext(), R.color.gray));
+                }
+
+            }
+        }
+        final SessionSummary sessionSummary_f = mlatestSessionSummary;
+        mHomeFragmentView.findViewById(R.id.latest_activity_summary).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(sessionSummary_f.getName().isEmpty()){
+                    Common.okAlertMessage(getContext(),"No session yet");
+                }else {
+                    Fragment mapFragment =
+                            MapFragment.newInstance(Constants.ActivityCodeMap.inverse().get(sessionSummary_f.getActivity_type()), sessionSummary_f.getSession_id(), sessionSummary_f.getDuration());
+                    FragmentTransaction fragmentTransaction = null;
+                    if (getFragmentManager() != null) {
+                        fragmentTransaction = getFragmentManager()
+                                .beginTransaction();
+                        fragmentTransaction.replace(HomeFragment.this.getId(),
+                                mapFragment,
+                                MapFragment.class.getSimpleName());
+                        fragmentTransaction.addToBackStack(null);
+                        fragmentTransaction.commit();
+                    }
+                }
+            }
+        });
+    }
+
+    /**
+     * Update the collective summary card
+     */
+    public void update_collective_summary(){
+        if(mHomeFragmentView == null) return;
+        View collective_summary_view =
+                mHomeFragmentView.findViewById(R.id.collective_summary);
+        TextView summary_title =
+                collective_summary_view.findViewById(R.id.collective_summary_card_title);
+        summary_title.setText(getString(R.string.collective_Summary_title_tv));
+
+        //TODO uncomment this when more collective session fields are finalized
+
+
+        try {
+            List<Float> collective_summary_info =
+                    new CollectiveSummaryPreference(getContext()).getCollSum();
+//                    new GetCollectiveSummaryDetailsAsyncTask().execute().get();
+
+
+//            collective_summary_view.findViewById(R.id.session_name_tv).setVisibility(View.GONE);
+            TimeFmt timeFmt;
+            String total_duration;
+            TextView nSessions_tv =
+                    collective_summary_view.findViewById(R.id.number_sessions_tv);
+            Float nSessionCount = collective_summary_info.get(0);
+            int sessionCount = nSessionCount.intValue();
+//            String nSessions =
+//                    getString(R.string.n_sessions) + sessionCount;
+            nSessions_tv.setText(String.valueOf(sessionCount));
+
+            TextView total_duration_tv =
+                    collective_summary_view.findViewById(R.id.total_duration_tv);
+            timeFmt = Common.convertToTimeFmt((long)(collective_summary_info.get(1)*1000));
+            total_duration =
+                    /*getString(R.string.total_duration_desc) + */String.format(Locale.getDefault(), "%02d:%02d:%02d", timeFmt.hr, timeFmt.min, timeFmt.sec);
+            total_duration_tv.setText(total_duration);
+
+            TextView total_data_tv =
+                    collective_summary_view.findViewById(R.id.total_data_tv);
+            float total_data = (float)collective_summary_info.get(2);
+//            String total_data_str =
+//                    getString(R.string.collective_summary_total_data) + (int)total_data;
+            total_data_tv.setText(String.valueOf((int)total_data));
+
+            TextView activities_tv =
+                    collective_summary_view.findViewById(R.id.types_of_activity_tv);
+            int activityTypeCOunt = (collective_summary_info.get(3)).intValue();
+//            String activities =
+//                    getString(R.string.activity_types_desc) + activityTypeCOunt;
+//                    "Activity Types : " + Constants.ActivityCodeMap.inverse().get(52)
+//                    +(Constants.ActivityCodeMap.inverse().get(50));
+            activities_tv.setText(String.valueOf(activityTypeCOunt));
+//
+//            CollectiveSummaryReq collectiveSummaryReq = new CollectiveSummaryReq();
+//            collectiveSummaryReq.total_duration =  collective_summary_info.get(1).longValue();
+//            collectiveSummaryReq.total_size =  collective_summary_info.get(2).longValue();
+//            collectiveSummaryReq.total_sessions =  7L;
+//            List<Long> longs = new ArrayList<>();longs.add(11L);longs.add(52L);
+//            collectiveSummaryReq.activity_types = longs;
+//            CollectiveSummaryPreference collectiveSummaryPreference = new CollectiveSummaryPreference(getContext());
+//            collectiveSummaryPreference.setActCodes(longs);
+//            collectiveSummaryPreference.setTotSize(collectiveSummaryReq.total_size);
+//            collectiveSummaryPreference.setTotSession(collectiveSummaryReq.total_sessions);
+//            collectiveSummaryPreference.setTotDuration(collectiveSummaryReq.total_duration);
+//            String userid = UserPreferences.getInstance(getContext()).getUserID();
+//            new CollectiveSummaryImpl(getContext()).updateUserData(userid, collectiveSummaryReq);
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+        //Navigation to session summary page on clicking the collective summary
+        collective_summary_view.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                Fragment sevenSessionsSummaryFragment = new SevenSessionsSummaryFragment();
+                FragmentTransaction fragmentTransaction;
+                if (getFragmentManager() != null) {
+                    fragmentTransaction = getFragmentManager()
+                            .beginTransaction();
+                    fragmentTransaction.add(HomeFragment.this.getId(),
+                            sevenSessionsSummaryFragment,
+                            SevenSessionsSummaryFragment.class.getSimpleName());
+                    fragmentTransaction.addToBackStack(null);
+                    fragmentTransaction.commit();
+                }
+            }
+        });
+    }
+
 
     @Override
     public void onDetach() {
@@ -734,12 +874,12 @@ public class HomeFragment extends Fragment  {
 //            inflater.inflate(R.menu.gps_speed_menu_options, gpsSpeedPopupMenu.getMenu());
 //            gpsSpeedPopupMenu.show();
 //        }
+
         ViewGroup root = (ViewGroup) getActivity().getWindow()
                 .getDecorView().getRootView();
         applyDim(root, 0.5f);
 
         if(context != null){
-
 
             //PopupWindow initialized here
             PopupWindow startGpsSpeedPopupWindow = new PopupWindow(context);
@@ -780,7 +920,8 @@ public class HomeFragment extends Fragment  {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                     TextView itemText = (TextView)view;
-                    activityType = itemText.getText().toString().trim()+"_"+Constants.INDOOR;
+                    mActivityType = itemText.getText().toString().trim()+"_"+Constants.INDOOR;
+                    prev_indoor_selected = itemText.getText().toString().trim()+"_"+Constants.INDOOR;;
                     /*IF the item is "OTHER", then all other edittext boxes should be disabled
                     As long as there is no text, the startbutton cannot be used
                      */
@@ -856,8 +997,8 @@ public class HomeFragment extends Fragment  {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                     TextView itemText = (TextView)view;
-                    activityType = itemText.getText().toString().trim()+"_"+Constants.OUTDOOR;
-
+                    mActivityType = itemText.getText().toString().trim()+"_"+Constants.OUTDOOR;
+                    prev_outdoor_selected = itemText.getText().toString().trim()+"_"+Constants.OUTDOOR;
                     startButton.setEnabled(false);
 
                     if(itemText.getText().toString().equalsIgnoreCase
@@ -925,12 +1066,19 @@ public class HomeFragment extends Fragment  {
             startGpsSpeedPopupView.findViewById(R.id.gps_speed_start).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Common.ACT_TYPE = activityType;
+
+                    if(getActivity() != null
+                            && mActivityType.toLowerCase().contains(getString(R.string.outdoor)) && !Common.isGpsEnable(getActivity())){
+                        Toast.makeText(getContext(), getString(R.string.enable_gps), Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    mIsStopActivity = !mIsStopActivity;
+                    Common.ACT_TYPE = mActivityType;
                     //Log.d(TAG, "Activity :"+activityType+", code="+Constants.ActivityCodeMap.get(activityType));
-                    if(Constants.ActivityCodeMap.get(activityType) != null){
+                    if(Constants.ActivityCodeMap.get(mActivityType) != null){
                         Device1_Parser.sendStopCmd(getContext());
                         ButtonBox_Parser.sendStopCmd(getContext());
-                        Device1_Parser.sendStartActivityCmd(getContext(), Constants.ActivityCodeMap.get(activityType));
+                        Device1_Parser.sendStartActivityCmd(getContext(), Constants.ActivityCodeMap.get(mActivityType));
                     }else{
                         Log.d(TAG, "No activity code found");
                     }
@@ -983,6 +1131,8 @@ public class HomeFragment extends Fragment  {
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                     if(!isChecked){
                         indoorSportsSpinner.setEnabled(false);
+                    }else{
+                        mActivityType = prev_indoor_selected;
                     }
                 }
             });
@@ -990,6 +1140,7 @@ public class HomeFragment extends Fragment  {
             outdoorSportsRadioButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+
                     if(!outdoorSportsSpinner.getSelectedItem().toString().
                             equals(getString(R.string.other_sports))){
                         startButton.setEnabled(true);
@@ -1019,6 +1170,8 @@ public class HomeFragment extends Fragment  {
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                     if(!isChecked){
                         outdoorSportsSpinner.setEnabled(false);
+                    }else{
+                        mActivityType = prev_outdoor_selected;
                     }
                 }
             });
@@ -1037,207 +1190,31 @@ public class HomeFragment extends Fragment  {
         }
     }
 
-//    /**
-//     * The progress bar shall indicate the following:
-//     * 1. Context: The Fragment context
-//     * 2. The total change in value in percentage measure
-//     * 3. The number of devices that are connected.
-//     *
-//     * Data volumes are computed as follows:
-//     * 1. For All devices, the structured data is grouped as byte received.
-//     * 2. The quantum change in available data is calculated as per the total burst data
-//     * 3. The remaining data is calculated over full capacity.
-//     * 4. It is also necessary to present a device as connected or disconnected.
-//     *
-//     * Algo:
-//     * If (context.valid){
-//     *      any_devices_connected = false
-//     *      devices_connected_count = 0
-//     *      for(device_id : Devices){
-//     *          device_connected = connection_status.get(device_id)
-//     *          .checkConnection()
-//     *          if(device_connected.isTrue){
-//     *              devices_connected += 1
-//     *          }
-//     *      }
-//     *      if(devices_connected.isFalse){
-//     *          //No progress possible.
-//     *          return
-//     *      }else if()
-//     *      and devices_connected <= NUM_DEVICES) {
-//     *      }else{
-//     *          print ("")
-//     *      }
-//     * }
-//     * @param context
-//     * @param increase
-//     */
-//    public void showProgressCircle(Context context,float increasePercent){
-//
-//        boolean anyDeviceConnected = false;
-//        int deviceConnectedCount = 0;
-//        CircleProgressView dataLoadProgressView;
-//        ActionBar actionbar = ((MainActivity)getActivity()).getSupportActionBar();
-//        dataLoadProgressView = actionbar.getCustomView().findViewById
-//                (R.id.ble_device_connectivity);
-//        if(context != null){
-//            for(Map.Entry<String, DeviceDetails> entry : Constants.DEVICE_MAPS.entrySet() ){
-//                System.out.println("Print DEVICE "+entry.getKey());
-//                if(entry.getValue().connected){
-//                    deviceConnectedCount += 1;
-//                    anyDeviceConnected = true;
-//                }
-//            }
-//            if(!anyDeviceConnected){
-//                dataLoadProgressView.setFillCircleColor(getResources().getColor(R.color.red));
-//                dataLoadProgressView.setValueAnimated(24,1000);
-//                return;
-//            }else{
-//                switch(deviceConnectedCount){
-//                    case 1:
-//                        dataLoadProgressView.setFillCircleColor(getResources().getColor(R.color.yellow));
-//                        break;
-//                    case 2:
-//                        dataLoadProgressView.setFillCircleColor(getResources().getColor(R.color.orange));
-//                        break;
-//                    case 3:
-//                        dataLoadProgressView.setFillCircleColor(getResources().getColor(R.color.green));
-//                        break;
-//                    default:
-//                        dataLoadProgressView.setFillCircleColor(getResources().getColor(R.color.red));
-//                        dataLoadProgressView.setFillCircleColor(232);
-//                }
-//            }
-//        }
-//    }
-
-//        if(context != null){
-//            //These are the inputs to the objectanimator
-//            //1. A view that has to be rotated 3-d
-//            //2. The rotation parameter.
-//            //3. The extent of rotation.
-//            CoordinatorLayout progressImageLayout =
-//                    (CoordinatorLayout) mActionBar.getCustomView().findViewById(R.id.ble_device_connectivity);
-//
-//            int maxHeight = progressImageLayout.getLayoutParams().height;
-//            ImageView tempView = mActionBar.getCustomView().findViewById
-//                    (R.id.ble_device_connectivity_dev1);
-//            int maxWidth = tempView.getWidth();
-//            ImageView outerCircle = mActionBar.getCustomView().findViewById
-//                    (R.id.ble_device_data_progress_dev1);
-////            ImageView middleCircle = /
-////            int [] progressCircleHeights = new int[3];
-//
-////            ImageView tempView =
-////                    progressImageLayout.findViewById(R.id.device_data_level1);
-////            progressCircleHeights[0] = tempView.getHeight();
-////
-////            progressCircleHeights[1] =
-////                    progressImageLayout.findViewById(R.id.device_data_level2).getHeight();
-////            progressCircleHeights[2] =
-////                    progressImageLayout.findViewById(R.id.device_data_level3).getHeight();
-////            int commonCenter = progressImageLayout.getWidth() / 2;
-//
-////
-////            progressImageLayout.setPivotX
-////                    (progressImageLayout.getWidth()/2);
-////            progressImageLayout.setPivotY
-////                    (progressImageLayout.getHeight()/2);
-////            getActivity().runOnUiThread(new Runnable() {
-////                @Override
-////                public void run() {
-////                    float rotationDone = 0f;
-////                    if(progressImageLayout != null) {
-////                        while(rotationDone < 360) {
-////                            rotationDone += 30;
-////                            ObjectAnimator objectAnimator = ObjectAnimator.ofFloat
-////                                    (progressImageLayout, "rotation", rotationDone);
-////                            objectAnimator.setDuration(10);
-////                            objectAnimator.start();
-////                            try {
-////                                Thread.sleep(1000);
-////                            } catch (InterruptedException e) {
-////                                e.printStackTrace();
-////                            }
-////                        }
-////                    }
-////                }
-////            });
-//
-//
-//                float rotationDone = 30;
-//                ObjectAnimator objectAnimator = ObjectAnimator.ofFloat
-//                        (outerCircle,"rotation" ,increase);
-//
-//                objectAnimator.setDuration(3000);
-//                objectAnimator.start();
-//            }
-//        }
-
-//        if(context != null){
-//            //Write the concentric circle logic here
-//
-//            //Create a set of drawables.. Here a drawable is used.
-////            Drawable circularProgressDrawable =
-////                    getResources().getDrawable(R.drawable.concentric_progress);
-//            ImageView deviceDataStatus =
-//                    mActionBar.getCustomView().findViewById(R.id.ble_device_connectivity);
-//
-////            ((MainActivity) getActivity()).runOnUiThread(new Runnable() {
-////                @Override
-////                public void run() {
-//                    deviceDataStatus.setImageDrawable
-//                            (getResources().getDrawable(R.drawable.concentric_progress,null));
-//            LayerDrawable progressLayerDrawable = (LayerDrawable) deviceDataStatus.getDrawable();
-//            RotateDrawable rotateDrawable = (RotateDrawable) progressLayerDrawable.getDrawable(1);
-//            ObjectAnimator mAnimator = ObjectAnimator.ofFloat
-//                    (progressLayerDrawable,"rotation",0,360f);
-//            mAnimator.setDuration(300);
-//            mAnimator.start();
-//
-////                    AnimatedVectorDrawable animationDrawable = (AnimatedVectorDrawable) getResources().
-////                            getDrawable(R.drawable.animate_progress);
-////                    deviceDataStatus.setImageDrawable(animationDrawable);
-////                    AnimatedVectorDrawable animatedVectorDrawable =
-////                            (AnimatedVectorDrawable) getResources().getDrawable(R.drawable.animate_progress);
-////
-////                    animationDrawable.start();
-////                }
-////            });
-////            //Obtain height and weight of the circular area
-////            float width = deviceDataStatus.getWidth();
-////            float height = deviceDataStatus.getHeight();
-////            float startAngle = 0;
-////
-////            //Pass percentage as an argument
-////            percentage = percentage + 10;
-////            float endAngle = percentage / 100;
-////            float radius = 0.4f * width;
-//
-//
-//
-//        }
 
 
     private void navigateToFragments(){
 
         try{
             if (UserPreferences.getInstance(getContext()).getPhone().length() == 0){
-                Fragment fragment = new LoginFragment();
-                FragmentTransaction fragmentTransaction = getActivity().
-                        getSupportFragmentManager().beginTransaction();
-                fragmentTransaction.replace(R.id.fragment, fragment);
-                fragmentTransaction.addToBackStack(HomeFragment.class.getSimpleName());
-                fragmentTransaction.commit();
+//                Fragment fragment = new LoginFragment();
+//                FragmentTransaction fragmentTransaction = getActivity().
+//                        getSupportFragmentManager().beginTransaction();
+//                fragmentTransaction.replace(R.id.fragment, fragment);
+//                fragmentTransaction.addToBackStack(HomeFragment.class.getSimpleName());
+//                fragmentTransaction.commit();
+                Intent in = new Intent(getActivity(), LoginActivity.class);
+                startActivity(in);
             }else{
                 //ToDo: validate Profile details, if no information, the navigate to Profile page
                 if ( ProfilePreferences.getInstance(getContext()).isEmpty()) {
-                    Fragment profileFragment = new ProfileFragment();
-                    FragmentTransaction fragmentTransaction = getFragmentManager()
-                            .beginTransaction();
-                    fragmentTransaction.replace(R.id.fragment, profileFragment,"Profile Fragment");
-                    fragmentTransaction.addToBackStack(HomeFragment.class.getSimpleName());
-                    fragmentTransaction.commit();
+//                    Fragment profileFragment = new ProfileFragment();
+//                    FragmentTransaction fragmentTransaction = getFragmentManager()
+//                            .beginTransaction();
+//                    fragmentTransaction.replace(R.id.fragment, profileFragment,"Profile Fragment");
+//                    fragmentTransaction.addToBackStack(HomeFragment.class.getSimpleName());
+//                    fragmentTransaction.commit();
+                    Intent in = new Intent(getActivity(), ProfileActivity.class);
+                    startActivity(in);
                 }
             }
         }catch (Exception ex){
@@ -1283,24 +1260,37 @@ public class HomeFragment extends Fragment  {
                     String message = "";
                     if(memoryUsage.packet_memory > 90 || memoryUsage.session_summaries > 90) {
                         message = getString(R.string.out_of_memory_dev1);
+                        AlertDialog dialog = new AlertDialog.Builder(getContext())
+                                .setTitle("Alert")
+                                .setMessage(message)
+                                .setPositiveButton("OK",new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        if(memoryUsage.packet_memory > 90 || memoryUsage.session_summaries > 90) {
+                                            Device1_Parser.sendNotificationCmd(getContext());
+                                        }
+                                    }
+                                })
+                                .create();
+                        dialog.show();
+                        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(ContextCompat.getColor(getContext(), R.color.black)); // Set text color to blue color
+                        dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(ContextCompat.getColor(getContext(), R.color.black));  // Set text color to ligh gray color
                     }else{
                         message = getString(R.string.worn_helmet);
+                        AlertDialog dialog = new AlertDialog.Builder(getContext())
+                                .setTitle("Alert")
+                                .setMessage(message)
+                                .setNegativeButton("No",null)
+                                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        inflatePopup(getContext());
+                                    }
+                                }).create();
+                        dialog.show();
+                        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(ContextCompat.getColor(getContext(), R.color.black)); // Set text color to blue color
+                        dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(ContextCompat.getColor(getContext(), R.color.black));  // Set text color to ligh gray color
                     }
-                    AlertDialog.Builder alert = new AlertDialog.Builder(getContext());
-                    alert.setTitle("Alert");
-                    alert.setMessage(message);
-                    alert.setPositiveButton("OK",new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            if(memoryUsage.packet_memory > 90 || memoryUsage.session_summaries > 90) {
-                                Device1_Parser.sendNotificationCmd(getContext());
-                            }else{
-                                inflatePopup(getContext());
-                            }
-                        }
-                    });
-                    alert.show();
-
                 }
             });
     }

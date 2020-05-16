@@ -1,24 +1,25 @@
-package com.decalthon.helmet.stability.Activities;
+package com.decalthon.helmet.stability.activities;
 
 
 import android.os.Build;
 import android.os.Bundle;
+import android.view.View;
 import android.view.ViewTreeObserver;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.FrameLayout;
+import android.widget.TextView;
 
 import androidx.annotation.RequiresApi;
 import androidx.fragment.app.FragmentActivity;
 
-import com.decalthon.helmet.stability.Fragments.CustomGraphFragment;
+import com.decalthon.helmet.stability.fragments.CustomGraphFragment;
 import com.decalthon.helmet.stability.R;
-import com.decalthon.helmet.stability.model.NineAxisModels.ChartType;
-import com.decalthon.helmet.stability.model.NineAxisModels.NineAxis;
-import com.decalthon.helmet.stability.model.NineAxisModels.SensorDataEntry;
-import com.decalthon.helmet.stability.model.NineAxisModels.TabMetaData;
-import com.github.mikephil.charting.charts.Chart;
+import com.decalthon.helmet.stability.model.nineaxismodels.ChartType;
+import com.decalthon.helmet.stability.model.nineaxismodels.NineAxis;
+import com.decalthon.helmet.stability.model.nineaxismodels.SensorDataEntry;
+import com.decalthon.helmet.stability.model.nineaxismodels.TabMetaData;
 import com.github.mikephil.charting.charts.LineChart;
-import com.github.mikephil.charting.components.YAxis;
-import com.github.mikephil.charting.data.LineData;
 
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -28,19 +29,34 @@ import java.util.concurrent.ExecutionException;
 public class FullScreenActivity extends FragmentActivity {
 
     public LineChart lineChart;
-    private static LineData lineData_g = null;
+//    private static LineData lineData_g = null;
+    public  float zoomx = 0.0f;
+    public  float minx = 0.0f;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_full_screen);
-        final String graph_type = getIntent().getStringExtra("GRAPH_TYPE");
-        final String device_id = getIntent().getStringExtra("DEVICE_ID");
-        final String axis_type = getIntent().getStringExtra("AXIS_TYPE");
 
+//        final String device_id = getIntent().getStringExtra("DEVICE_ID");
+//        final String axis_type = getIntent().getStringExtra("AXIS_TYPE");
+
+//        final String graph_type = getIntent().getStringExtra("GRAPH_TYPE");
         final String frag_type = getIntent().getStringExtra("FRAG_TYPE");
         final String chart_type = getIntent().getStringExtra("CHART_TYPE");
+        zoomx = getIntent().getFloatExtra("ZOOM_X", 0.0f);
+        minx = getIntent().getFloatExtra("MIN_X", 0.0f);
+
+
+        findViewById(R.id.fullscreen_back_navigation).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                FullScreenActivity.this.finish();
+            }
+        });
 
 //        final long session_id = getIntent().getShortExtra()
         /**Full Screen rendering approach*/
@@ -88,22 +104,41 @@ public class FullScreenActivity extends FragmentActivity {
     private void initLineChart(String frag_type, ChartType chartType) {
         Map<Integer, SensorDataEntry> maps = null;
         TabMetaData tabMetaData = CustomGraphFragment.SAVE_TAB_DATA.get(frag_type);
+
+        TextView captionText = findViewById(R.id.graph1_tv_fs);
+
+
+        captionText.setText(chartType.toString());
+        if(chartType.equals(ChartType.GPS_SPEED)){
+            captionText.setText("GPS Speed");
+        }
+
+
+
         if (tabMetaData == null)  return;
-        if(chartType == ChartType.ACC){
+        if(chartType == ChartType.ACC || chartType == ChartType.GPS_SPEED){
             maps = tabMetaData.accChartData;
-        }else  if(chartType == ChartType.GYRO){
+        }else  if(chartType == ChartType.GYR){
             maps = tabMetaData.gyrChartData;
         }else  if(chartType == ChartType.MAG){
             maps = tabMetaData.magChartData;
         }
+
+
+
        final Map<Integer, SensorDataEntry> maps_f = maps;
         if (maps.size() > 0) {
+            ChartType finalChartType = chartType;
             new Thread(new Runnable() {
                 @Override
                 public void run() {
                     try {
 //                        drawFullScreenGraph(maps, start_ts);
-                        NineAxis.getInstance().drawGraph(frag_type, lineChart, maps_f, chartType);
+
+                        NineAxis.getInstance().drawGraph(frag_type, lineChart, maps_f, finalChartType);
+                        lineChart.zoom(zoomx, 0, lineChart.getWidth() / 2.0f,lineChart.getHeight() / 2.0f);
+                        lineChart.moveViewToX(minx);
+                        lineChart.invalidate();
                     } catch (InterruptedException ex) {
                         ex.printStackTrace();
                     } catch (ExecutionException ex) {
@@ -182,9 +217,9 @@ public class FullScreenActivity extends FragmentActivity {
 ////        lineChart.setData(lineData);
 ////        lineChart.invalidate();
 //
-////        for(int i = 0; i < 7; i++) {
-////            lineChart.zoom(i,0,0,0, YAxis.AxisDependency.LEFT);
-////        }
+//        for(int i = 0; i < 7; i++) {
+//            lineChart.zoom(i,0,0,0, YAxis.AxisDependency.LEFT);
+//        }
 //    }
 
 
@@ -218,9 +253,9 @@ public class FullScreenActivity extends FragmentActivity {
 //    }
 
 
-    public static void setLineData(LineData lineData){
-        lineData_g = lineData;
-    }
+//    public static void setLineData(LineData lineData){
+//        lineData_g = lineData;
+//    }
 
 }
 

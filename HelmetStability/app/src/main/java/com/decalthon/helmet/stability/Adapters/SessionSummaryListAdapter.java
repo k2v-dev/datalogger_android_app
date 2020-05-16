@@ -1,17 +1,18 @@
-package com.decalthon.helmet.stability.Adapters;
+package com.decalthon.helmet.stability.adapters;
 
 import android.content.Context;
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
-import com.decalthon.helmet.stability.DB.Entities.SessionSummary;
+import com.decalthon.helmet.stability.database.entities.SessionSummary;
 import com.decalthon.helmet.stability.R;
-import com.decalthon.helmet.stability.Utilities.Common;
-import com.decalthon.helmet.stability.Utilities.Constants;
-import com.decalthon.helmet.stability.model.Generic.TimeFmt;
+import com.decalthon.helmet.stability.utilities.Common;
+import com.decalthon.helmet.stability.utilities.Constants;
+import com.decalthon.helmet.stability.model.generic.TimeFmt;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -110,28 +111,33 @@ public class SessionSummaryListAdapter extends BaseAdapter {
 
         String [] textlines = new String[Constants.MAX_SESSION_CARD_LINES];
         textlines[0] =
-                mContext.getString(R.string.session_name_desc) + sessionSummary.getName();
+                 sessionSummary.getName();
         textlines[1] =
-                mContext.getString(R.string.activity_type_desc) + Constants.ActivityCodeMap.inverse().get(52);
+                 Constants.ActivityCodeMap.inverse().get(sessionSummary.getActivity_type());
 
         TimeFmt timeFmt = Common.convertToTimeFmt((long)(sessionSummary.getDuration()*1000));
         String total_duration =
                  String.format(Locale.getDefault(), "%02d:%02d:%02d", timeFmt.hr, timeFmt.min, timeFmt.sec);//+collective_summary_info.get(1).toString();
 
-        textlines[2]  = mContext.getString(R.string.total_duration_desc) + total_duration;
+        textlines[2]  = String.valueOf(total_duration);
         textlines[3] =
-                mContext.getString(R.string.total_data_desc) + sessionSummary.getTotal_data()/1024;
+                String.valueOf(sessionSummary.getSize());
         textlines[4] =
-                mContext.getString(R.string.sampling_frequency_desc) + sessionSummary.getSampling_freq();
+                 String.valueOf(sessionSummary.getSampling_freq());
         textlines[5] =
-                mContext.getString(R.string.types_of_data_desc) + Constants.typesOfData;
-        textlines[6] =
-                mContext.getString(R.string.note_desc) + sessionSummary.getNote();
+                String.valueOf(Constants.typesOfData);
+        if(sessionSummary.getNote().isEmpty()){
+            textlines[6] = "-";
+        }else{
+            textlines[6] =
+                    String.valueOf(sessionSummary.getNote());
+        }
+
 
 
         TextView session_name_tv =
                 convertView.findViewById(R.id.session_name_card_tv);
-        session_name_tv.setText(textlines[0]);
+        session_name_tv.setText(Html.fromHtml(textlines[0]));
 
         TextView activity_type_tv =
                 convertView.findViewById(R.id.type_of_activity_tv);

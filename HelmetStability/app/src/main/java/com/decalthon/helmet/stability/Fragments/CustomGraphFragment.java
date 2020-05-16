@@ -1,4 +1,4 @@
-package com.decalthon.helmet.stability.Fragments;
+package com.decalthon.helmet.stability.fragments;
 
 import android.content.Context;
 import android.content.Intent;
@@ -19,16 +19,16 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.fragment.app.Fragment;
 
-import com.decalthon.helmet.stability.Activities.FullScreenActivity;
-import com.decalthon.helmet.stability.DB.Entities.GpsSpeed;
+import com.decalthon.helmet.stability.activities.FullScreenActivity;
+import com.decalthon.helmet.stability.database.entities.GpsSpeed;
 import com.decalthon.helmet.stability.R;
-import com.decalthon.helmet.stability.Utilities.Common;
-import com.decalthon.helmet.stability.model.NineAxisModels.ChartType;
-import com.decalthon.helmet.stability.model.NineAxisModels.NineAxis;
-import com.decalthon.helmet.stability.model.NineAxisModels.QueryParameters;
-import com.decalthon.helmet.stability.model.NineAxisModels.QueryType;
-import com.decalthon.helmet.stability.model.NineAxisModels.SensorDataEntry;
-import com.decalthon.helmet.stability.model.NineAxisModels.TabMetaData;
+import com.decalthon.helmet.stability.utilities.Common;
+import com.decalthon.helmet.stability.model.nineaxismodels.ChartType;
+import com.decalthon.helmet.stability.model.nineaxismodels.NineAxis;
+import com.decalthon.helmet.stability.model.nineaxismodels.QueryParameters;
+import com.decalthon.helmet.stability.model.nineaxismodels.QueryType;
+import com.decalthon.helmet.stability.model.nineaxismodels.SensorDataEntry;
+import com.decalthon.helmet.stability.model.nineaxismodels.TabMetaData;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.components.XAxis;
@@ -43,14 +43,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
-import static com.decalthon.helmet.stability.Fragments.MapFragment.gpsSpeeds;
-import static com.decalthon.helmet.stability.Utilities.Constants.FRAGMENT_NAME_DEVICE2_3_AXIS;
-import static com.decalthon.helmet.stability.Utilities.Constants.FRAGMENT_NAME_DEVICE2_9_AXIS;
-import static com.decalthon.helmet.stability.Utilities.Constants.FRAGMENT_NAME_GPS_SPEED;
-import static com.decalthon.helmet.stability.Utilities.Constants.FRAGMENT_NAME_DEVICE1_9_AXIS;
-import static com.decalthon.helmet.stability.Utilities.Constants.FRAGMENT_NAME_DEVICE1_3_AXIS;
+import static com.decalthon.helmet.stability.fragments.MapFragment.gpsSpeeds;
+import static com.decalthon.helmet.stability.utilities.Constants.FRAGMENT_NAME_DEVICE2_3_AXIS;
+import static com.decalthon.helmet.stability.utilities.Constants.FRAGMENT_NAME_DEVICE2_9_AXIS;
+import static com.decalthon.helmet.stability.utilities.Constants.FRAGMENT_NAME_GPS_SPEED;
+import static com.decalthon.helmet.stability.utilities.Constants.FRAGMENT_NAME_DEVICE1_9_AXIS;
+import static com.decalthon.helmet.stability.utilities.Constants.FRAGMENT_NAME_DEVICE1_3_AXIS;
 import static com.github.mikephil.charting.listener.ChartTouchListener.ChartGesture.DRAG;
-import static com.github.mikephil.charting.listener.ChartTouchListener.ChartGesture.PINCH_ZOOM;
 import static com.github.mikephil.charting.listener.ChartTouchListener.ChartGesture.SINGLE_TAP;
 import static com.github.mikephil.charting.listener.ChartTouchListener.ChartGesture.X_ZOOM;
 import static com.github.mikephil.charting.listener.ChartTouchListener.ChartGesture.Y_ZOOM;
@@ -102,20 +101,21 @@ public class CustomGraphFragment extends Fragment implements OnChartGestureListe
     private float last_zoomY;
 
     //TODO If the zoom effect has to be common to all graphs in the fragment, use lastPinched
-    private String lastPinched="";
-    private String lastDragged="";
+    private String lastPinched = "";
+    private String lastDragged = "";
 
     private float translateX;
     private float translateY;
-    long session_id,  clicked_ts,  session_start_ts;
-//    public static Map<String, LineData> SaveLineData = new HashMap<>();
+    long session_id, clicked_ts, session_start_ts;
+    //    public static Map<String, LineData> SaveLineData = new HashMap<>();
     public static Map<String, TabMetaData> SAVE_TAB_DATA = new HashMap<>();
     public static float START_TS, END_TS;
-    private final int MAX_INTERVAL = 75000;
+    private final int MAX_INTERVAL = 180000;// Graph will display in then rabge [-180sec, 180sec]
     LineChart accChart, gyrChart, magChart;
 
 
-//    private String PATH = null;
+
+    //    private String PATH = null;
 //    private File root_dir;
     /* Fling events are treated as drag. Owing to a lack of  difference between drag and fling, a
     alternatives are being sought,for rendering fling and drag as separate events, coupled with
@@ -124,16 +124,13 @@ public class CustomGraphFragment extends Fragment implements OnChartGestureListe
     private String lastFlung;
 
 
-    public CustomGraphFragment(){
+    public CustomGraphFragment() {
         //Required empty public constructor
     }
 
 
-
-
-
     /*When any concrete CustomGraphFragment class is instantiated, this
-    * constructor provides the required fragment type and corresponding view*/
+     * constructor provides the required fragment type and corresponding view*/
     public CustomGraphFragment(final String fragmentType, Long session_id, Long clicked_ts, Long start_ts) {
         this.fragmentType = fragmentType;
         this.clicked_ts = clicked_ts;
@@ -161,6 +158,7 @@ public class CustomGraphFragment extends Fragment implements OnChartGestureListe
 
     /**
      * Fragment creation
+     *
      * @param savedInstanceState Any restore-able data
      */
     @Override
@@ -174,8 +172,9 @@ public class CustomGraphFragment extends Fragment implements OnChartGestureListe
 
     /**
      * Every page is associated with a chart and inflated based on the fragmentType
-     * @param inflater The callback argument which inflates a {@link CustomGraphFragment}
-     * @param container The parent container which holds the graph fragment
+     *
+     * @param inflater           The callback argument which inflates a {@link CustomGraphFragment}
+     * @param container          The parent container which holds the graph fragment
      * @param savedInstanceState Any restore-able data
      * @return The view of the fragment, a rectangular area on the screen
      */
@@ -210,7 +209,7 @@ public class CustomGraphFragment extends Fragment implements OnChartGestureListe
 //
 //        }
 
-        View anygraphView = inflater.inflate(R.layout.fragment_plot_graph,container,false);
+        View anygraphView = inflater.inflate(R.layout.fragment_plot_graph, container, false);
         accChart = anygraphView.findViewById(R.id.accelerometerChart);
         gyrChart = anygraphView.findViewById(R.id.gyroscopeChart);
         magChart = anygraphView.findViewById(R.id.magnetometerChart);
@@ -253,10 +252,8 @@ public class CustomGraphFragment extends Fragment implements OnChartGestureListe
     /**
      * Once the graph view is created, corresponding charts are displayed with session data.
      *
-     * @param view The rectangular area of the screen under the actionbar that displays the graph.
-     *
+     * @param view               The rectangular area of the screen under the actionbar that displays the graph.
      * @param savedInstanceState Currently used only in the superclass context
-     *
      */
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
@@ -266,124 +263,123 @@ public class CustomGraphFragment extends Fragment implements OnChartGestureListe
         final LineChart accLineChartView = accChart;
         final LineChart gyrLineChartView = gyrChart;
         final LineChart magLineChartView = magChart;
-        if(CustomGraphFragment.SAVE_TAB_DATA.get(fragmentType) == null){
+        if (CustomGraphFragment.SAVE_TAB_DATA.get(fragmentType) == null) {
             CustomGraphFragment.SAVE_TAB_DATA.put(fragmentType, new TabMetaData());
         }
 
-        switch(fragmentType) {
+        switch (fragmentType) {
             //Views defined for nine-axis data. Scrollable if rendered outside viewport bounds
             case FRAGMENT_NAME_DEVICE1_9_AXIS:
                 Common.show_wait_bar_count(getContext(), "Loading 9-axis Dev1 graph", 3);
-
                 //Currently random data is generated in {@link CustomGraphFragment#getAxisEntries}
 //                LineData lineDataAcc = SaveLineData.get(getString(R.string.acceleration)+getString(R.string.device1_tv)+getString(R.string.nine_axis));
 //                if(lineDataAcc==null) {
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            long t1 = System.currentTimeMillis();
-                            try {
-                                QueryParameters queryParameters = new QueryParameters();
-                                queryParameters.device_id = getString(R.string.device1_tv);
-                                queryParameters.axes = getString(R.string.nine_axis);
-                                queryParameters.graphType = getString(R.string.acceleration);
-                                queryParameters.chartType = ChartType.ACC;
-                                queryParameters.click_ts = clicked_ts;
-                                queryParameters.session_id = session_id;
-                                queryParameters.session_start_ts = session_start_ts;
-                                queryParameters.fragmentType = fragmentType;
-                                if(CustomGraphFragment.SAVE_TAB_DATA.get(fragmentType).accChartData.size() == 0){
-                                    queryParameters.queryType = QueryType.INITIAL_LOAD;
-                                    queryParameters.tStart = queryParameters.click_ts - MAX_INTERVAL;
-                                    queryParameters.tEnd = queryParameters.click_ts + MAX_INTERVAL;
-                                }else{
-                                    queryParameters.queryType = QueryType.RELOAD;
-                                }
-                                NineAxis.getInstance().drawGraph(accLineChartView, queryParameters);
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        long t1 = System.currentTimeMillis();
+                        try {
+                            QueryParameters queryParameters = new QueryParameters();
+                            queryParameters.device_id = getString(R.string.device1_tv);
+                            queryParameters.axes = getString(R.string.nine_axis);
+                            queryParameters.graphType = getString(R.string.acceleration);
+                            queryParameters.chartType = ChartType.ACC;
+                            queryParameters.click_ts = clicked_ts;
+                            queryParameters.session_id = session_id;
+                            queryParameters.session_start_ts = session_start_ts;
+                            queryParameters.fragmentType = fragmentType;
+                            if (CustomGraphFragment.SAVE_TAB_DATA.get(fragmentType).accChartData.size() == 0) {
+                                queryParameters.queryType = QueryType.INITIAL_LOAD;
+                                queryParameters.tStart = queryParameters.click_ts - MAX_INTERVAL;
+                                queryParameters.tEnd = queryParameters.click_ts + MAX_INTERVAL;
+                            } else {
+                                queryParameters.queryType = QueryType.RELOAD;
+                            }
+                            NineAxis.getInstance().drawGraph(accLineChartView, queryParameters);
 //                                NineAxis.getInstance()
 //                                        .drawGraph(getString(R.string.acceleration), accLineChartView, getString(R.string.device1_tv), getString(R.string.nine_axis));
-                            } catch (ExecutionException | InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                            long t2 = System.currentTimeMillis();
-                            System.out.println("Time Acc="+(t2-t1));
-                            Common.dismiss_wait_bar_count();
+                        } catch (ExecutionException | InterruptedException e) {
+                            e.printStackTrace();
                         }
-                    }).start();
+                        long t2 = System.currentTimeMillis();
+                        System.out.println("Time Acc=" + (t2 - t1));
+                        Common.dismiss_wait_bar_count();
+                    }
+                }).start();
 
 //                LineData lineDataGyr = SaveLineData.get(getString(R.string.gyroscope)+getString(R.string.device1_tv)+getString(R.string.nine_axis));
 //                if(lineDataGyr==null) {
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            long t1 = System.currentTimeMillis();
-                            try {
-                                QueryParameters queryParameters = new QueryParameters();
-                                queryParameters.device_id = getString(R.string.device1_tv);
-                                queryParameters.axes = getString(R.string.nine_axis);
-                                queryParameters.graphType = getString(R.string.gyroscope);
-                                queryParameters.chartType = ChartType.GYRO;
-                                queryParameters.click_ts = clicked_ts;
-                                queryParameters.session_id = session_id;
-                                queryParameters.session_start_ts = session_start_ts;
-                                queryParameters.fragmentType = fragmentType;
-                                if(CustomGraphFragment.SAVE_TAB_DATA.get(fragmentType).gyrChartData.size()  == 0){
-                                    queryParameters.queryType = QueryType.INITIAL_LOAD;
-                                    queryParameters.tStart = queryParameters.click_ts - MAX_INTERVAL;
-                                    queryParameters.tEnd = queryParameters.click_ts + MAX_INTERVAL;
-                                }else{
-                                    queryParameters.queryType = QueryType.RELOAD;
-                                }
-                                NineAxis.getInstance().drawGraph(gyrLineChartView, queryParameters);
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        long t1 = System.currentTimeMillis();
+                        try {
+                            QueryParameters queryParameters = new QueryParameters();
+                            queryParameters.device_id = getString(R.string.device1_tv);
+                            queryParameters.axes = getString(R.string.nine_axis);
+                            queryParameters.graphType = getString(R.string.gyroscope);
+                            queryParameters.chartType = ChartType.GYR;
+                            queryParameters.click_ts = clicked_ts;
+                            queryParameters.session_id = session_id;
+                            queryParameters.session_start_ts = session_start_ts;
+                            queryParameters.fragmentType = fragmentType;
+                            if (CustomGraphFragment.SAVE_TAB_DATA.get(fragmentType).gyrChartData.size() == 0) {
+                                queryParameters.queryType = QueryType.INITIAL_LOAD;
+                                queryParameters.tStart = queryParameters.click_ts - MAX_INTERVAL;
+                                queryParameters.tEnd = queryParameters.click_ts + MAX_INTERVAL;
+                            } else {
+                                queryParameters.queryType = QueryType.RELOAD;
+                            }
+                            NineAxis.getInstance().drawGraph(gyrLineChartView, queryParameters);
 //                                NineAxis.getInstance()
 //                                        .drawGraph(getString(R.string.gyroscope),
 //                                                gyrLineChartView,
 //                                                getString(R.string.device1_tv),
 //                                                getString(R.string.nine_axis));
-                            } catch (ExecutionException | InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                            long t2 = System.currentTimeMillis();
-                            System.out.println("Time Gyr="+(t2-t1));
-                            Common.dismiss_wait_bar_count();
+                        } catch (ExecutionException | InterruptedException e) {
+                            e.printStackTrace();
                         }
-                    }).start();
+                        long t2 = System.currentTimeMillis();
+                        System.out.println("Time Gyr=" + (t2 - t1));
+                        Common.dismiss_wait_bar_count();
+                    }
+                }).start();
 
 
 //                LineData lineDataMag = SaveLineData.get(getString(R.string.magnetometer)+getString(R.string.device1_tv)+getString(R.string.nine_axis));
 //                if(lineDataMag==null) {
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            long t1 = System.currentTimeMillis();
-                            try {
-                                QueryParameters queryParameters = new QueryParameters();
-                                queryParameters.device_id = getString(R.string.device1_tv);
-                                queryParameters.axes = getString(R.string.nine_axis);
-                                queryParameters.graphType = getString(R.string.magnetometer);
-                                queryParameters.chartType = ChartType.MAG;
-                                queryParameters.click_ts = clicked_ts;
-                                queryParameters.session_id = session_id;
-                                queryParameters.session_start_ts = session_start_ts;
-                                queryParameters.fragmentType = fragmentType;
-                                if(CustomGraphFragment.SAVE_TAB_DATA.get(fragmentType).magChartData.size() == 0){
-                                    queryParameters.queryType = QueryType.INITIAL_LOAD;
-                                    queryParameters.tStart = queryParameters.click_ts - MAX_INTERVAL;
-                                    queryParameters.tEnd = queryParameters.click_ts + MAX_INTERVAL;
-                                }else{
-                                    queryParameters.queryType = QueryType.RELOAD;
-                                }
-                                NineAxis.getInstance().drawGraph(magLineChartView, queryParameters);
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        long t1 = System.currentTimeMillis();
+                        try {
+                            QueryParameters queryParameters = new QueryParameters();
+                            queryParameters.device_id = getString(R.string.device1_tv);
+                            queryParameters.axes = getString(R.string.nine_axis);
+                            queryParameters.graphType = getString(R.string.magnetometer);
+                            queryParameters.chartType = ChartType.MAG;
+                            queryParameters.click_ts = clicked_ts;
+                            queryParameters.session_id = session_id;
+                            queryParameters.session_start_ts = session_start_ts;
+                            queryParameters.fragmentType = fragmentType;
+                            if (CustomGraphFragment.SAVE_TAB_DATA.get(fragmentType).magChartData.size() == 0) {
+                                queryParameters.queryType = QueryType.INITIAL_LOAD;
+                                queryParameters.tStart = queryParameters.click_ts - MAX_INTERVAL;
+                                queryParameters.tEnd = queryParameters.click_ts + MAX_INTERVAL;
+                            } else {
+                                queryParameters.queryType = QueryType.RELOAD;
+                            }
+                            NineAxis.getInstance().drawGraph(magLineChartView, queryParameters);
 //                                NineAxis.getInstance()
 //                                        .drawGraph(getString(R.string.magnetometer), magLineChartView, getString(R.string.device1_tv), getString(R.string.nine_axis));
-                            } catch (ExecutionException | InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                            long t2 = System.currentTimeMillis();
-                            System.out.println("Time Mag="+(t2-t1));
-                            Common.dismiss_wait_bar_count();
+                        } catch (ExecutionException | InterruptedException e) {
+                            e.printStackTrace();
                         }
-                    }).start();
+                        long t2 = System.currentTimeMillis();
+                        System.out.println("Time Mag=" + (t2 - t1));
+                        Common.dismiss_wait_bar_count();
+                    }
+                }).start();
                 //Points are added to the graph similar to occupy an area on the graph viewport.
 
                 /*In the method below,the points are added such that every update appears to have happened
@@ -455,7 +451,9 @@ public class CustomGraphFragment extends Fragment implements OnChartGestureListe
 //                                etString(R.string.acceleration), accLineChartView, getString(R.string.device1_tv), getString(R.string.nine_axis)
 //                                registerFullScreen(getString(R.string.acceleration),
 //                                        getString(R.string.device1_tv), getString(R.string.nine_axis));
-                                registerFullScreen(fragmentType, ChartType.ACC.toString());
+                                float zoomx = accLineChartView.getScaleX();
+                                float minx = accLineChartView.getLowestVisibleX();
+                                registerFullScreen(fragmentType, ChartType.ACC.toString(), zoomx, minx);
                             }
                         });
                 //The gyroscope fullscreen handle
@@ -465,7 +463,9 @@ public class CustomGraphFragment extends Fragment implements OnChartGestureListe
                             public void onClick(View v) {
 //                                registerFullScreen(getString(R.string.gyroscope),
 //                                        getString(R.string.device1_tv), getString(R.string.nine_axis));
-                                registerFullScreen(fragmentType, ChartType.GYRO.toString());
+                                float zoomx = gyrLineChartView.getScaleX();
+                                float minx = gyrLineChartView.getLowestVisibleX();
+                                registerFullScreen(fragmentType, ChartType.GYR.toString(), zoomx, minx);
                             }
                         });
                 //The magnetometer fullscreen handle
@@ -475,7 +475,9 @@ public class CustomGraphFragment extends Fragment implements OnChartGestureListe
                             public void onClick(View v) {
 //                                registerFullScreen(getString(R.string.magnetometer),
 //                                        getString(R.string.device1_tv), getString(R.string.nine_axis));
-                                registerFullScreen(fragmentType, ChartType.MAG.toString());
+                                float zoomx = magLineChartView.getScaleX();
+                                float minx = magLineChartView.getLowestVisibleX();
+                                registerFullScreen(fragmentType, ChartType.MAG.toString(), zoomx, minx);
                             }
                         });
 
@@ -525,13 +527,14 @@ public class CustomGraphFragment extends Fragment implements OnChartGestureListe
                 accLineChartView.setOnChartGestureListener(this);
                 gyrLineChartView.setOnChartGestureListener(this);
                 magLineChartView.setOnChartGestureListener(this);
+
                 break;
 
             case FRAGMENT_NAME_DEVICE1_3_AXIS:
                 Common.show_wait_bar_count(getContext(), "Loading 3-axis Dev1 graph", 1);
                 long session_id1 = 1;
-               view.findViewById(R.id.gyrFrame).setVisibility(View.INVISIBLE);
-               view.findViewById(R.id.magFrame).setVisibility(View.INVISIBLE);
+                view.findViewById(R.id.gyrFrame).setVisibility(View.INVISIBLE);
+                view.findViewById(R.id.magFrame).setVisibility(View.INVISIBLE);
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
@@ -545,11 +548,11 @@ public class CustomGraphFragment extends Fragment implements OnChartGestureListe
                             queryParameters.session_id = session_id;
                             queryParameters.session_start_ts = session_start_ts;
                             queryParameters.fragmentType = fragmentType;
-                            if(CustomGraphFragment.SAVE_TAB_DATA.get(fragmentType).accChartData.size() == 0){
+                            if (CustomGraphFragment.SAVE_TAB_DATA.get(fragmentType).accChartData.size() == 0) {
                                 queryParameters.queryType = QueryType.INITIAL_LOAD;
                                 queryParameters.tStart = queryParameters.click_ts - MAX_INTERVAL;
                                 queryParameters.tEnd = queryParameters.click_ts + MAX_INTERVAL;
-                            }else{
+                            } else {
                                 queryParameters.queryType = QueryType.RELOAD;
                             }
                             NineAxis.getInstance().drawGraph(accLineChartView, queryParameters);
@@ -618,7 +621,9 @@ public class CustomGraphFragment extends Fragment implements OnChartGestureListe
                             @Override
                             public void onClick(View v) {
                                 //registerFullScreen(getString(R.string.acceleration), getString(R.string.device1_tv), getString(R.string.three_axis));
-                                registerFullScreen(fragmentType, ChartType.ACC.toString());
+                                float zoomx = accLineChartView.getScaleX();
+                                float minx = accLineChartView.getLowestVisibleX();
+                                registerFullScreen(fragmentType, ChartType.ACC.toString(), zoomx, minx);
                             }
                         });
 
@@ -646,11 +651,11 @@ public class CustomGraphFragment extends Fragment implements OnChartGestureListe
                             queryParameters.session_id = session_id;
                             queryParameters.session_start_ts = session_start_ts;
                             queryParameters.fragmentType = fragmentType;
-                            if(CustomGraphFragment.SAVE_TAB_DATA.get(fragmentType).accChartData.size() == 0){
+                            if (CustomGraphFragment.SAVE_TAB_DATA.get(fragmentType).accChartData.size() == 0) {
                                 queryParameters.queryType = QueryType.INITIAL_LOAD;
                                 queryParameters.tStart = queryParameters.click_ts - MAX_INTERVAL;
                                 queryParameters.tEnd = queryParameters.click_ts + MAX_INTERVAL;
-                            }else{
+                            } else {
                                 queryParameters.queryType = QueryType.RELOAD;
                             }
                             NineAxis.getInstance().drawGraph(accLineChartView, queryParameters);
@@ -671,16 +676,16 @@ public class CustomGraphFragment extends Fragment implements OnChartGestureListe
                             queryParameters.device_id = getString(R.string.device2_tv);
                             queryParameters.axes = getString(R.string.nine_axis);
                             queryParameters.graphType = getString(R.string.gyroscope);
-                            queryParameters.chartType = ChartType.GYRO;
+                            queryParameters.chartType = ChartType.GYR;
                             queryParameters.click_ts = clicked_ts;
                             queryParameters.session_id = session_id;
                             queryParameters.session_start_ts = session_start_ts;
                             queryParameters.fragmentType = fragmentType;
-                            if(CustomGraphFragment.SAVE_TAB_DATA.get(fragmentType).gyrChartData.size() == 0){
+                            if (CustomGraphFragment.SAVE_TAB_DATA.get(fragmentType).gyrChartData.size() == 0) {
                                 queryParameters.queryType = QueryType.INITIAL_LOAD;
                                 queryParameters.tStart = queryParameters.click_ts - MAX_INTERVAL;
                                 queryParameters.tEnd = queryParameters.click_ts + MAX_INTERVAL;
-                            }else{
+                            } else {
                                 queryParameters.queryType = QueryType.RELOAD;
                             }
                             NineAxis.getInstance().drawGraph(gyrLineChartView, queryParameters);
@@ -709,11 +714,11 @@ public class CustomGraphFragment extends Fragment implements OnChartGestureListe
                             queryParameters.session_id = session_id;
                             queryParameters.session_start_ts = session_start_ts;
                             queryParameters.fragmentType = fragmentType;
-                            if(CustomGraphFragment.SAVE_TAB_DATA.get(fragmentType).magChartData.size() == 0){
+                            if (CustomGraphFragment.SAVE_TAB_DATA.get(fragmentType).magChartData.size() == 0) {
                                 queryParameters.queryType = QueryType.INITIAL_LOAD;
                                 queryParameters.tStart = queryParameters.click_ts - MAX_INTERVAL;
                                 queryParameters.tEnd = queryParameters.click_ts + MAX_INTERVAL;
-                            }else{
+                            } else {
                                 queryParameters.queryType = QueryType.RELOAD;
                             }
                             NineAxis.getInstance().drawGraph(magLineChartView, queryParameters);
@@ -794,8 +799,10 @@ public class CustomGraphFragment extends Fragment implements OnChartGestureListe
                         new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
+                                float zoomx = accLineChartView.getScaleX();
+                                float minx = accLineChartView.getLowestVisibleX();
 //                                registerFullScreen(getString(R.string.acceleration), getString(R.string.device2_tv), getString(R.string.nine_axis));
-                                registerFullScreen(fragmentType, ChartType.ACC.toString());
+                                registerFullScreen(fragmentType, ChartType.ACC.toString(), zoomx, minx);
                             }
                         });
                 //The gyroscope fullscreen handle
@@ -806,7 +813,9 @@ public class CustomGraphFragment extends Fragment implements OnChartGestureListe
 //                                registerFullScreen(getString(R.string.gyroscope),
 //                                        getString(R.string.device2_tv),
 //                                        getString(R.string.nine_axis));
-                                registerFullScreen(fragmentType, ChartType.GYRO.toString());
+                                float zoomx = gyrLineChartView.getScaleX();
+                                float minx = gyrLineChartView.getLowestVisibleX();
+                                registerFullScreen(fragmentType, ChartType.GYR.toString(), zoomx, minx);
                             }
                         });
                 //The magnetometer fullscreen handle
@@ -814,8 +823,10 @@ public class CustomGraphFragment extends Fragment implements OnChartGestureListe
                         new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
+                                float zoomx = magLineChartView.getScaleX();
+                                float minx = magLineChartView.getLowestVisibleX();
 //                                registerFullScreen(getString(R.string.magnetometer), getString(R.string.device1_tv), getString(R.string.nine_axis));
-                                registerFullScreen(fragmentType, ChartType.MAG.toString());
+                                registerFullScreen(fragmentType, ChartType.MAG.toString(), zoomx, minx);
                             }
                         });
                 accLineChartView.setOnChartGestureListener(this);
@@ -841,11 +852,11 @@ public class CustomGraphFragment extends Fragment implements OnChartGestureListe
                             queryParameters.session_id = session_id;
                             queryParameters.session_start_ts = session_start_ts;
                             queryParameters.fragmentType = fragmentType;
-                            if(CustomGraphFragment.SAVE_TAB_DATA.get(fragmentType).accChartData.size() == 0){
+                            if (CustomGraphFragment.SAVE_TAB_DATA.get(fragmentType).accChartData.size() == 0) {
                                 queryParameters.queryType = QueryType.INITIAL_LOAD;
                                 queryParameters.tStart = queryParameters.click_ts - MAX_INTERVAL;
                                 queryParameters.tEnd = queryParameters.click_ts + MAX_INTERVAL;
-                            }else{
+                            } else {
                                 queryParameters.queryType = QueryType.RELOAD;
                             }
                             NineAxis.getInstance().drawGraph(accLineChartView, queryParameters);
@@ -865,27 +876,29 @@ public class CustomGraphFragment extends Fragment implements OnChartGestureListe
                         new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
+                                float zoomx = accLineChartView.getScaleX();
+                                float minx = accLineChartView.getLowestVisibleX();
 //                                registerFullScreen(getString(R.string.acceleration),  getString(R.string.device2_tv), getString(R.string.three_axis));
-                                registerFullScreen(fragmentType, ChartType.ACC.toString());
+                                registerFullScreen(fragmentType, ChartType.ACC.toString(), zoomx, minx);
                             }
                         });
 
                 break;
 
             case FRAGMENT_NAME_GPS_SPEED:
-                Common.show_wait_bar_count(getContext(), "Loading GPS Speed graph", 1);
+
                 Map<Integer, SensorDataEntry> gpsMaps = CustomGraphFragment.SAVE_TAB_DATA.get(fragmentType).accChartData;
-//                if(gpsMaps.size() == 0){
-//
-//                }
-                String key = getString(R.string.acceleration)+getString(R.string.device2_tv)+"GPS_speed";
-                LineChart gpsSpeedChartView = accLineChartView;
-                LineData gpsSpeedLineData =  new LineData();;
+                if (gpsSpeeds != null && gpsSpeeds.size() > 0) {
+                    Common.show_wait_bar_count(getContext(), "Loading GPS Speed graph", 1);
+                    String key = getString(R.string.acceleration) + getString(R.string.device2_tv) + "GPS_speed";
+                    LineChart gpsSpeedChartView = accLineChartView;
+                    LineData gpsSpeedLineData = new LineData();
+                    ;
 
 //                if(gpsSpeedLineData == null){
                     LineDataSet lineDataSetX = new LineDataSet(null, "speed(km/h)");
+                    lineDataSetX.setColor(Color.BLUE);
                     NineAxis.formatPlotCircles(lineDataSetX);
-                    lineDataSetX.setColor(Color.RED);
                     gpsSpeedChartView.setNoDataText("Loading...");
                     gpsSpeedChartView.setDragEnabled(true);
                     gpsSpeedChartView.setDrawGridBackground(false);
@@ -893,66 +906,77 @@ public class CustomGraphFragment extends Fragment implements OnChartGestureListe
                     gpsSpeedChartView.getLegend().setEnabled(true);
                     gpsSpeedChartView.getXAxis().setDrawGridLines(true);
                     gpsSpeedChartView.getXAxis().setDrawAxisLine(true);
+                    gpsSpeedChartView.getAxisLeft().setTextColor(Color.WHITE);
+                    gpsSpeedChartView.getXAxis().setTextColor(Color.WHITE);
+                    gpsSpeedChartView.getLegend().setTextColor(Color.WHITE);
 
-                    long timestamp_start =  gpsSpeeds.get(0).timestamp;
-                    for(GpsSpeed gpsSpeed : gpsSpeeds){
-                        lineDataSetX.addEntry(new Entry((float)(gpsSpeed.getTimestamp() -timestamp_start)/1000.0f,
+                    long timestamp_start = gpsSpeeds.get(0).timestamp;
+                    for (GpsSpeed gpsSpeed : gpsSpeeds) {
+                        lineDataSetX.addEntry(new Entry((float) (gpsSpeed.getTimestamp() - timestamp_start) / 1000.0f,
                                 gpsSpeed.speed));
                         SensorDataEntry sensorDataEntry = new SensorDataEntry();
-                        sensorDataEntry.setXval(gpsSpeed.speed); sensorDataEntry.setYval(0.0f);sensorDataEntry.setZval(0.0f);
-                        gpsMaps.put((int) (gpsSpeed.getTimestamp() -timestamp_start), sensorDataEntry);
+                        sensorDataEntry.setXval(gpsSpeed.speed);
+                        sensorDataEntry.setYval(0.0f);
+                        sensorDataEntry.setZval(0.0f);
+                        gpsMaps.put((int) (gpsSpeed.getTimestamp() - timestamp_start), sensorDataEntry);
                         //System.out.println("cur ts="+gpsSpeed.getTimestamp()+", timestamp_start="+timestamp_start+", diff="+(gpsSpeed.getTimestamp() -timestamp_start));
                     }
+                    CustomGraphFragment.SAVE_TAB_DATA.get(fragmentType).accChartData = gpsMaps;
                     Common.dismiss_wait_bar_count();
                     //gpsSpeedLineData = new LineData();
 
                     gpsSpeedLineData.addDataSet(lineDataSetX);
 //                    CustomGraphFragment.SaveLineData.put(key, gpsSpeedLineData);
 //                }
-                gpsSpeedChartView.setData(gpsSpeedLineData);
+                    gpsSpeedChartView.setData(gpsSpeedLineData);
 //                gpsSpeedChartView.setScaleX(0.5f);
 
 
-                Legend legend = gpsSpeedChartView.getLegend();
-                legend.setForm(Legend.LegendForm.CIRCLE);
-                gpsSpeedChartView.getDescription().setText(mContext.getString(R.string.time_measure));
-                legend.setVerticalAlignment(Legend.LegendVerticalAlignment.TOP);
+                    Legend legend = gpsSpeedChartView.getLegend();
+                    legend.setForm(Legend.LegendForm.CIRCLE);
+                    gpsSpeedChartView.getDescription().setText(mContext.getString(R.string.time_measure));
+                    gpsSpeedChartView.getDescription().setTextColor(Color.WHITE);
+                    legend.setVerticalAlignment(Legend.LegendVerticalAlignment.TOP);
 
-                XAxis xAxis = gpsSpeedChartView.getXAxis();
-                xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
-                YAxis yAxisRight = gpsSpeedChartView.getAxisRight();
-                yAxisRight.setEnabled(false);
-                gpsSpeedChartView.invalidate();
+                    XAxis xAxis = gpsSpeedChartView.getXAxis();
+                    xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+                    xAxis.setTextColor(Color.WHITE);
+                    YAxis yAxisRight = gpsSpeedChartView.getAxisRight();
+                    yAxisRight.setEnabled(false);
+                    gpsSpeedChartView.invalidate();
 
-                TextView gps_speed_tv =
-                        view.findViewById(R.id.accFrame).findViewById(R.id.graph1_tv);
-                gps_speed_tv.setText("GPS Speed");
-                try{
+                    final ImageView ivAcc_gps_speed = view.findViewById(R.id.accFS);
+
+                    ivAcc_gps_speed.setOnClickListener(
+                            new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+//                                registerFullScreen(getString(R.string.acceleration),  getString(R.string.device2_tv), "GPS_speed");
+                                    float zoomx = gpsSpeedChartView.getScaleX();
+                                    float minx = gpsSpeedChartView.getLowestVisibleX();
+                                    registerFullScreen(fragmentType, ChartType.GPS_SPEED.toString(), zoomx, minx);
+                                }
+                            });
+                }
+
+                try {
+                    TextView gps_speed_tv =
+                            view.findViewById(R.id.accFrame).findViewById(R.id.graph1_tv);
+                    gps_speed_tv.setText("GPS Speed");
                     TextView gps_speed_tv2 =
                             view.findViewById(R.id.gyrFrame).findViewById(R.id.graph2_tv);
                     TextView gps_speed_tv3 =
                             view.findViewById(R.id.magFrame).findViewById(R.id.graph3_tv);
                     gps_speed_tv2.setVisibility(View.INVISIBLE);
                     gps_speed_tv3.setVisibility(View.INVISIBLE);
-                }catch(Exception ex){
+                } catch (Exception ex) {
 
                 }
-
-
                 view.findViewById(R.id.gyroscopeChart).setVisibility(View.INVISIBLE);
                 view.findViewById(R.id.magnetometerChart).setVisibility(View.INVISIBLE);
                 view.findViewById(R.id.gyroFS).setVisibility(View.INVISIBLE);
                 view.findViewById(R.id.magFS).setVisibility(View.INVISIBLE);
-                final ImageView ivAcc_gps_speed = view.findViewById(R.id.accFS);
 
-                ivAcc_gps_speed.setOnClickListener(
-                        new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-//                                registerFullScreen(getString(R.string.acceleration),  getString(R.string.device2_tv), "GPS_speed");
-                                registerFullScreen(fragmentType, ChartType.ACC.toString());
-                            }
-                        });
                 break;
         }
     }
@@ -966,7 +990,8 @@ public class CustomGraphFragment extends Fragment implements OnChartGestureListe
 
     /**
      * Invalidates any existing chart data and replaces with a fresh plot graph.
-      * @param accLineChartView The accelerometer LineChart
+     *
+     * @param accLineChartView The accelerometer LineChart
      * @param gyrLineChartView The gyroscope LineChart
      * @param magLineChartView the magnetometer LineChart
      */
@@ -991,10 +1016,12 @@ public class CustomGraphFragment extends Fragment implements OnChartGestureListe
         startActivity(in);
     }
 
-    private void registerFullScreen(final String fragmentType, final String chart_type) {
+    private void registerFullScreen(final String fragmentType, final String chart_type, float zoomx, float minx) {
         Intent in = new Intent(getActivity(), FullScreenActivity.class);
         in.putExtra("FRAG_TYPE", fragmentType);
-        in.putExtra("CHART_TYPE",chart_type);
+        in.putExtra("CHART_TYPE", chart_type);
+        in.putExtra("ZOOM_X", zoomx);
+        in.putExtra("MIN_X", minx);
         startActivity(in);
     }
 
@@ -1019,25 +1046,25 @@ public class CustomGraphFragment extends Fragment implements OnChartGestureListe
     /**
      * Callbacks when a touch-gesture has started on the chart (ACTION_DOWN)
      *
-     * @param me The motion event type
+     * @param me                   The motion event type
      * @param lastPerformedGesture The gesture that invoked the "start" callback
      */
     @Override
     public void onChartGestureStart(MotionEvent me, ChartTouchListener.ChartGesture lastPerformedGesture) {
-        //Default implementation
+        System.out.println("-----------onChartGestureStart-----------: ts=" + System.currentTimeMillis()+", gesture="+lastPerformedGesture);
 
+        //Default implementation
     }
 
 
-
     //=====CODE UNDER DEVELOPMENT==========//
-    private long millisecond1,millisecond2;
+    private long millisecond1, millisecond2;
 
 
     /**
      * Callbacks when a touch-gesture has ended on the chart (ACTION_UP, ACTION_CANCEL)
      *
-     * @param me The motion event type
+     * @param me                   The motion event type
      * @param lastPerformedGesture The gesture that invoked the "end" callback
      */
     @Override
@@ -1049,86 +1076,116 @@ public class CustomGraphFragment extends Fragment implements OnChartGestureListe
         LineChart gyroscope = gyrChart;
         LineChart magnetometer = magChart;
 
+        accelerometer.setScaleYEnabled(false);
+        gyroscope.setScaleYEnabled(false);
+        magnetometer.setScaleYEnabled(false);
+
         long diff = (millisecond2 - millisecond1);
-        System.out.println("-----------onChartGestureEnd-----------: ts="+System.currentTimeMillis());
+        System.out.println("-----------onChartGestureEnd-----------: ts=" + System.currentTimeMillis()+", gesture="+lastPerformedGesture);
         new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
 
-                    if(lastPerformedGesture == DRAG ){
-//                        boolean isHighest = false;
 
-                        if ( lastDragged.equals("Accelerometer")
-                                || (lastPerformedGesture == SINGLE_TAP && lastFlung.equals("Accelerometer"))) {
+                    if (lastPerformedGesture == DRAG || lastPerformedGesture == SINGLE_TAP) {
+                        float prevX = Float.MIN_VALUE;
+                        while(Math.abs(prevX - translateX) > 0.0001){
+                            prevX = translateX;
+                            Common.wait(50);
+//                            System.out.println("Wait...");
+                        }
+//                        System.out.println("Syncing...");
+//                        boolean isHighest = false;
+                        if (lastDragged.equals("Accelerometer")) {
                             //Todo: get highest and Lowest visibleX
-                            gyroscope.moveViewToX(accelerometer.getLowestVisibleX());
-                            magnetometer.moveViewToX(accelerometer.getLowestVisibleX());
-                            System.out.println("Lowest Visible X="+accelerometer.getLowestVisibleX()+"Highest Visible X"+accelerometer.getHighestVisibleX());
-                        }else if (lastDragged.equals("Gyroscope")
-                                || (lastPerformedGesture == SINGLE_TAP && lastFlung.equals("Gyroscope"))) {
+                            gyroscope.moveViewToX(accChart.getLowestVisibleX());
+                            magnetometer.moveViewToX(accChart.getLowestVisibleX());
+                            accelerometer.moveViewToX(accChart.getLowestVisibleX());
+//                            System.out.println("Lowest Visible X=" + accelerometer.getLowestVisibleX() + "Highest Visible X" + accelerometer.getHighestVisibleX());
+                        } else if (lastDragged.equals("Gyroscope")) {
                             //Todo: get highest and Lowest visibleX
                             accelerometer.moveViewToX(gyroscope.getLowestVisibleX());
                             magnetometer.moveViewToX(gyroscope.getLowestVisibleX());
-                        }else if (lastDragged.equals("Magnetometer")
-                                || (lastPerformedGesture == SINGLE_TAP && lastFlung.equals("Magnetometer"))) {
+                            gyroscope.moveViewToX(gyroscope.getLowestVisibleX());
+                        } else if (lastDragged.equals("Magnetometer")) {
                             //Todo: get highest and Lowest visibleX
                             gyroscope.moveViewToX(magnetometer.getLowestVisibleX());
                             accelerometer.moveViewToX(magnetometer.getLowestVisibleX());
+                            magnetometer.moveViewToX(magnetometer.getLowestVisibleX());
                         }
                     }
-                    if(translateX < -20){
-                        System.out.println("Drag to Left");
-                        //Todo:
-                        // check highest X is about 10% less than availabe data' highest x
-                        // load more data for right side
-//                            isHighest = true;
-                    }else if(translateX > 20f){
-                        System.out.println("Drag to Right");
-                        //Todo:
-                        // check lowest X is about 10% greater than availabe data' lowest x
-                        // load more data to left side
-//                            isHighest = false;
-                    }
-                }
-                catch (NullPointerException e){
+//                    if (translateX < -20) {
+//                        System.out.println("Drag to Left");
+//                        //Todo:
+//                        // check highest X is about 10% less than availabe data' highest x
+//                        // load more data for right side
+////                            isHighest = true;
+//                    } else if (translateX > 20f) {
+//                        System.out.println("Drag to Right");
+//                        //Todo:
+//                        // check lowest X is about 10% greater than availabe data' lowest x
+//                        // load more data to left side
+////                            isHighest = false;
+//                    }
+                } catch (NullPointerException e) {
                     System.out.println("Waiting for init");
                 }
             }
         }).start();
 
-        if(lastPerformedGesture == X_ZOOM || lastPerformedGesture == Y_ZOOM){
+        if (lastPerformedGesture == X_ZOOM || lastPerformedGesture == Y_ZOOM) {
             boolean zoom_out = false;
-            float visible_min_x = Float.MIN_VALUE,  visible_max_x = Float.MAX_VALUE;
-            if(lastPinched.equals("Accelerometer")) {
-                gyroscope.zoom(zoomX,zoomY,gyroscope.getWidth()/2,gyroscope.getHeight()/2);
-                magnetometer.zoom(zoomX,zoomY,magnetometer.getWidth()/2,magnetometer.getHeight()/2);
-                visible_min_x = accChart.getLowestVisibleX(); visible_max_x=accChart.getHighestVisibleX();
-            }else if(lastPinched.equals("Gyroscope")) {
-                accelerometer.zoom(zoomX,zoomY,accelerometer.getWidth()/2,accelerometer.getHeight()/2);
-                magnetometer.zoom(zoomX,zoomY,magnetometer.getWidth()/2,magnetometer.getHeight()/2);
-                visible_min_x = gyrChart.getLowestVisibleX(); visible_max_x=gyrChart.getHighestVisibleX();
-            }else if(lastPinched.equals("Magnetometer")) {
+            float visible_min_x = Float.MIN_VALUE, visible_max_x = Float.MAX_VALUE;
+            if (lastPinched.equals("Accelerometer")) {
+                gyroscope.zoom(zoomX,0, gyroscope.getWidth() / 2.0f,gyroscope.getHeight() / 2.0f);
+                magnetometer.zoom(zoomX, 0, magnetometer.getWidth() / 2.0f, magnetometer.getHeight() / 2.0f);
+                visible_min_x = accChart.getLowestVisibleX();
+                visible_max_x = accChart.getHighestVisibleX();
+
+//                Log.d(TAG, "onChartGestureEnd: Visible min x"+visible_min_x);
+//                Log.d(TAG, "onChartGestureEnd: Visible max x" + visible_max_x);
+
+                gyroscope.moveViewToX(visible_min_x);
+                magnetometer.moveViewToX(visible_min_x);
+                accelerometer.moveViewToX(visible_min_x);
+
+                visible_min_x = accChart.getLowestVisibleX();
+                visible_max_x = accChart.getHighestVisibleX();
+
+//                Log.d(TAG, "onChartGestureEnd: Visible min x"+visible_min_x);
+//                Log.d(TAG, "onChartGestureEnd: Visible max x" + visible_max_x);
+
+            } else if (lastPinched.equals("Gyroscope")) {
+                accelerometer.zoom(zoomX, 0, accelerometer.getWidth() / 2.0f, accelerometer.getHeight() / 2.0f);
+                magnetometer.zoom(zoomX, 0  , magnetometer.getWidth() / 2.0f, magnetometer.getHeight() / 2.0f);
+
+                visible_min_x = gyrChart.getLowestVisibleX();
+                visible_max_x = gyrChart.getHighestVisibleX();
+
+//                Log.d(TAG, "onChartGestureEnd: Visible min x"+visible_min_x);
+//                Log.d(TAG, "onChartGestureEnd: Visible max x" + visible_max_x);
+
+                magnetometer.moveViewToX(visible_min_x);
+                accelerometer.moveViewToX(visible_min_x);
+                gyroscope.moveViewToX(visible_min_x);
+
+//                Log.d(TAG, "onChartGestureEnd: Visible min x"+visible_min_x);
+//                Log.d(TAG, "onChartGestureEnd: Visible max x" + visible_max_x);
+
+            } else if (lastPinched.equals("Magnetometer")) {
 //            if(zoomX - last_zoomX > 0)
-                gyroscope.zoom(zoomX,zoomY,gyroscope.getWidth()/2,gyroscope.getHeight()/2);
-                accelerometer.zoom(zoomX,zoomY,accelerometer.getWidth()/2,accelerometer.getHeight()/2);
-                visible_min_x = magChart.getLowestVisibleX(); visible_max_x=magChart.getHighestVisibleX();
+                gyroscope.zoom(zoomX, 0, gyroscope.getWidth() / 2.0f, gyroscope.getHeight() / 2.0f);
+                accelerometer.zoom(zoomX, 0, accelerometer.getWidth() / 2.0f, accelerometer.getHeight() / 2.0f);
+
+                visible_min_x = magChart.getLowestVisibleX();
+                visible_max_x = magChart.getHighestVisibleX();
+
+                gyroscope.moveViewToX(visible_min_x);
+                accelerometer.moveViewToX(visible_min_x);
+                magnetometer.moveViewToX(visible_min_x);
             }
 
-            if(lastPerformedGesture == X_ZOOM){
-                if(zoomX <= 1.02f){
-                    System.out.println("Zoom-In");
-                    // load more data
-                    // check visible's range is within 10% of available data's range
-                    // load more data
-                    // check visible range is within 500 sec and 550 skip the 1/3 data
-                    // check visible range is more than 700 sec and 750 skip the 1/2 data
-                }else if(zoomX > 1.1f){
-                    System.out.println("Zoom-Out");
-                    // check visible range is less within 500 sec and 550, then load full data(reload)
-                    // check visible range is more than 710 sec and 750 sec, then load full data(reload)
-                }
-            }
         }
 
 
@@ -1174,7 +1231,7 @@ public class CustomGraphFragment extends Fragment implements OnChartGestureListe
 //        catch (NullPointerException e){
 //            System.out.println("Waiting for init");
 //        }
-        System.out.println("Gesture has ended"+lastPerformedGesture);
+        System.out.println("Gesture has ended" + lastPerformedGesture);
     }
 
     /**
@@ -1214,7 +1271,7 @@ public class CustomGraphFragment extends Fragment implements OnChartGestureListe
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 lastFlung = "Accelerometer";
-                System.out.println("View obtained"+v);
+                System.out.println("View obtained" + v);
                 return false;
             }
         });
@@ -1254,7 +1311,7 @@ public class CustomGraphFragment extends Fragment implements OnChartGestureListe
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 lastFlung = "Accelerometer";
-                System.out.println("View obtained"+v);
+                System.out.println("View obtained" + v);
                 return false;
             }
         });
@@ -1285,13 +1342,13 @@ public class CustomGraphFragment extends Fragment implements OnChartGestureListe
     public void onChartScale(MotionEvent me, float scaleX, float scaleY) {
         millisecond1 = System.currentTimeMillis();
         View anygraphView = CustomGraphFragment.this.getView();
-        try{
+        try {
             LineChart accelerometer = accChart;
             LineChart gyroscope = gyrChart;
             LineChart magnetometer = magChart;
 //            System.out.println(accelerometer.toString()+ " " + gyroscope.toString()+ " "
 //            + magnetometer.toString() );
-            System.out.println("X-range"+gyroscope.getVisibleXRange()+"HIghest visible X"+gyroscope.getHighestVisibleX()+"Lowest visible X"+gyroscope.getLowestVisibleX());
+//            System.out.println("X-range" + gyroscope.getVisibleXRange() + "HIghest visible X" + gyroscope.getHighestVisibleX() + "Lowest visible X" + gyroscope.getLowestVisibleX());
 //            chartTouchListenerAcc = new CustomChartTouchListener(accelerometer);
 //            chartTouchListenerGyr = new CustomChartTouchListener(gyroscope);
 //            chartTouchListenerMag = new CustomChartTouchListener(magnetometer);
@@ -1318,16 +1375,15 @@ public class CustomGraphFragment extends Fragment implements OnChartGestureListe
             });
             zoomX = scaleX;
             zoomY = scaleY;
-           // System.out.println("zoomX="+zoomX+", zoomY="+zoomY+" motionevent="+me.getAction());
+            // System.out.println("zoomX="+zoomX+", zoomY="+zoomY+" motionevent="+me.getAction());
             millisecond2 = System.currentTimeMillis();
-        }
-        catch (NullPointerException ne){
+        } catch (NullPointerException ne) {
             System.out.println("All graphs missing, or no values");
         }
-        finally{
-            System.out.println(anygraphView.toString());
-            System.out.println("Three or nine axes plotted");
-        }
+//        finally {
+//            System.out.println(anygraphView.toString());
+//            System.out.println("Three or nine axes plotted");
+//        }
     }
 
 
@@ -1346,13 +1402,13 @@ public class CustomGraphFragment extends Fragment implements OnChartGestureListe
         LineChart gyroscope = gyrChart;
         LineChart magnetometer = magChart;
         translateX = dX;
-        //System.out.println(translateX+"TranslateX");
-        translateY = dY;
+//        System.out.println("TranslateX="+translateX+", Timestamp="+System.currentTimeMillis());
+//        translateY = dY;
         accelerometer.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 lastDragged = "Accelerometer";
-                System.out.println("drag=dx"+dX+", dY="+dY);
+                //System.out.println("drag=dx" + dX + ", dY=" + dY);
                 return false;
             }
         });
@@ -1374,7 +1430,6 @@ public class CustomGraphFragment extends Fragment implements OnChartGestureListe
     }
 
 
-
     /**
      * This interface must be implemented by activities that contain this
      * fragment to allow an interaction in this fragment to be communicated
@@ -1390,10 +1445,10 @@ public class CustomGraphFragment extends Fragment implements OnChartGestureListe
         void onFragmentInteraction(Uri uri);
     }
 
-    public static void clear(){
-        for (Map.Entry<String, TabMetaData> entry: SAVE_TAB_DATA.entrySet()
-             ) {
-              entry.getValue().clear();
+    public static void clear() {
+        for (Map.Entry<String, TabMetaData> entry : SAVE_TAB_DATA.entrySet()
+        ) {
+            entry.getValue().clear();
         }
     }
 }

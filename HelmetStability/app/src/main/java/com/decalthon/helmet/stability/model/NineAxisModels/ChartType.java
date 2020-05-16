@@ -1,6 +1,6 @@
-package com.decalthon.helmet.stability.model.NineAxisModels;
+package com.decalthon.helmet.stability.model.nineaxismodels;
 
 public enum ChartType {
-    ACC, GYRO, MAG, GPS_SPEED
+    ACC, GYR, MAG, GPS_SPEED
 }
 

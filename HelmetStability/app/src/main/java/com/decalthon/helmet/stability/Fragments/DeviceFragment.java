@@ -1,4 +1,4 @@
-package com.decalthon.helmet.stability.Fragments;
+package com.decalthon.helmet.stability.fragments;
 
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
@@ -15,7 +15,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -23,19 +22,19 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.ActionBar;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
-import com.decalthon.helmet.stability.Activities.DeviceScanActivity;
-import com.decalthon.helmet.stability.Activities.MainActivity;
-import com.decalthon.helmet.stability.BLE.Device_Parser;
+import com.decalthon.helmet.stability.activities.DeviceScanActivity;
+import com.decalthon.helmet.stability.activities.MainActivity;
+import com.decalthon.helmet.stability.ble.Device_Parser;
 import com.decalthon.helmet.stability.R;
-import com.decalthon.helmet.stability.Utilities.Common;
-import com.decalthon.helmet.stability.Utilities.Constants;
-import com.decalthon.helmet.stability.model.DeviceModels.BLEConnectionState;
-import com.decalthon.helmet.stability.model.DeviceModels.BatteryLevel;
-import com.decalthon.helmet.stability.model.DeviceModels.BleDevice;
-import com.decalthon.helmet.stability.model.DeviceModels.DeviceDetails;
+import com.decalthon.helmet.stability.utilities.Common;
+import com.decalthon.helmet.stability.utilities.Constants;
+import com.decalthon.helmet.stability.model.devicemodels.BLEConnectionState;
+import com.decalthon.helmet.stability.model.devicemodels.BatteryLevel;
+import com.decalthon.helmet.stability.model.devicemodels.BleDevice;
+import com.decalthon.helmet.stability.model.devicemodels.DeviceDetails;
 import com.decalthon.helmet.stability.preferences.DevicePreferences;
 
 import java.util.Date;
@@ -45,7 +44,6 @@ import java.util.Map;
 
 import at.grabner.circleprogress.CircleProgressView;
 import de.greenrobot.event.EventBus;
-import de.hdodenhof.circleimageview.CircleImageView;
 
 
 /**
@@ -724,8 +722,8 @@ public class DeviceFragment extends Fragment {
                 }).create();
 
         dialog.show();
-        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.parseColor("#FF1B5AAC")); // Set text color to blue color
-        dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(Color.parseColor("#D3D3D3"));  // Set text color to ligh gray color
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(ContextCompat.getColor(getContext(), R.color.black)); // Set text color to blue color
+        dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(ContextCompat.getColor(getContext(), R.color.black));  // Set text color to ligh gray color
 
         // Get the alert dialog buttons reference
 //        Button positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
@@ -1090,8 +1088,8 @@ public class DeviceFragment extends Fragment {
                                     }
                                 }).create();
                         dialog.show();
-                        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.parseColor("#FF1B5AAC"));
-                        dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(Color.parseColor("#D3D3D3"));
+                        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(ContextCompat.getColor(getContext(), R.color.black));
+                        dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(ContextCompat.getColor(getContext(), R.color.black));
 
                     }else{
                         //Initiates a device scan activity if the particular device id shows disconnected

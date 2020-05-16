@@ -1,4 +1,4 @@
-package com.decalthon.helmet.stability.Fragments;
+package com.decalthon.helmet.stability.fragments;
 
 import android.content.Context;
 import android.net.Uri;
@@ -7,18 +7,19 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.GridView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentTransaction;
 
-import com.decalthon.helmet.stability.Adapters.MonthGridAdapter;
+import com.decalthon.helmet.stability.adapters.MonthGridAdapter;
 import com.decalthon.helmet.stability.R;
-import com.decalthon.helmet.stability.Utilities.Constants;
+import com.decalthon.helmet.stability.utilities.Constants;
+
+import java.util.Calendar;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -35,13 +36,17 @@ public class YearlyCalendarFragment extends Fragment {
     private static final String ARG_PARAM2 = "param2";
 
     // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    private int yearCurrent;
+    private int earliestYear;
 
     private static String TAG =
             YearlyCalendarFragment.class.getSimpleName();
 
     private OnFragmentInteractionListener mListener;
+
+    private TextView leftButton;
+    private TextView rightButton;
+    private int mCurrentYear;
 
     public YearlyCalendarFragment() {
         // Required empty public constructor
@@ -56,11 +61,11 @@ public class YearlyCalendarFragment extends Fragment {
      * @return A new instance of fragment YearlyCalendarFragment.
      */
     // TODO: Rename and change types and number of parameters
-    public static YearlyCalendarFragment newInstance(String param1, String param2) {
+    public static YearlyCalendarFragment newInstance(int param1, int param2) {
         YearlyCalendarFragment fragment = new YearlyCalendarFragment();
         Bundle args = new Bundle();
-        args.putString(currentYear, param1);
-        args.putString(ARG_PARAM2, param2);
+        args.putInt(currentYear, param1);
+        args.putInt(ARG_PARAM2, param2);
         fragment.setArguments(args);
         return fragment;
     }
@@ -69,8 +74,8 @@ public class YearlyCalendarFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            mParam1 = getArguments().getString(currentYear);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+            yearCurrent = getArguments().getInt(currentYear);
+            earliestYear = getArguments().getInt(ARG_PARAM2);
         }
     }
 
@@ -86,13 +91,63 @@ public class YearlyCalendarFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        mCurrentYear = yearCurrent;
+
+        Calendar displayedYear = Calendar.getInstance();
+
         TextView yearTextView = view.findViewById(R.id.year_number_tv);
-        yearTextView.setText(mParam1);
+        int latestYear = displayedYear.get(Calendar.YEAR);
+        yearTextView.setText(String.valueOf(mCurrentYear));
 
         GridView yearView = view.findViewById(R.id.month_only_grid);
         MonthGridAdapter monthGridAdapter =
                 new MonthGridAdapter(getContext(), Constants.monthsThreeLetter);
+        monthGridAdapter.setmYearPassed(mCurrentYear);
         yearView.setAdapter(monthGridAdapter);
+
+        leftButton = view.findViewById(R.id.previous_year_link_vp);
+        rightButton = view.findViewById(R.id.next_year_link_vp);
+
+        if(mCurrentYear == earliestYear){
+            leftButton.setVisibility(View.INVISIBLE);
+        }
+
+        if(mCurrentYear == latestYear){
+            rightButton.setVisibility(View.INVISIBLE);
+        }
+
+        leftButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mCurrentYear--;
+                monthGridAdapter.setmYearPassed(mCurrentYear);
+                yearTextView.setText(String.valueOf(mCurrentYear));
+                rightButton.setVisibility(View.VISIBLE);
+                yearView.setAdapter(monthGridAdapter);
+                if(mCurrentYear - 1 <= earliestYear){
+                    v.setVisibility(View.INVISIBLE);
+                }else {
+                    v.setVisibility(View.VISIBLE);
+                }
+            }
+        });
+
+        rightButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mCurrentYear++;
+                monthGridAdapter.setmYearPassed(mCurrentYear);
+                yearTextView.setText(String.valueOf(mCurrentYear));
+                leftButton.setVisibility(View.VISIBLE);
+                yearView.setAdapter(monthGridAdapter);
+                if(mCurrentYear + 1 >= latestYear){
+                    v.setVisibility(View.INVISIBLE);
+                }else{
+                    v.setVisibility(View.VISIBLE);
+                }
+            }
+        });
 
 
 //        yearView.setOnItemClickListener(new AdapterView.OnItemClickListener() {

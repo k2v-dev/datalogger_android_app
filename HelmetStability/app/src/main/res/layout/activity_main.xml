@@ -6,10 +6,10 @@
     android:id="@+id/main_activity"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".Activities.MainActivity">
+    tools:context=".activities.MainActivity">
     <fragment
         android:id="@+id/fragment"
-        android:name="com.decalthon.helmet.stability.Fragments.HomeFragment"
+        android:name="com.decalthon.helmet.stability.fragments.HomeFragment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         tools:layout="@layout/fragment_home"/>

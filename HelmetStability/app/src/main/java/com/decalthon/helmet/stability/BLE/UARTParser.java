@@ -1,4 +1,4 @@
-package com.decalthon.helmet.stability.BLE;
+package com.decalthon.helmet.stability.ble;
 
 /*
  * Copyright Cypress Semiconductor Corporation, 2014-2015 All rights reserved.

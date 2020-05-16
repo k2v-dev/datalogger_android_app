@@ -1,10 +1,10 @@
-package com.decalthon.helmet.stability.Adapters;
+package com.decalthon.helmet.stability.adapters;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 
-import com.decalthon.helmet.stability.Fragments.YearlyCalendarFragment;
+import com.decalthon.helmet.stability.fragments.YearlyCalendarFragment;
 
 public class YearNumberPagerAdapter extends FragmentStateAdapter {
     private int sessionYearGap;
@@ -19,7 +19,7 @@ public class YearNumberPagerAdapter extends FragmentStateAdapter {
     @NonNull
     @Override
     public Fragment createFragment(int position) {
-        return YearlyCalendarFragment.newInstance((Integer.valueOf(earliestYear+position)).toString(),null);
+        return null;
     }
 
     @Override

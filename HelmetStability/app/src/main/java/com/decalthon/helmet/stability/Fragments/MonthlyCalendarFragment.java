@@ -1,14 +1,9 @@
-package com.decalthon.helmet.stability.Fragments;
+package com.decalthon.helmet.stability.fragments;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.GestureDetector;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -20,20 +15,15 @@ import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.viewpager2.widget.ViewPager2;
 
 import com.applandeo.materialcalendarview.CalendarView;
 import com.applandeo.materialcalendarview.EventDay;
-import com.decalthon.helmet.stability.Activities.MainActivity;
-import com.decalthon.helmet.stability.Adapters.CalendarGridAdapter;
-import com.decalthon.helmet.stability.DB.SessionCdlDb;
+import com.decalthon.helmet.stability.activities.MainActivity;
+import com.decalthon.helmet.stability.adapters.CalendarGridAdapter;
 import com.decalthon.helmet.stability.R;
-import com.decalthon.helmet.stability.Utilities.CalendarUtils;
-
-import org.w3c.dom.Text;
+import com.decalthon.helmet.stability.utilities.CalendarUtils;
 
 import java.text.SimpleDateFormat;
-import java.time.Year;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -41,7 +31,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
 
 /**
@@ -70,7 +59,7 @@ public class MonthlyCalendarFragment extends Fragment{
     private CalendarView mCalendarView;
 //    private List<EventDay> mEventDays = new ArrayList<>();
 
-    private List<Integer> mEventDays = new ArrayList<>();
+    private List<Integer> mEventDays;
 
     private Date earliestDate = null;
     private Date latestDate = null;
@@ -375,37 +364,39 @@ public class MonthlyCalendarFragment extends Fragment{
         TextView rightCaretView =
                 view.findViewById(R.id.right_month_pager);
 
-        leftCaretView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                View viewroot = view.getRootView();
-                ViewPager2 viewPager2 =
-                        (ViewPager2) viewroot.findViewById(R.id.calendar_pager);
-                int currentPage =  viewPager2.getCurrentItem();
-                viewPager2.setCurrentItem( currentPage - 1 );
-            }
-        });
-
-        rightCaretView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                View viewroot = view.getRootView();
-                ViewPager2 viewPager2 =
-                        (ViewPager2) viewroot.findViewById(R.id.calendar_pager);
-                int currentPage =  viewPager2.getCurrentItem();
-                viewPager2.setCurrentItem( currentPage + 1 );
-
-                Log.d(TAG, "onClick: Right caret press");
-            }
-        });
+//        leftCaretView.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                View viewroot = view.getRootView();
+//                ViewPager2 viewPager2 =
+//                        (ViewPager2) viewroot.findViewById(R.id.calendar_pager);
+//                int currentPage =  viewPager2.getCurrentItem();
+//                viewPager2.setCurrentItem( currentPage - 1 );
+//            }
+//        });
+//
+//        rightCaretView.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                View viewroot = view.getRootView();
+//                ViewPager2 viewPager2 =
+//                        (ViewPager2) viewroot.findViewById(R.id.calendar_pager);
+//                int currentPage =  viewPager2.getCurrentItem();
+//                viewPager2.setCurrentItem( currentPage + 1 );
+//
+//                Log.d(TAG, "onClick: Right caret press");
+//            }
+//        });
 
         Calendar displayedMonth = Calendar.getInstance();
 //        displayedMonth.set(Calendar.MONTH,
 //                displayedMonth.get(Calendar.MONTH - Integer.parseInt(mParam1)));
         displayedMonth.add(Calendar.MONTH , -(Integer.parseInt(mParam1)) );
-        String monthName = displayedMonth.getDisplayName(Calendar.MONTH,
-                Calendar.LONG,
-                Locale.getDefault());
+
+//        String monthName = displayedMonth.getDisplayName(Calendar.MONTH,
+//                Calendar.LONG,
+//                Locale.getDefault());
+        String monthName = new SimpleDateFormat("MMM YYYY", Locale.getDefault()).format(displayedMonth.getTime());
         monthTextView.setText(monthName);
 
         registerMonthDoubleTapListener(monthTextView);
@@ -430,6 +421,7 @@ public class MonthlyCalendarFragment extends Fragment{
             currentMonthDayCells[day_i] = "" + (day_i + 1);
         }
 
+        mEventDays = new ArrayList<>();
         for(Map.Entry<Date,Integer> entry : CalendarUtils.dateMap.entrySet()){
             Date date = entry.getKey();
             String month_num =
@@ -454,7 +446,7 @@ public class MonthlyCalendarFragment extends Fragment{
         CalendarGridAdapter calendarGridAdapter =
                 new CalendarGridAdapter(gridCells,
                         (ArrayList<Integer>) mEventDays,
-                        displayedMonth.get(displayedMonth.get(Calendar.MONTH)));
+                        displayedMonth.get(Calendar.MONTH), getContext());
         monthView.setAdapter(calendarGridAdapter);
     }
 
@@ -462,16 +454,16 @@ public class MonthlyCalendarFragment extends Fragment{
         monthTextView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                int year = Integer.parseInt(monthTextView.getText().toString().substring(4,8));
                 Fragment yearPager =
                         CalendarPagerFragment.newInstance
-                                (YearlyCalendarFragment.class.getSimpleName(),null);
+                                (YearlyCalendarFragment.class.getSimpleName(),year, year);
                 FragmentTransaction fragmentTransaction =
                         ((MainActivity) getActivity()).getSupportFragmentManager().beginTransaction();
                 fragmentTransaction.add(MonthlyCalendarFragment.this.getParentFragment().getId(),
                         yearPager,
-                        "Yearly" +
-                                " Calendar Fragment");
-                fragmentTransaction.addToBackStack(CalendarPagerFragment.class.getSimpleName());
+                        YearlyCalendarFragment.class.getSimpleName());
+                fragmentTransaction.addToBackStack(null);
                 fragmentTransaction.commit();
             }
         });

@@ -1,4 +1,4 @@
-package com.decalthon.helmet.stability.model.DeviceModels.session;
+package com.decalthon.helmet.stability.model.devicemodels.session;
 
 //D1 X1  X2  X3 X4  X5  X6 X7 X8  X9 X10 CS1 CS2 where
 //        where D1 is the new packet Header : 0xDD
@@ -22,6 +22,7 @@ public class SessionHeader {
     float data_size;
     int activity_type;
     short firmwareType;
+    float firmwareVer;
     short samp_freq;
 
     public int getNumber() {
@@ -70,5 +71,13 @@ public class SessionHeader {
 
     public void setSamp_freq(short samp_freq) {
         this.samp_freq = samp_freq;
+    }
+
+    public float getFirmwareVer() {
+        return firmwareVer;
+    }
+
+    public void setFirmwareVer(float firmwareVer) {
+        this.firmwareVer = firmwareVer;
     }
 }

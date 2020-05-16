@@ -15,6 +15,22 @@
       },
       "oauth_client": [
         {
+          "client_id": "3920538077-hnvd2nfnr43gdqch3ge041k8j5h01u00.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.decalthon.helmet.stability",
+            "certificate_hash": "bffcfe07278d0c07dc36a52ea2e07e7f31467a4c"
+          }
+        },
+        {
+          "client_id": "3920538077-rda64arrolif01ivmc82rqdo5ad6en8b.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.decalthon.helmet.stability",
+            "certificate_hash": "c78342591c673bd079c0d71d9f59ac0143ed6caf"
+          }
+        },
+        {
           "client_id": "3920538077-6nnc27pst6n6spmj6jtord9a9gan0f6u.apps.googleusercontent.com",
           "client_type": 3
         }

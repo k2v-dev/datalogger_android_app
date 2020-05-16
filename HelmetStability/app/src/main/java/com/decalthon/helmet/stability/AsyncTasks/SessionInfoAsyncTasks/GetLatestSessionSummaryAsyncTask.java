@@ -1,10 +1,9 @@
-package com.decalthon.helmet.stability.AsyncTasks.SessionInfoAsyncTasks;
+package com.decalthon.helmet.stability.asynctasks.sessioninfoasynctasks;
 
-import android.content.Context;
 import android.os.AsyncTask;
 
-import com.decalthon.helmet.stability.DB.Entities.SessionSummary;
-import com.decalthon.helmet.stability.DB.SessionCdlDb;
+import com.decalthon.helmet.stability.database.entities.SessionSummary;
+import com.decalthon.helmet.stability.database.SessionCdlDb;
 
 public class GetLatestSessionSummaryAsyncTask extends AsyncTask<Void,
         Void, SessionSummary> {

@@ -5,14 +5,12 @@ import android.content.SharedPreferences;
 import android.os.StatFs;
 import android.util.Log;
 
-import com.decalthon.helmet.stability.MainApplication;
 import com.decalthon.helmet.stability.R;
-import com.decalthon.helmet.stability.Utilities.Common;
-import com.decalthon.helmet.stability.Utilities.Constants;
-import com.decalthon.helmet.stability.Utilities.FileUtilities;
+import com.decalthon.helmet.stability.utilities.Common;
+import com.decalthon.helmet.stability.utilities.Constants;
+import com.decalthon.helmet.stability.utilities.FileUtilities;
 
 import java.io.File;
-import java.util.Date;
 
 
 public class DevicePreferences {

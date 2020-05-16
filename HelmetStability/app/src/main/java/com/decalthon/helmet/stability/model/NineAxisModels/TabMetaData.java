@@ -1,6 +1,5 @@
-package com.decalthon.helmet.stability.model.NineAxisModels;
+package com.decalthon.helmet.stability.model.nineaxismodels;
 
-import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 

@@ -4,7 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.provider.Settings;
 
-import com.decalthon.helmet.stability.Utilities.Constants;
+import com.decalthon.helmet.stability.utilities.Constants;
 
 import java.util.Date;
 
@@ -153,7 +153,7 @@ public class UserPreferences {
      * @return String
      */
     public String getProfilePhoto(){
-        return sharedpreferences.getString(Constants.PHOTOS_KEY,"default");
+        return sharedpreferences.getString(Constants.PHOTOS_KEY,Constants.DEFAULT_PATH);
     }
 
 //    public String getAddr(String device_id){

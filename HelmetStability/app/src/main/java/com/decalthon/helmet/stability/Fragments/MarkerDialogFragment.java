@@ -1,11 +1,11 @@
-package com.decalthon.helmet.stability.Fragments;
+package com.decalthon.helmet.stability.fragments;
 
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.net.Uri;
 import android.os.Bundle;
-import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,6 +25,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+import androidx.fragment.app.FragmentManager;
 import de.greenrobot.event.EventBus;
 
 /**
@@ -145,8 +146,7 @@ public class MarkerDialogFragment extends DialogFragment {
                 .setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        EventBus.getDefault().post(new MarkerNote(note_type, ""));
-                        dismiss();
+                        showDeleteConfirmDialog();
                     }
                 });
 
@@ -171,6 +171,27 @@ public class MarkerDialogFragment extends DialogFragment {
 //            textEditor.setText(noteParam1);*/
 //        }
         return view;
+    }
+
+    private void showDeleteConfirmDialog(){
+        AlertDialog alertDialog = new AlertDialog.Builder(getContext())
+                .setTitle("Alert")
+                .setMessage("Do you want to delete this note?")
+                .setPositiveButton("YES", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        EventBus.getDefault().post(new MarkerNote(note_type, ""));
+                        MarkerDialogFragment.this.dismiss();
+                    }
+                })
+                .setNegativeButton("NO", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                })
+                .create();
+        alertDialog.show();
     }
 
     @Override

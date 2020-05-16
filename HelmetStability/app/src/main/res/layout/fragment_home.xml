@@ -5,31 +5,32 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    >
-
+    android:theme = "@style/AppTheme">
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="@dimen/action_bar_height"
-        android:background="@color/colorPrimary"
+
         android:id= "@+id/home_action_bar"
         android:layout_alignParentStart="true">
+<!--        android:background="@color/colorPrimary"-->
         <include
             layout="@layout/actionbar_home" />
     </LinearLayout>
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="500dp"
+        android:layout_height="@dimen/home_content_space"
         android:id = "@+id/content_view"
         android:layout_below="@id/home_action_bar"
-        android:layout_above="@id/calendar_icon"
-        android:background="@color/white">
-
+        android:layout_above="@id/calendar_icon">
+<!--        android:background="@color/white"-->
         <include layout="@layout/session_summary_card_layout"
             android:id="@+id/latest_activity_summary"
             android:layout_alignParentTop="true"
             android:layout_height="wrap_content"
             android:layout_width="match_parent"
-            android:layout_margin="1dp"
+            android:layout_marginTop="@dimen/card_margin"
+            android:layout_marginLeft="@dimen/card_margin"
+            android:layout_marginRight="@dimen/card_margin"
             />
 
         <androidx.cardview.widget.CardView
@@ -37,15 +38,20 @@
             android:layout_below="@id/latest_activity_summary"
             android:layout_height="wrap_content"
             android:layout_width="match_parent"
-            android:layout_margin="1dp"
-            app:cardBackgroundColor="@color/orange"
+            android:layout_marginTop="@dimen/card_margin"
+            android:layout_marginLeft="@dimen/card_margin"
+            android:layout_marginRight="@dimen/card_margin"
+            app:cardBackgroundColor="@color/colorPrimary"
             app:cardCornerRadius="@dimen/card_radius"
             app:contentPadding="@dimen/card_padding"
             app:cardElevation="0dp">
+
+        <!--            app:cardBackgroundColor="@color/orange"-->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                >
                 <TextView
                     android:id = "@+id/collective_summary_card_title"
                     android:layout_height="wrap_content"
@@ -55,111 +61,320 @@
                     android:layout_width="wrap_content"
                     android:fontFamily="sans-serif"
                     android:text = "@string/card_heading_placeholder"/>
+                <TableLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
 
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-                    <TextView
-                        android:layout_width="wrap_content"
+                    <TableRow
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:textSize="16sp"
-                        android:text="@string/sample_bullet_point"/>
-                    <TextView
-                        android:id = "@+id/number_sessions_tv"
-                        android:layout_width="wrap_content"
+                        >
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_column="1"
+                            android:layout_weight="1"
+                            android:fontFamily="sans-serif"
+                            android:padding="2dp"
+                            android:text="@string/n_sessions"
+                            android:textAlignment="viewStart"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+                        <TextView
+                            android:id="@+id/number_sessions_tv"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_column="1"
+                            android:layout_weight="5"
+                            android:padding="2dp"
+                            android:text="@string/algorithm_output1"
+                            android:textAlignment="viewStart"
+                            android:fontFamily="sans-serif"
+                            android:textSize="15sp"
+                            android:singleLine="true"
+                            />
+                    </TableRow>
+                    <TableRow
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:textSize="16sp"
-                        android:text="@string/card_view_default_tv_text"
-                        />
-                </LinearLayout>
+                        android:background="@color/colorPrimary"
+                        >
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_column="1"
+                            android:layout_weight="1"
+                            android:padding="2dp"
+                            android:text="@string/total_duration_desc"
+                            android:textAlignment="viewStart"
+                            android:fontFamily="sans-serif"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+                        <TextView
+                            android:id="@+id/total_duration_tv"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_column="1"
+                            android:layout_weight="5"
+                            android:padding="2dp"
+                            android:text="@string/algorithm_output1"
+                            android:textAlignment="viewStart"
+                            android:fontFamily="sans-serif"
+                            android:textSize="15sp"
+                            android:singleLine="true"
+                            />
+                    </TableRow>
+                    <TableRow
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@color/colorPrimary"
+                        >
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_column="1"
+                            android:layout_weight="1"
+                            android:padding="2dp"
+                            android:text="@string/total_data_desc"
+                            android:textAlignment="viewStart"
+                            android:fontFamily="sans-serif"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+                        <TextView
+                            android:id="@+id/total_data_tv"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_column="1"
+                            android:layout_weight="5"
+                            android:padding="2dp"
+                            android:text="@string/algorithm_output1"
+                            android:textAlignment="viewStart"
+                            android:fontFamily="sans-serif"
+                            android:textSize="15sp"
+                            android:singleLine="true"
+                            />
+                    </TableRow>
+                    <TableRow
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@color/colorPrimary"
+                        >
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_column="1"
+                            android:layout_weight="1"
+                            android:padding="2dp"
+                            android:text="@string/types_of_data_desc"
+                            android:textAlignment="viewStart"
+                            android:fontFamily="sans-serif"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+                        <TextView
+                            android:id="@+id/types_of_activity_tv"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_column="1"
+                            android:layout_weight="5"
+                            android:padding="2dp"
+                            android:text="@string/algorithm_output1"
+                            android:textAlignment="viewStart"
+                            android:fontFamily="sans-serif"
+                            android:textSize="15sp"
+                            android:singleLine="true"
+                            />
+                    </TableRow>
+                </TableLayout>
+
+<!--                <LinearLayout-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:orientation="horizontal">-->
+<!--                    <TextView-->
+<!--                        android:layout_width="wrap_content"-->
+<!--                        android:layout_height="wrap_content"-->
+<!--                        android:layout_weight="1"-->
+<!--                        android:fontFamily="sans-serif"-->
+<!--                        android:padding="2dp"-->
+<!--                        android:text="@string/n_sessions"-->
+<!--                        android:textAlignment="viewStart"-->
+<!--                        android:textSize="16sp"-->
+<!--                        android:textStyle="bold"/>-->
+<!--                    <TextView-->
+<!--                        android:id = "@+id/number_sessions_tv"-->
+<!--                        android:layout_width="wrap_content"-->
+<!--                        android:layout_height="wrap_content"-->
+<!--                        android:textSize="16sp"-->
+<!--                        android:text="@string/card_view_default_tv_text"-->
+<!--                        />-->
+<!--                </LinearLayout>-->
 
 
 
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textSize="16sp"
-                        android:text="@string/sample_bullet_point"/>
-                    <TextView
-                        android:id = "@+id/total_duration_tv"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textSize="16sp"
-                        android:text="@string/card_view_default_tv_text"
-                        />
-                </LinearLayout>
+<!--                <LinearLayout-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:orientation="horizontal">-->
+<!--&lt;!&ndash;                    <TextView&ndash;&gt;-->
+<!--&lt;!&ndash;                        android:layout_width="wrap_content"&ndash;&gt;-->
+<!--&lt;!&ndash;                        android:layout_height="wrap_content"&ndash;&gt;-->
+<!--&lt;!&ndash;                        android:textSize="16sp"&ndash;&gt;-->
+<!--&lt;!&ndash;                        android:text="@string/sample_bullet_point"/>&ndash;&gt;-->
+<!--                    <TextView-->
+<!--                        android:id = "@+id/total_duration_tv"-->
+<!--                        android:layout_width="wrap_content"-->
+<!--                        android:layout_height="wrap_content"-->
+<!--                        android:textSize="16sp"-->
+<!--                        android:text="@string/card_view_default_tv_text"-->
+<!--                        />-->
+<!--                </LinearLayout>-->
 
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textSize="16sp"
-                        android:text="@string/sample_bullet_point"/>
-                    <TextView
-                        android:id = "@+id/total_data_tv"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textSize="16sp"
-                        android:text="@string/card_view_default_tv_text"
-                        />
-                </LinearLayout>
+<!--                <LinearLayout-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:orientation="horizontal">-->
+<!--&lt;!&ndash;                    <TextView&ndash;&gt;-->
+<!--&lt;!&ndash;                        android:layout_width="wrap_content"&ndash;&gt;-->
+<!--&lt;!&ndash;                        android:layout_height="wrap_content"&ndash;&gt;-->
+<!--&lt;!&ndash;                        android:textSize="16sp"&ndash;&gt;-->
+<!--&lt;!&ndash;                        android:text="@string/sample_bullet_point"/>&ndash;&gt;-->
+<!--                    <TextView-->
+<!--                        android:id = "@+id/total_data_tv"-->
+<!--                        android:layout_width="wrap_content"-->
+<!--                        android:layout_height="wrap_content"-->
+<!--                        android:textSize="16sp"-->
+<!--                        android:text="@string/card_view_default_tv_text"-->
+<!--                        />-->
+<!--                </LinearLayout>-->
 
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textSize="16sp"
-                        android:text="@string/sample_bullet_point"/>
+<!--                <LinearLayout-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:orientation="horizontal">-->
+<!--&lt;!&ndash;                    <TextView&ndash;&gt;-->
+<!--&lt;!&ndash;                        android:layout_width="wrap_content"&ndash;&gt;-->
+<!--&lt;!&ndash;                        android:layout_height="wrap_content"&ndash;&gt;-->
+<!--&lt;!&ndash;                        android:textSize="16sp"&ndash;&gt;-->
+<!--&lt;!&ndash;                        android:text="@string/sample_bullet_point"/>&ndash;&gt;-->
 
-                    <TextView
-                        android:id="@+id/types_of_activity_tv"
-                        android:layout_width="wrap_content"
-                        android:layout_height="match_parent"
-                        android:text="@string/card_view_default_tv_text"
-                        android:textSize="16sp" />
-                </LinearLayout>
+<!--                    <TextView-->
+<!--                        android:id="@+id/types_of_activity_tv"-->
+<!--                        android:layout_width="wrap_content"-->
+<!--                        android:layout_height="match_parent"-->
+<!--                        android:text="@string/card_view_default_tv_text"-->
+<!--                        android:textSize="16sp" />-->
+<!--                </LinearLayout>-->
             </LinearLayout>
         </androidx.cardview.widget.CardView>
-
-        <Button
-            android:layout_height="wrap_content"
-            android:layout_width="match_parent"
-            android:layout_marginStart = "1dp"
-            android:layout_marginEnd = "1dp"
-            android:background="@color/green_color"
-            android:text = "@string/firmware"
-            android:textSize="16sp"
+<!--        <Button-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_marginTop="@dimen/card_margin"-->
+<!--            android:layout_marginLeft="@dimen/card_margin"-->
+<!--            android:layout_marginRight="@dimen/card_margin"-->
+<!--            android:background="@drawable/general_round_rectangle"-->
+<!--            android:backgroundTint="@color/green"-->
+<!--            android:text = "@string/firmware"-->
+<!--            android:textSize="16sp"-->
+<!--            android:id="@+id/firmware_details"-->
+<!--            android:layout_below="@id/collective_summary" />-->
+        <LinearLayout
             android:id="@+id/firmware_details"
+            android:layout_height="40dp"
+            android:layout_width="match_parent"
+            android:layout_marginTop="@dimen/card_margin"
+            android:layout_marginLeft="@dimen/card_margin"
+            android:layout_marginRight="@dimen/card_margin"
             android:layout_below="@id/collective_summary"
-            android:layout_margin="1dp"/>
+            android:backgroundTint="@color/colorPrimary"
+            android:background="@drawable/general_round_rectangle"
+            >
+            <TextView
+                android:id = "@+id/firmware_type"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_width="wrap_content"
+                android:fontFamily="sans-serif"
+                android:layout_weight="5"
+                android:text = "@string/firmware"/>
+            <TextView
+                android:id = "@+id/firmware_ver"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_width="wrap_content"
+                android:fontFamily="sans-serif"
+                android:layout_weight="5"
+                android:text = "@string/firmware_version"/>
+<!--            <Button-->
+<!--                android:id="@+id/firmware_type"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_margin="@dimen/card_margin"-->
+<!--		        android:text = "@string/firmware"-->
+<!--                android:textStyle="bold"-->
+<!--                android:textSize="16sp"-->
+<!--                android:fontFamily="sans-serif"-->
+<!--                android:layout_weight="5"-->
+<!--                android:textAllCaps="false"-->
+<!--                android:visibility="gone-->
+<!--"-->
+<!--                android:backgroundTint="@color/colorPrimary"-->
+<!--                android:background="@color/colorPrimary"-->
+<!--                />-->
+
+<!--            <Button-->
+<!--                android:id="@+id/firmware_ver"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_margin="@dimen/card_margin"-->
+<!--                android:text = "@string/firmware_version"-->
+<!--                android:textSize="15sp"-->
+<!--                android:layout_weight="3"-->
+<!--                android:fontFamily="sans-serif"-->
+<!--                android:textAllCaps="false"-->
+<!--                android:backgroundTint="@color/colorPrimary"-->
+<!--                android:background="@color/colorPrimary"-->
+<!--                />-->
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_below="@id/firmware_details"
-            android:background="@color/gray"
-            android:layout_margin="1dp">
+            android:layout_marginTop="@dimen/card_margin"
+            android:layout_marginLeft="@dimen/card_margin"
+            android:layout_marginRight="@dimen/card_margin"
+            android:paddingTop="@dimen/card_padding"
+            android:backgroundTint="@color/colorPrimary"
+            android:background="@drawable/general_round_rectangle"
+            android:orientation="vertical">
+<!--            android:background="@color/gray"-->
             <TextView
                 android:id="@+id/algorithm_output"
-                android:text = "@string/algorithm_output"
-                android:textSize="16sp"
-                android:textColor="@color/white"
-                android:textAlignment="center"
-                android:padding="4dp"
-                android:layout_height="70dp"
                 android:layout_width="match_parent"
-                />
+                android:layout_height="wrap_content"
+                android:padding="4dp"
+                android:text="@string/algorithm_output"
+                android:textAlignment="center"
+                android:textSize="16sp"
+                android:fontFamily="sans-serif"
+                android:textStyle="bold"
+                android:layout_weight="1"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_weight="3">
+                <include
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    layout="@layout/algorithm_output" />
+            </LinearLayout>
+
         </LinearLayout>
 
         <!--        `<TextView-->
@@ -230,14 +445,15 @@
 <!--        android:layout_alignParentBottom="true"-->
 <!--        -->
 <!--        android:gravity="center">-->
-
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/calendar_icon"
             android:layout_width="match_parent"
             android:layout_height="@dimen/action_bar_height"
-            android:layout_alignParentBottom="true"
+            android:layout_marginTop="@dimen/card_margin"
             android:background="@color/colorPrimary"
             android:src="@mipmap/calendar_round"
+            android:layout_alignParentBottom="true"
             android:padding="4dp"/>
+<!--    <android:background="@color/colorPrimary"-->
 <!--    </LinearLayout>-->
 </RelativeLayout>

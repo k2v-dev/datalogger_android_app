@@ -1,14 +1,13 @@
-package com.decalthon.helmet.stability.BLE;
+package com.decalthon.helmet.stability.ble;
 
 import android.content.Context;
 import android.util.Log;
 
-import com.decalthon.helmet.stability.DB.Entities.ButtonBoxEntity;
-import com.decalthon.helmet.stability.DB.Entities.SessionSummary;
+import com.decalthon.helmet.stability.database.entities.SessionSummary;
 import com.decalthon.helmet.stability.R;
-import com.decalthon.helmet.stability.Utilities.Constants;
-import com.decalthon.helmet.stability.model.DeviceModels.DeviceData;
-import com.decalthon.helmet.stability.model.DeviceModels.DeviceHelper;
+import com.decalthon.helmet.stability.utilities.Constants;
+import com.decalthon.helmet.stability.model.devicemodels.DeviceData;
+import com.decalthon.helmet.stability.model.devicemodels.DeviceHelper;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;

@@ -1,4 +1,4 @@
-package com.decalthon.helmet.stability.Fragments;
+package com.decalthon.helmet.stability.fragments;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -22,14 +22,16 @@ import androidx.fragment.app.FragmentManager;
 
 import com.chaos.view.PinView;
 import com.decalthon.helmet.stability.R;
-import com.decalthon.helmet.stability.Utilities.Common;
-import com.decalthon.helmet.stability.Utilities.Constants;
-import com.decalthon.helmet.stability.Utilities.Helper;
-import com.decalthon.helmet.stability.Utilities.UniqueKeyGen;
+import com.decalthon.helmet.stability.preferences.CollectiveSummaryPreference;
+import com.decalthon.helmet.stability.utilities.Common;
+import com.decalthon.helmet.stability.utilities.Constants;
+import com.decalthon.helmet.stability.utilities.Helper;
+import com.decalthon.helmet.stability.utilities.UniqueKeyGen;
 import com.decalthon.helmet.stability.firestore.FirestoreUserModel;
 import com.decalthon.helmet.stability.model.InternetCheck;
 import com.decalthon.helmet.stability.preferences.ProfilePreferences;
 import com.decalthon.helmet.stability.preferences.UserPreferences;
+import com.decalthon.helmet.stability.webservice.requests.CollectiveSummaryReq;
 import com.decalthon.helmet.stability.webservice.requests.ProfileReq;
 import com.decalthon.helmet.stability.webservice.requests.UserInfoReq;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -55,8 +57,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
-
-import static androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE;
 
 
 /**
@@ -340,7 +340,7 @@ public class RegistrationFormFragment extends Fragment implements View.OnClickLi
             registerBtn.setText(getResources().getString(R.string.verify));
             first.setVisibility(View.GONE);
             second.setVisibility(View.VISIBLE);
-            topText.setText(getResources().getString(R.string.enter_otp_msg));
+            topText.setText(getResources().getString(R.string.enter_otp));
 
         }
     };
@@ -535,15 +535,23 @@ public class RegistrationFormFragment extends Fragment implements View.OnClickLi
         //profileReq.dob = Common.getTimestamp(25);
         Map<String, Object> profile = new HashMap<>();
         profile.put(Constants.ProfileFields.USERNAME, profileReq.name);
-        profile.put(Constants.ProfileFields.WEIGHT, profileReq.weight);
-        profile.put(Constants.ProfileFields.HEIGHT, profileReq.height);
+        profile.put(Constants.ProfileFields.WEIGHT, profileReq.wt);
+        profile.put(Constants.ProfileFields.HEIGHT, profileReq.ht);
         profile.put(Constants.ProfileFields.DOB, profileReq.dob);
         profile.put(Constants.ProfileFields.GENDER, profileReq.gender);
 
+        CollectiveSummaryReq collectiveSummaryReq = new CollectiveSummaryReq();
+        Map<String, Object> user_data = new HashMap<>();
+        user_data.put(Constants.CollSumFields.TOT_SESSION, collectiveSummaryReq.total_sessions);
+        user_data.put(Constants.CollSumFields.TOT_DURATION, collectiveSummaryReq.total_duration);
+        user_data.put(Constants.CollSumFields.TOT_SIZE, collectiveSummaryReq.total_size);
+        user_data.put(Constants.CollSumFields.ACT_CODE, collectiveSummaryReq.activity_types);
+
+        Task<Void> newUserData = firestoreDb.collection(Constants.USER_DATA_COLLECTION).document(user_id).set(user_data);
         Task<Void> newUser = firestoreDb
                 .collection(Constants.USER_COLLECTION).document(user_id).set(user);
         Task<Void> newProfile = firestoreDb.collection(Constants.PROFILE_COLLECTION).document(user_id).set(profile);
-        Task combinedTask = Tasks.whenAllSuccess(newUser, newProfile).addOnSuccessListener(new OnSuccessListener<List<Object>>() {
+        Task combinedTask = Tasks.whenAllSuccess(newUser, newProfile, newUserData).addOnSuccessListener(new OnSuccessListener<List<Object>>() {
             @Override
             public void onSuccess(List<Object> list) {
                 Log.d(TAG, "User & Profile was successfully added");
@@ -560,14 +568,23 @@ public class RegistrationFormFragment extends Fragment implements View.OnClickLi
                 //profileReq.dob = Common.getTimestamp(25);
                 profilePreferences.saveDob(profileReq.dob);
                 profilePreferences.saveGender(profileReq.gender);
-                profilePreferences.saveHeight(profileReq.height);
-                profilePreferences.saveWeight(profileReq.weight);
+                profilePreferences.saveHeight((float)profileReq.ht);
+                profilePreferences.saveWeight((float)profileReq.wt);
+
+                CollectiveSummaryPreference collSumPreferences = new CollectiveSummaryPreference(getContext());
+                collSumPreferences.setTotDuration(collectiveSummaryReq.total_duration);
+                collSumPreferences.setTotSession(collectiveSummaryReq.total_sessions);
+                collSumPreferences.setTotSize(collectiveSummaryReq.total_size);
+                collSumPreferences.setActCodes(collectiveSummaryReq.activity_types);
 
                 pb_bar.setVisibility(View.INVISIBLE);
-
-                FragmentManager fm = getActivity()
-                        .getSupportFragmentManager();
-                fm.popBackStack(HomeFragment.class.getSimpleName(), POP_BACK_STACK_INCLUSIVE);
+                Constants.isPhotoChanged = true;
+                if(getActivity() != null){
+                    getActivity().finish();
+                }
+//                FragmentManager fm = getActivity()
+//                        .getSupportFragmentManager();
+//                fm.popBackStack(HomeFragment.class.getSimpleName(), POP_BACK_STACK_INCLUSIVE);
             }
         }).addOnFailureListener(new OnFailureListener() {
             @Override
